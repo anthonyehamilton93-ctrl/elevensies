@@ -96,7 +96,7 @@ export default async function handler(req, res) {
     }
     const fullRanked = Object.entries(lbMap)
       .map(([id, u]) => ({ id, name: profileMap[id]?.display_name || 'Player', avg: u.total / u.count, best: u.best }))
-      .sort((a, b) => b.avg - a.avg);
+      .sort((a, b) => b.best - a.best);
 
     const top10 = fullRanked.slice(0, 10);
 
@@ -107,7 +107,8 @@ export default async function handler(req, res) {
       : null;
 
     // Use first player with scores as the preview user
-    const previewUserId = fullRanked[0]?.id;
+    // Use ?uid= param if provided, otherwise fall back to first ranked player
+    const previewUserId = req.query.uid || fullRanked[0]?.id;
     const previewProfile = previewUserId ? profileMap[previewUserId] : null;
     const previewName = previewProfile?.display_name || 'Player';
     const myWeekScores = weekResults.filter(r => r.user_id === previewUserId).sort((a, b) => new Date(a.played_at) - new Date(b.played_at));
