@@ -17,8 +17,8 @@ function scheduleReminder() {
   const ms = msUntilNext11am();
   reminderTimeout = setTimeout(async () => {
     try {
-      await self.registration.showNotification('Elevensies 🟡', {
-        body: "Today's game is open — play your word before midday!",
+      await self.registration.showNotification('Elevensies 🟨', {
+        body: "Today's game is open — play before midday!",
         tag: 'elevensies-daily',
         renotify: false,
         data: { url: self.registration.scope }
