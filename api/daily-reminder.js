@@ -197,7 +197,7 @@ export default async function handler(req, res) {
         return {
           from: FROM_EMAIL,
           to: emailMap[uid],
-          subject: "Time for Elevensies! 🟡",
+          subject: "Time for Elevensies! 🟨",
           html,
         };
       });
