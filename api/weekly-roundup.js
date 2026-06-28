@@ -10,7 +10,7 @@ const CRON_SECRET = process.env.CRON_SECRET;
 
 const BADGE_NAMES = {
   streak: 'STREAK', wordsmith: 'WORDSMITH', avid: 'AVID',
-  doubledown: 'DOUBLE DOWN', spotter: 'SPOTTER', purist: 'PURIST',
+  doubledown: 'DOUBLES', spotter: 'SPOTTER', purist: 'PURIST',
   linguist: 'LINGUIST', centurion: 'CENTURION'
 };
 
@@ -242,7 +242,7 @@ export default async function handler(req, res) {
       return {
         from: FROM_EMAIL,
         to: user.email,
-        subject: 'This week in Elevensies',
+        subject: 'This week in Elevensies 🟨',
         html: buildEmail({
           name,
           weekScores: myWeekScores,
