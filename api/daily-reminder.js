@@ -1,7 +1,7 @@
 // api/daily-reminder.js
 // Runs every hour via Supabase pg_cron.
 // Finds players whose local time is currently 11am AND who played yesterday,
-// then sends them a streak-aware reminder email.
+// then sends them a streak-aware reminder email with yesterday's score.
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -9,20 +9,17 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const FROM_EMAIL = 'Elevensies <noreply@playelevensies.com>';
 const GAME_URL = 'https://playelevensies.com';
 const CRON_SECRET = process.env.CRON_SECRET;
+// const COFFEE_URL = 'https://ko-fi.com/YOUR_HANDLE'; // add when ready
 
 async function db(path) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
-    headers: {
-      apikey: SUPABASE_SERVICE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-    },
+    headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
   });
   return res.json();
 }
 
-function reminderHTML(name, streak) {
+function reminderHTML(name, streak, yesterdayScore, userId) {
   const greeting = name && !name.startsWith('user') ? `Hey ${name},` : 'Hey,';
-
   const streakLine = streak >= 2
     ? `You're on a <strong style="color:#f0c020;">${streak}-day streak</strong> — don't break it now.`
     : `Today's your chance to start a streak.`;
@@ -47,25 +44,35 @@ function reminderHTML(name, streak) {
         </td></tr>
 
         <tr><td style="padding:0 40px;text-align:center;">
-          <h2 style="font-family:'Jost',sans-serif;font-size:22px;font-weight:700;color:#ffffff;margin:0 0 12px 0;">
-            Time for Elevensies!
-          </h2>
+          <h2 style="font-family:'Jost',sans-serif;font-size:22px;font-weight:700;color:#ffffff;margin:0 0 12px 0;">Time for Elevensies!</h2>
           <p style="font-family:'Jost',sans-serif;font-size:15px;line-height:22px;color:#e2e8f0;margin:0 0 12px 0;">
             ${greeting} today's game is open right now. You've got one hour.
           </p>
-          <p style="font-family:'Jost',sans-serif;font-size:15px;line-height:22px;color:#e2e8f0;margin:0 0 28px 0;">
+          <p style="font-family:'Jost',sans-serif;font-size:15px;line-height:22px;color:#e2e8f0;margin:0 0 20px 0;">
             ${streakLine}
           </p>
         </td></tr>
 
-        <tr><td align="center" style="padding:0 40px 44px 40px;">
+        ${yesterdayScore !== null ? `
+        <!-- Yesterday's score challenge -->
+        <tr><td style="padding:0 24px 24px;">
+          <table width="100%" border="0" cellpadding="0" cellspacing="0">
+            <tr><td style="background-color:#114b29;padding:16px 20px;text-align:center;border-radius:8px;">
+              <p style="font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.12em;color:#8ba895;margin:0 0 6px 0;">YESTERDAY'S SCORE</p>
+              <p style="font-family:'Jost',sans-serif;font-size:48px;font-weight:900;color:#f0c020;margin:0 0 4px 0;line-height:1;">${yesterdayScore}</p>
+              <p style="font-family:'Jost',sans-serif;font-size:13px;color:#e2e8f0;margin:0;opacity:0.8;">Can you beat it?</p>
+            </td></tr>
+          </table>
+        </td></tr>` : ''}
+
+        <tr><td align="center" style="padding:0 40px 16px 40px;">
           <a href="${GAME_URL}" style="display:inline-block;background-color:#f0c020;color:#155c33;font-family:'Jost',sans-serif;font-size:15px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:8px;letter-spacing:0.02em;text-transform:uppercase;">Play Now</a>
         </td></tr>
 
         <tr><td style="padding:20px 40px;background-color:#114b29;text-align:center;">
           <p style="font-family:'Jost',sans-serif;font-size:12px;line-height:18px;color:#8ba895;margin:0;">
             You're getting this because you played yesterday.
-            <a href="${GAME_URL}/api/unsubscribe?uid=\${userId}" style="color:#8ba895;">Unsubscribe</a>
+            <a href="${GAME_URL}/api/unsubscribe?uid=${userId}" style="color:#8ba895;text-decoration:underline;">Stop reminders</a>
           </p>
         </td></tr>
 
@@ -98,44 +105,17 @@ export default async function handler(req, res) {
   if (CRON_SECRET && secret !== CRON_SECRET) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
-    // Current UTC time
     const now = new Date();
-    const currentUTCMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const targetOffset = (11 - now.getUTCHours()) * 60;
 
-    // 11am in a given offset = 11*60 + offset minutes from UTC start of day
-    // We want players where (11*60 - utc_offset) === currentUTCMinutes (within 30 min window)
-    // i.e. utc_offset where local 11am falls in this hour
-    const targetUTCHour = now.getUTCHours();
-    // Players whose local time is 11am when UTC is targetUTCHour:
-    // local_hour = UTC_hour + (utc_offset / 60)
-    // 11 = targetUTCHour + (utc_offset / 60)
-    // utc_offset = (11 - targetUTCHour) * 60
-    const targetOffset = (11 - targetUTCHour) * 60;
-
-    // Yesterday's date range in UTC (we look for games played in the last 24-48h)
     const yesterday = new Date(now);
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
     const dayBefore = new Date(yesterday);
     dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
 
-    // Find players who played yesterday with this UTC offset OR with NULL offset
-    // For NULL offset games, infer timezone from played_at time —
-    // if they played between 10:00-12:00 UTC yesterday, assume they're near UTC/BST
     const [recentGames, nullOffsetGames] = await Promise.all([
-      // Players with known offset matching today's target
-      db(
-        `/game_results?select=user_id,played_at,utc_offset&game_status=eq.completed` +
-        `&utc_offset=eq.${targetOffset}` +
-        `&played_at=gte.${dayBefore.toISOString()}` +
-        `&played_at=lt.${now.toISOString()}`
-      ),
-      // Players with NULL offset — include them at UTC+1 hour (10:00 UTC) only
-      targetOffset === 60 ? db(
-        `/game_results?select=user_id,played_at,utc_offset&game_status=eq.completed` +
-        `&utc_offset=is.null` +
-        `&played_at=gte.${dayBefore.toISOString()}` +
-        `&played_at=lt.${now.toISOString()}`
-      ) : Promise.resolve([])
+      db(`/game_results?select=user_id,played_at,utc_offset,total_score&game_status=eq.completed&utc_offset=eq.${targetOffset}&played_at=gte.${dayBefore.toISOString()}&played_at=lt.${now.toISOString()}`),
+      targetOffset === 60 ? db(`/game_results?select=user_id,played_at,utc_offset,total_score&game_status=eq.completed&utc_offset=is.null&played_at=gte.${dayBefore.toISOString()}&played_at=lt.${now.toISOString()}`) : Promise.resolve([])
     ]);
 
     const allRecentGames = [...(recentGames || []), ...(nullOffsetGames || [])];
@@ -144,35 +124,27 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: `No players at offset ${targetOffset} played yesterday` });
     }
 
-    // Get unique user IDs who played yesterday (not today)
     const todayStart = new Date(now);
     todayStart.setUTCHours(0, 0, 0, 0);
 
-    const playedYesterdayIds = [...new Set(
-      allRecentGames
-        .filter(g => new Date(g.played_at) < todayStart)
-        .map(g => g.user_id)
-    )];
-
-    if (playedYesterdayIds.length === 0) {
-      return res.status(200).json({ message: 'No eligible players' });
+    // Get yesterday's game per user (most recent)
+    const yesterdayByUser = {};
+    for (const g of allRecentGames) {
+      if (new Date(g.played_at) < todayStart) {
+        if (!yesterdayByUser[g.user_id] || new Date(g.played_at) > new Date(yesterdayByUser[g.user_id].played_at)) {
+          yesterdayByUser[g.user_id] = g;
+        }
+      }
     }
 
-    // Fetch all game dates for streak calculation
-    const allGames = await db(
-      `/game_results?select=user_id,played_at&game_status=eq.completed` +
-      `&user_id=in.(${playedYesterdayIds.join(',')})`
-    );
+    const playedYesterdayIds = Object.keys(yesterdayByUser);
+    if (playedYesterdayIds.length === 0) return res.status(200).json({ message: 'No eligible players' });
 
-    // Fetch profiles for names and unsubscribe flag
-    const profiles = await db(
-      `/profiles?select=id,display_name,email_unsubscribed` +
-      `&id=in.(${playedYesterdayIds.join(',')})`
-    );
+    const allGames = await db(`/game_results?select=user_id,played_at&game_status=eq.completed&user_id=in.(${playedYesterdayIds.join(',')})`);
+    const profiles = await db(`/profiles?select=id,display_name,email_unsubscribed&id=in.(${playedYesterdayIds.join(',')})`);
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.id] = p; });
 
-    // Fetch emails from auth
     const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?per_page=1000`, {
       headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
     });
@@ -180,7 +152,6 @@ export default async function handler(req, res) {
     const emailMap = {};
     (users || []).forEach(u => { emailMap[u.id] = u.email; });
 
-    // Build per-user streak and send emails
     const datesByUser = {};
     for (const g of allGames) {
       if (!datesByUser[g.user_id]) datesByUser[g.user_id] = [];
@@ -193,12 +164,12 @@ export default async function handler(req, res) {
         const profile = profileMap[uid];
         const name = profile?.display_name || null;
         const streak = calcStreak(datesByUser[uid] || []);
-        const html = reminderHTML(name, streak).replace('${userId}', uid);
+        const yesterdayScore = yesterdayByUser[uid]?.total_score ?? null;
         return {
           from: FROM_EMAIL,
           to: emailMap[uid],
           subject: "Time for Elevensies! 🟨",
-          html,
+          html: reminderHTML(name, streak, yesterdayScore, uid),
         };
       });
 
