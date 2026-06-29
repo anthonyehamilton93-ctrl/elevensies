@@ -72,7 +72,7 @@ function reminderHTML(name, streak, yesterdayScore, userId) {
         <tr><td style="padding:20px 40px;background-color:#114b29;text-align:center;">
           <p style="font-family:'Jost',sans-serif;font-size:12px;line-height:18px;color:#8ba895;margin:0;">
             You're getting this because you played yesterday.
-            <a href="${GAME_URL}/api/unsubscribe?uid=${userId}" style="color:#8ba895;text-decoration:underline;">Stop reminders</a>
+            <a href="${GAME_URL}/api/unsubscribe-reminders?uid=${userId}" style="color:#8ba895;text-decoration:underline;">Stop reminders</a>
           </p>
         </td></tr>
 
@@ -141,7 +141,7 @@ export default async function handler(req, res) {
     if (playedYesterdayIds.length === 0) return res.status(200).json({ message: 'No eligible players' });
 
     const allGames = await db(`/game_results?select=user_id,played_at&game_status=eq.completed&user_id=in.(${playedYesterdayIds.join(',')})`);
-    const profiles = await db(`/profiles?select=id,display_name,email_unsubscribed&id=in.(${playedYesterdayIds.join(',')})`);
+    const profiles = await db(`/profiles?select=id,display_name,reminders_unsubscribed&id=in.(${playedYesterdayIds.join(',')})`);
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.id] = p; });
 
@@ -159,7 +159,7 @@ export default async function handler(req, res) {
     }
 
     const emails = playedYesterdayIds
-      .filter(uid => !profileMap[uid]?.email_unsubscribed && emailMap[uid])
+      .filter(uid => !profileMap[uid]?.reminders_unsubscribed && emailMap[uid])
       .map(uid => {
         const profile = profileMap[uid];
         const name = profile?.display_name || null;
