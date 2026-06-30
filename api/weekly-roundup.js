@@ -91,7 +91,7 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
 
         <!-- Best word in the game this week -->
         ${globalBestWord && (!myBestWord || globalBestWord.word !== myBestWord.word) ? `
-        ${divider('BEST WORD IN THE GAME THIS WEEK')}
+        ${divider('BEST WORD THIS WEEK')}
         <tr><td style="padding:8px 40px 20px;text-align:center;">
           <p style="font-family:'Jost',sans-serif;font-size:36px;font-weight:900;color:#f0c020;margin:0 0 4px 0;letter-spacing:0.05em;">${globalBestWord.word.toUpperCase()}</p>
           <p style="font-family:'Jost',sans-serif;font-size:12px;color:#e2e8f0;margin:0;opacity:0.7;">${globalBestWord.score} pts · played by ${globalBestWord.playerName}</p>
@@ -157,6 +157,7 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
             You're receiving this as a registered Elevensies player.
             <a href="${GAME_URL}/api/unsubscribe?uid=${userId}" style="color:#8ba895;text-decoration:underline;">Unsubscribe</a>
           </p>
+          <p style="font-family:'Jost',sans-serif;font-size:11px;line-height:16px;color:#6f8a78;margin:8px 0 0 0;"><a href="https://ksniuexnzikitbadttxx.supabase.co/storage/v1/object/public/Privacy%20Policy/elevensies_privacy_policy.pdf" style="color:#6f8a78;text-decoration:underline;">Privacy Policy</a></p>
         </td></tr>
 
       </table>
