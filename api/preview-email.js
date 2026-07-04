@@ -252,7 +252,6 @@ export default async function handler(req, res) {
           Elevensies is a free daily word game — no ads, no subscriptions, no nonsense. Just you, 10 tiles, and one hour a day to find your best words.
         </p>
         <p style="font-family:'Jost',sans-serif;font-size:14px;line-height:1.6;color:#e2e8f0;margin:0 0 16px 0;">
-          🌱 <strong style="color:#f0c020;">For every 11 games you play, we'll plant a tree.</strong> Because good habits should leave something behind.
         </p>
         <p style="font-family:'Jost',sans-serif;font-size:13px;color:#8ba895;margin:0;">
           ${weekResults.length} games played across all players this week.
