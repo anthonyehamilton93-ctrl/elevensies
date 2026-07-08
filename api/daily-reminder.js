@@ -46,7 +46,7 @@ function reminderHTML(name, streak, yesterdayScore, userId) {
         <tr><td style="padding:0 40px;text-align:center;">
           <h2 style="font-family:'Jost',sans-serif;font-size:22px;font-weight:700;color:#ffffff;margin:0 0 12px 0;">Time for Elevensies!</h2>
           <p style="font-family:'Jost',sans-serif;font-size:15px;line-height:22px;color:#e2e8f0;margin:0 0 12px 0;">
-            ${greeting} today's game is open right now. You've got one hour.
+            ${greeting} today's game is open right now. You've got three hours.
           </p>
           <p style="font-family:'Jost',sans-serif;font-size:15px;line-height:22px;color:#e2e8f0;margin:0 0 20px 0;">
             ${streakLine}
