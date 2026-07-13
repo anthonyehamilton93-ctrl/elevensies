@@ -132,12 +132,8 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
           <p style="font-family:'Jost',sans-serif;font-size:12px;color:#e2e8f0;margin:0;opacity:0.7;">${rankLine}</p>
         </td></tr>
 
-        <!-- About + tree planting -->
-        ${divider('ABOUT ELEVENSIES')}
+        <!-- Games played this week -->
         <tr><td style="padding:8px 40px 24px;text-align:center;">
-          <p style="font-family:'Jost',sans-serif;font-size:14px;line-height:1.6;color:#e2e8f0;margin:0 0 12px 0;">
-            Elevensies is a free daily word game — eleven words, eleven turns, at eleven am. No ads, no subscriptions, no nonsense.
-          </p>
           <p style="font-family:'Jost',sans-serif;font-size:13px;color:#8ba895;margin:0;">
             ${totalGamesPlayed} games played across all players this week.
           </p>
@@ -195,7 +191,7 @@ export default async function handler(req, res) {
     const fullRanked = Object.entries(lbMap)
       .map(([id, u]) => ({ id, name: profileMap[id]?.display_name || 'Player', avg: u.total / u.count, best: u.best }))
       .sort((a, b) => b.best - a.best);
-    const top10 = fullRanked.slice(0, 10);
+    const top11 = fullRanked.slice(0, 11);
 
     // Global best word this week
     const globalBestThisWeek = weekResults.reduce((b, r) => (r.best_word_score || 0) > (b?.best_word_score || 0) ? r : b, null);
@@ -227,8 +223,8 @@ export default async function handler(req, res) {
         const userRank = rankIndex >= 0 ? rankIndex + 1 : null;
 
         // Leaderboard rows
-        let lbRows = top10.map((r, i) => ({ ...r, rank: i + 1, isYou: r.id === user.id }));
-        if (userRank && userRank > 10) {
+        let lbRows = top11.map((r, i) => ({ ...r, rank: i + 1, isYou: r.id === user.id }));
+        if (userRank && userRank > 11) {
           lbRows.push({ rank: '···', name: '', avg: 0, best: 0, isYou: false });
           lbRows.push({ ...fullRanked[rankIndex], rank: userRank, isYou: true });
         }
