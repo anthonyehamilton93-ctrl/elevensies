@@ -82,10 +82,10 @@ export default async function handler(req, res) {
   const avg = wordsPlayed ? recalculatedScore / wordsPlayed : 0;
   const best = sanitisedHistory.reduce((b, h) => (h.score > (b?.score ?? -1) ? h : b), null);
 
-  // Check not already played today (server-side duplicate guard)
+  // Check not already played or used a freeze today (server-side duplicate guard)
   const today = new Date().toISOString().slice(0, 10);
   const { data: existing } = await fetch(
-    `${SUPABASE_URL}/rest/v1/game_results?user_id=eq.${user.id}&game_status=eq.completed&played_at=gte.${today}T00:00:00&select=id`,
+    `${SUPABASE_URL}/rest/v1/game_results?user_id=eq.${user.id}&game_status=in.(completed,freeze)&played_at=gte.${today}T00:00:00&select=id,game_status`,
     { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
   ).then(r => r.json()).then(data => ({ data })).catch(() => ({ data: null }));
 
@@ -135,6 +135,20 @@ export default async function handler(req, res) {
     const err = await insertRes.text();
     console.error('Insert failed:', err);
     return res.status(500).json({ error: 'Could not save score' });
+  }
+
+  // Update profile utc_offset so reminder emails fire at the right local time
+  if (typeof utc_offset === 'number') {
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({ utc_offset }),
+    });
   }
 
   return res.status(200).json({
