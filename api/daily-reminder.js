@@ -111,26 +111,45 @@ export default async function handler(req, res) {
 
     const yesterday = new Date(now);
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-    const dayBefore = new Date(yesterday);
-    dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
+    const twoDaysAgo = new Date(yesterday);
+    twoDaysAgo.setUTCDate(twoDaysAgo.getUTCDate() - 1);
 
-    const [recentGames, nullOffsetGames] = await Promise.all([
-      db(`/game_results?select=user_id,played_at,utc_offset,total_score&game_status=eq.completed&utc_offset=eq.${targetOffset}&played_at=gte.${dayBefore.toISOString()}&played_at=lt.${now.toISOString()}`),
-      targetOffset === 60 ? db(`/game_results?select=user_id,played_at,utc_offset,total_score&game_status=eq.completed&utc_offset=is.null&played_at=gte.${dayBefore.toISOString()}&played_at=lt.${now.toISOString()}`) : Promise.resolve([])
-    ]);
+    // Find all profiles whose stored utc_offset matches the target
+    // Also include null offsets when targeting UK (offset 60 BST or 0 GMT)
+    const isUK = targetOffset === 60 || targetOffset === 0;
+    const offsetFilter = isUK
+      ? `utc_offset=in.(0,60)&utc_offset=not.is.null`
+      : `utc_offset=eq.${targetOffset}`;
 
-    const allRecentGames = [...(recentGames || []), ...(nullOffsetGames || [])];
+    const eligibleProfiles = await db(`/profiles?select=id,display_name,reminders_unsubscribed,utc_offset&${offsetFilter}`);
 
-    if (allRecentGames.length === 0) {
-      return res.status(200).json({ message: `No players at offset ${targetOffset} played yesterday` });
+    if (!eligibleProfiles?.length) {
+      return res.status(200).json({ message: `No profiles at offset ${targetOffset}` });
     }
+
+    // Also include null-offset profiles for UK sends (legacy records)
+    let allProfiles = eligibleProfiles;
+    if (isUK) {
+      const nullOffsetProfiles = await db(`/profiles?select=id,display_name,reminders_unsubscribed,utc_offset&utc_offset=is.null`);
+      allProfiles = [...eligibleProfiles, ...(nullOffsetProfiles || [])];
+    }
+
+    const eligibleIds = allProfiles
+      .filter(p => !p.reminders_unsubscribed)
+      .map(p => p.id);
+
+    if (!eligibleIds.length) return res.status(200).json({ message: 'No eligible players' });
+
+    // Find who played yesterday (within this offset's local day)
+    const recentGames = await db(
+      `/game_results?select=user_id,played_at,total_score&game_status=eq.completed&user_id=in.(${eligibleIds.join(',')})&played_at=gte.${twoDaysAgo.toISOString()}&played_at=lt.${now.toISOString()}`
+    );
 
     const todayStart = new Date(now);
     todayStart.setUTCHours(0, 0, 0, 0);
 
-    // Get yesterday's game per user (most recent)
     const yesterdayByUser = {};
-    for (const g of allRecentGames) {
+    for (const g of recentGames || []) {
       if (new Date(g.played_at) < todayStart) {
         if (!yesterdayByUser[g.user_id] || new Date(g.played_at) > new Date(yesterdayByUser[g.user_id].played_at)) {
           yesterdayByUser[g.user_id] = g;
@@ -138,13 +157,17 @@ export default async function handler(req, res) {
       }
     }
 
+    // Only remind players who played yesterday — don't spam lapsed players
     const playedYesterdayIds = Object.keys(yesterdayByUser);
-    if (playedYesterdayIds.length === 0) return res.status(200).json({ message: 'No eligible players' });
+    if (!playedYesterdayIds.length) return res.status(200).json({ message: 'No eligible players played yesterday' });
 
-    const allGames = await db(`/game_results?select=user_id,played_at&game_status=eq.completed&user_id=in.(${playedYesterdayIds.join(',')})`);
-    const profiles = await db(`/profiles?select=id,display_name,reminders_unsubscribed&id=in.(${playedYesterdayIds.join(',')})`);
+    // Get full game history for streak calculation
+    const allGames = await db(
+      `/game_results?select=user_id,played_at&game_status=eq.completed&user_id=in.(${playedYesterdayIds.join(',')})`
+    );
+
     const profileMap = {};
-    profiles.forEach(p => { profileMap[p.id] = p; });
+    allProfiles.forEach(p => { profileMap[p.id] = p; });
 
     const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?per_page=1000`, {
       headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
@@ -154,13 +177,13 @@ export default async function handler(req, res) {
     (users || []).forEach(u => { emailMap[u.id] = u.email; });
 
     const datesByUser = {};
-    for (const g of allGames) {
+    for (const g of allGames || []) {
       if (!datesByUser[g.user_id]) datesByUser[g.user_id] = [];
       datesByUser[g.user_id].push(g.played_at.slice(0, 10));
     }
 
     const emails = playedYesterdayIds
-      .filter(uid => !profileMap[uid]?.reminders_unsubscribed && emailMap[uid])
+      .filter(uid => emailMap[uid])
       .map(uid => {
         const profile = profileMap[uid];
         const name = profile?.display_name || null;
@@ -169,12 +192,12 @@ export default async function handler(req, res) {
         return {
           from: FROM_EMAIL,
           to: emailMap[uid],
-          subject: "Time for Elevensies! 🟨",
+          subject: 'Time for Elevensies! 🟨',
           html: reminderHTML(name, streak, yesterdayScore, uid),
         };
       });
 
-    if (emails.length === 0) return res.status(200).json({ message: 'No emails to send' });
+    if (!emails.length) return res.status(200).json({ message: 'No emails to send' });
 
     for (let i = 0; i < emails.length; i += 100) {
       await fetch('https://api.resend.com/emails/batch', {
