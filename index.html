@@ -2456,6 +2456,7 @@
     <div class="lb-tabs" style="margin-bottom:16px;">
       <button class="lb-tab active" id="statsTabStats">YOUR STATS</button>
       <button class="lb-tab" id="statsTabLb">LEADERBOARD</button>
+      <button class="lb-tab" id="statsTabLeagues">LEAGUES</button>
     </div>
     <div id="fullGameStatsLoggedOut" style="display:none; font-size:12px; letter-spacing:0.08em; opacity:0.6; margin:12px 0; text-align:center; line-height:1.6;">
       SIGN IN TO SEE YOUR STATS AND LEADERBOARD POSITION.
@@ -2603,6 +2604,68 @@
     </div>
     <div id="leaderboardList"><div class="lb-loading">LOADING…</div></div>
     <button class="cancel-btn" id="leaderboardCloseBtn">CLOSE</button>
+  </div>
+
+  <!-- LEAGUES tab content -->
+  <div id="statsTabLeaguesContent" style="display:none;">
+    <div id="leaguesList" style="margin-bottom:16px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <button class="auth-submit-btn" id="createLeagueBtn" style="margin:0;font-size:11px;">+ CREATE</button>
+      <button class="auth-submit-btn" id="joinLeagueBtn" style="margin:0;font-size:11px;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);">JOIN</button>
+    </div>
+    <button class="cancel-btn" id="leaguesCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- Create League overlay -->
+<div class="overlay" id="createLeagueOverlay">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">CREATE A LEAGUE</div>
+    <div style="font-size:12px;letter-spacing:0.06em;opacity:0.6;margin-bottom:16px;line-height:1.6;">Give your league a name (up to 11 characters) and share the join code with friends.</div>
+    <input id="leagueNameInput" type="text" maxlength="11" placeholder="LEAGUE NAME"
+      style="width:100%;box-sizing:border-box;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);font-family:inherit;font-size:14px;font-weight:700;letter-spacing:0.1em;padding:10px 14px;text-align:center;text-transform:uppercase;margin-bottom:16px;outline:none;">
+    <div id="createLeagueMsg" style="font-size:11px;letter-spacing:0.08em;margin-bottom:12px;min-height:16px;"></div>
+    <button class="auth-submit-btn" id="createLeagueConfirmBtn" style="margin-bottom:10px;">CREATE</button>
+    <button class="cancel-btn" id="createLeagueCancelBtn">CANCEL</button>
+  </div>
+</div>
+
+<!-- Join League overlay -->
+<div class="overlay" id="joinLeagueOverlay">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">JOIN A LEAGUE</div>
+    <div style="font-size:12px;letter-spacing:0.06em;opacity:0.6;margin-bottom:16px;line-height:1.6;">Enter the league name and password from your friend.</div>
+    <input id="joinLeagueNameInput" type="text" maxlength="11" placeholder="LEAGUE NAME"
+      style="width:100%;box-sizing:border-box;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);font-family:inherit;font-size:13px;font-weight:700;letter-spacing:0.1em;padding:10px 14px;text-align:center;text-transform:uppercase;margin-bottom:10px;outline:none;">
+    <input id="leagueCodeInput" type="text" maxlength="11" placeholder="PASSWORD"
+      style="width:100%;box-sizing:border-box;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);font-family:inherit;font-size:13px;font-weight:700;letter-spacing:0.1em;padding:10px 14px;text-align:center;text-transform:uppercase;margin-bottom:16px;outline:none;">
+    <div id="joinLeagueMsg" style="font-size:11px;letter-spacing:0.08em;margin-bottom:12px;min-height:16px;"></div>
+    <button class="auth-submit-btn" id="joinLeagueConfirmBtn" style="margin-bottom:10px;">JOIN</button>
+    <button class="cancel-btn" id="joinLeagueCancelBtn">CANCEL</button>
+  </div>
+</div>
+
+<!-- League Detail overlay -->
+<div class="overlay" id="leagueDetailOverlay" style="z-index:2000;">
+  <div class="modal">
+    <div class="modal-title" id="leagueDetailName">LEAGUE</div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:10px;letter-spacing:0.12em;opacity:0.4;margin-bottom:6px;">PASSWORD</div>
+      <div id="leagueDetailCode" style="font-size:16px;font-weight:900;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;cursor:pointer;" title="Tap to copy"></div>
+      <button class="cancel-btn" id="leagueShareBtn" style="font-size:10px;padding:6px 16px;margin:0;">SHARE INVITE</button>
+    </div>
+    <div id="leagueDetailBoard" style="margin-bottom:16px;"></div>
+    <div class="expand-section" id="leagueDetailMembersSection">
+      <div class="expand-header" id="leagueDetailMembersToggle">MEMBERS <span class="expand-arrow">▼</span></div>
+      <div class="expand-body" id="leagueDetailMembersBody">
+        <div id="leagueDetailMembersList"></div>
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
+      <button class="cancel-btn" id="leagueDetailLeaveBtn" style="color:#ff7c7c;border-color:rgba(255,124,124,0.3);">LEAVE LEAGUE</button>
+      <button class="cancel-btn" id="leagueDetailDeleteBtn" style="display:none;color:#ff7c7c;border-color:rgba(255,124,124,0.3);">DELETE LEAGUE</button>
+      <button class="cancel-btn" id="leagueDetailCloseBtn">CLOSE</button>
+    </div>
   </div>
 </div>
 
@@ -3437,6 +3500,235 @@ async function openPlayerProfile(uid) {
     fresh.addEventListener('click', () => { const open = body.classList.toggle('open'); fresh.classList.toggle('open', open); });
   }
 }
+
+// ===== LEAGUES =====
+let currentLeagueDetail = null;
+
+async function authFetch(path, body) {
+  const { data: { session } } = await sbClient.auth.getSession();
+  if (!session?.access_token) throw new Error('Not logged in');
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+async function openLeaguesTab() {
+  document.getElementById('statsTabStats').classList.remove('active');
+  document.getElementById('statsTabLb').classList.remove('active');
+  document.getElementById('statsTabLeagues').classList.add('active');
+  document.getElementById('statsTabStatsContent').style.display = 'none';
+  document.getElementById('statsTabLbContent').style.display = 'none';
+  document.getElementById('statsTabLeaguesContent').style.display = '';
+  document.getElementById('fullGameStatsOverlay').classList.add('show');
+  await renderLeaguesList();
+}
+
+async function renderLeaguesList() {
+  const list = document.getElementById('leaguesList');
+  if (!sbClient || !currentUser) {
+    list.innerHTML = '<div style="font-size:12px;letter-spacing:0.08em;opacity:0.5;text-align:center;padding:12px 0;">SIGN IN TO USE LEAGUES</div>';
+    return;
+  }
+  list.innerHTML = '<div style="font-size:11px;letter-spacing:0.08em;opacity:0.4;text-align:center;padding:8px 0;">LOADING…</div>';
+  try {
+    const { data: memberships } = await sbClient.from('league_members').select('league_id').eq('user_id', currentUser.id);
+    if (!memberships?.length) {
+      list.innerHTML = '<div style="font-size:11px;letter-spacing:0.08em;opacity:0.4;text-align:center;padding:12px 0;">NO LEAGUES YET — CREATE ONE OR JOIN A FRIEND\'S</div>';
+      return;
+    }
+    const leagueIds = memberships.map(m => m.league_id);
+    const { data: leagues } = await sbClient.from('leagues').select('id,name,join_code,created_by').in('id', leagueIds);
+    list.innerHTML = (leagues || []).map(l => {
+      const isAdmin = l.created_by === currentUser.id;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(240,192,32,0.1);cursor:pointer;" data-league-id="${l.id}">
+        <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;">${l.name}${isAdmin ? ' ★' : ''}</span>
+        <span style="font-size:10px;opacity:0.4;letter-spacing:0.1em;">${l.join_code} ›</span>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('[data-league-id]').forEach(el => {
+      el.addEventListener('click', () => openLeagueDetail(el.dataset.leagueId));
+    });
+  } catch(e) {
+    list.innerHTML = '<div style="font-size:11px;opacity:0.4;text-align:center;">Could not load leagues</div>';
+  }
+}
+
+async function openLeagueDetail(leagueId) {
+  const overlay = document.getElementById('leagueDetailOverlay');
+  document.getElementById('leagueDetailName').textContent = '…';
+  document.getElementById('leagueDetailCode').textContent = '';
+  document.getElementById('leagueDetailBoard').innerHTML = '';
+  document.getElementById('leagueDetailMembersList').innerHTML = '';
+  overlay.classList.add('show');
+  try {
+    const [leagueRes, membersRes] = await Promise.all([
+      sbClient.from('leagues').select('id,name,join_code,created_by').eq('id', leagueId).single(),
+      sbClient.from('league_members').select('user_id,joined_at').eq('league_id', leagueId),
+    ]);
+    const league = leagueRes.data;
+    const members = membersRes.data || [];
+    currentLeagueDetail = league;
+    const isAdmin = league.created_by === currentUser.id;
+
+    document.getElementById('leagueDetailName').textContent = league.name;
+    const codeEl = document.getElementById('leagueDetailCode');
+    codeEl.textContent = league.join_code;
+    codeEl.onclick = () => {
+      navigator.clipboard.writeText(league.join_code);
+      codeEl.textContent = 'COPIED!';
+      setTimeout(() => { codeEl.textContent = league.join_code; }, 1500);
+    };
+    document.getElementById('leagueDetailDeleteBtn').style.display = isAdmin ? '' : 'none';
+
+    const memberIds = members.map(m => m.user_id);
+    const [profilesRes, scoresRes] = await Promise.all([
+      sbClient.from('profiles').select('id,display_name').in('id', memberIds),
+      sbClient.from('game_results').select('user_id,total_score').in('user_id', memberIds).eq('game_status', 'completed'),
+    ]);
+
+    const profileMap = {};
+    (profilesRes.data || []).forEach(p => { profileMap[p.id] = p.display_name || 'PLAYER'; });
+
+    const scoresByUser = {};
+    (scoresRes.data || []).forEach(r => {
+      if (!scoresByUser[r.user_id]) scoresByUser[r.user_id] = [];
+      scoresByUser[r.user_id].push(r.total_score);
+    });
+
+    const ranked = memberIds.map(uid => {
+      const s = scoresByUser[uid] || [];
+      return { uid, name: profileMap[uid] || 'PLAYER', avg: s.length ? s.reduce((a,b)=>a+b,0)/s.length : 0, played: s.length };
+    }).sort((a,b) => b.avg - a.avg);
+
+    document.getElementById('leagueDetailBoard').innerHTML =
+      `<div class="lb-row lb-header" style="cursor:default;grid-template-columns:20px 1fr 30px 38px;">
+        <span></span><span></span><span class="lb-games">PLD</span><span class="lb-score">AVG</span>
+      </div>` +
+      ranked.map((u, i) => {
+        const isYou = u.uid === currentUser.id;
+        return `<div class="lb-row" style="grid-template-columns:20px 1fr 30px 38px;cursor:pointer;" data-uid="${u.uid}">
+          <span class="lb-rank">${i+1}</span>
+          <span class="lb-name"><span class="lb-name-text">${u.name}${isYou ? ' ★' : ''}</span></span>
+          <span class="lb-games">${u.played}</span>
+          <span class="lb-score">${u.played ? u.avg.toFixed(0) : '—'}</span>
+        </div>`;
+      }).join('');
+
+    document.getElementById('leagueDetailBoard').querySelectorAll('[data-uid]').forEach(row => {
+      row.addEventListener('click', () => openPlayerProfile(row.dataset.uid));
+    });
+
+    document.getElementById('leagueDetailMembersList').innerHTML = members.map(m => {
+      const name = profileMap[m.user_id] || 'PLAYER';
+      const isMe = m.user_id === currentUser.id;
+      const removable = isAdmin && !isMe;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:11px;letter-spacing:0.06em;border-bottom:1px solid rgba(240,192,32,0.08);">
+        <span>${name}${isMe ? ' (you)' : ''}${m.user_id === league.created_by ? ' ★' : ''}</span>
+        ${removable ? `<button onclick="removeMemberFromLeague('${leagueId}','${m.user_id}')" style="font-size:9px;letter-spacing:0.06em;opacity:0.5;background:none;border:none;color:#ff7c7c;cursor:pointer;font-family:inherit;">REMOVE</button>` : ''}
+      </div>`;
+    }).join('');
+
+    const toggle = document.getElementById('leagueDetailMembersToggle');
+    const body = document.getElementById('leagueDetailMembersBody');
+    const fresh = toggle.cloneNode(true);
+    toggle.parentNode.replaceChild(fresh, toggle);
+    fresh.addEventListener('click', () => { const open = body.classList.toggle('open'); fresh.classList.toggle('open', open); });
+  } catch(e) { console.error('League detail error:', e); }
+}
+
+async function removeMemberFromLeague(leagueId, userId) {
+  if (!confirm('Remove this member from the league?')) return;
+  const result = await authFetch('/api/league', { action: 'leave', league_id: leagueId, user_id_to_remove: userId });
+  if (result.ok) await openLeagueDetail(leagueId);
+  else alert(result.error || 'Could not remove member');
+}
+
+document.getElementById('statsTabLeagues').addEventListener('click', openLeaguesTab);
+
+document.getElementById('createLeagueBtn').addEventListener('click', () => {
+  document.getElementById('leagueNameInput').value = '';
+  document.getElementById('createLeagueMsg').textContent = '';
+  document.getElementById('createLeagueOverlay').classList.add('show');
+});
+document.getElementById('createLeagueCancelBtn').addEventListener('click', () => {
+  document.getElementById('createLeagueOverlay').classList.remove('show');
+});
+document.getElementById('createLeagueConfirmBtn').addEventListener('click', async () => {
+  const name = document.getElementById('leagueNameInput').value.trim();
+  const msg = document.getElementById('createLeagueMsg');
+  if (!name) { msg.textContent = 'Enter a league name'; msg.style.color = '#ff7c7c'; return; }
+  msg.textContent = 'CREATING…'; msg.style.color = '';
+  const result = await authFetch('/api/league', { action: 'create', name });
+  if (result.league) {
+    document.getElementById('createLeagueOverlay').classList.remove('show');
+    await renderLeaguesList();
+    openLeagueDetail(result.league.id);
+  } else { msg.textContent = result.error || 'Could not create league'; msg.style.color = '#ff7c7c'; }
+});
+
+document.getElementById('joinLeagueBtn').addEventListener('click', () => {
+  document.getElementById('joinLeagueNameInput').value = '';
+  document.getElementById('leagueCodeInput').value = '';
+  document.getElementById('joinLeagueMsg').textContent = '';
+  document.getElementById('joinLeagueOverlay').classList.add('show');
+});
+document.getElementById('joinLeagueCancelBtn').addEventListener('click', () => {
+  document.getElementById('joinLeagueOverlay').classList.remove('show');
+});
+document.getElementById('joinLeagueConfirmBtn').addEventListener('click', async () => {
+  const name = document.getElementById('joinLeagueNameInput').value.trim();
+  const code = document.getElementById('leagueCodeInput').value.trim();
+  const msg = document.getElementById('joinLeagueMsg');
+  if (!name || !code) { msg.textContent = 'Enter both the league name and password'; msg.style.color = '#ff7c7c'; return; }
+  msg.textContent = 'JOINING…'; msg.style.color = '';
+  const result = await authFetch('/api/league', { action: 'join', join_code: code, league_name: name });
+  if (result.league) {
+    document.getElementById('joinLeagueOverlay').classList.remove('show');
+    await renderLeaguesList();
+    openLeagueDetail(result.league.id);
+  } else { msg.textContent = result.error || 'Could not join league'; msg.style.color = '#ff7c7c'; }
+});
+
+document.getElementById('leagueShareBtn').addEventListener('click', async () => {
+  if (!currentLeagueDetail) return;
+  const text = `Join my Elevensies league!\n\nLeague: ${currentLeagueDetail.name}\nPassword: ${currentLeagueDetail.join_code}\n\nEnter these in the LEAGUES tab at playelevensies.com`;
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; } catch(e) {}
+  }
+  await navigator.clipboard.writeText(text);
+  const btn = document.getElementById('leagueShareBtn');
+  btn.textContent = 'COPIED!';
+  setTimeout(() => { btn.textContent = 'SHARE INVITE'; }, 2000);
+});
+
+document.getElementById('leagueDetailLeaveBtn').addEventListener('click', async () => {
+  if (!currentLeagueDetail) return;
+  const isAdmin = currentLeagueDetail.created_by === currentUser.id;
+  if (!confirm(isAdmin ? 'As admin, leaving will not delete the league. Continue?' : 'Leave this league?')) return;
+  const result = await authFetch('/api/league', { action: 'leave', league_id: currentLeagueDetail.id });
+  if (result.ok) { document.getElementById('leagueDetailOverlay').classList.remove('show'); await renderLeaguesList(); }
+  else alert(result.error || 'Could not leave league');
+});
+
+document.getElementById('leagueDetailDeleteBtn').addEventListener('click', async () => {
+  if (!currentLeagueDetail) return;
+  if (!confirm('Delete this league for all members? This cannot be undone.')) return;
+  const result = await authFetch('/api/league', { action: 'delete', league_id: currentLeagueDetail.id });
+  if (result.ok) { document.getElementById('leagueDetailOverlay').classList.remove('show'); await renderLeaguesList(); }
+  else alert(result.error || 'Could not delete league');
+});
+
+document.getElementById('leagueDetailCloseBtn').addEventListener('click', () => {
+  document.getElementById('leagueDetailOverlay').classList.remove('show');
+});
+document.getElementById('leaguesCloseBtn').addEventListener('click', () => {
+  document.getElementById('fullGameStatsOverlay').classList.remove('show');
+});
+
+// ===== END LEAGUES =====
 
 document.getElementById('playerProfileCloseBtn').addEventListener('click', () => {
   document.getElementById('playerProfileOverlay').classList.remove('show');
