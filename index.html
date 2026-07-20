@@ -3399,13 +3399,14 @@ async function openPlayerProfile(uid) {
     ).join('');
     grid.querySelectorAll('.badge-item').forEach(el => {
       el.addEventListener('click', () => {
-        const existing = document.getElementById('badgeTooltip');
-        if (existing) existing.remove();
-        const tip = document.createElement('div');
-        tip.className = 'badge-tooltip';
+        let tip = document.getElementById('badgeTooltip');
+        if (!tip) {
+          tip = document.createElement('div');
+          tip.id = 'badgeTooltip';
+          tip.className = 'badge-tooltip';
+          grid.parentNode.insertBefore(tip, grid.nextSibling);
+        }
         tip.textContent = el.dataset.name + ': ' + el.dataset.desc;
-        grid.parentNode.insertBefore(tip, grid.nextSibling);
-        setTimeout(() => { if (tip.parentNode) tip.remove(); }, 3000);
       });
     });
     const toggle = document.getElementById('playerProfileBadgesToggle');
@@ -5921,14 +5922,14 @@ function renderBadges(stats, prefix) {
     bottomRow.map(renderBadgeItem).join('');
   grid.querySelectorAll('.badge-item').forEach(el => {
     el.addEventListener('click', () => {
-      const existing = document.getElementById('badgeTooltip');
-      if (existing) existing.remove();
-      const tip = document.createElement('div');
-      tip.id = 'badgeTooltip';
-      tip.className = 'badge-tooltip';
+      let tip = document.getElementById('badgeTooltip');
+      if (!tip) {
+        tip = document.createElement('div');
+        tip.id = 'badgeTooltip';
+        tip.className = 'badge-tooltip';
+        grid.parentNode.insertBefore(tip, grid.nextSibling);
+      }
       tip.textContent = el.dataset.name + ': ' + el.dataset.desc;
-      grid.parentNode.insertBefore(tip, grid.nextSibling);
-      setTimeout(() => { if (tip.parentNode) tip.remove(); }, 3000);
     });
   });
 }
@@ -7016,14 +7017,22 @@ async function handleRemindBell() {
 }
 
 function showJunkNotice() {
+  // Remove any existing notice
   const existing = document.getElementById('junkNotice');
   if (existing) existing.remove();
+
+  // Find the clicked bell button and insert notice after it
+  const bells = remindBells.filter(b => b && b.style.display !== 'none');
+  const anchor = bells[0];
+  if (!anchor) return;
+
   const notice = document.createElement('div');
   notice.id = 'junkNotice';
-  notice.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#f0c020;color:#155c33;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:0.08em;padding:12px 20px;z-index:9999;white-space:normal;max-width:300px;text-align:center;line-height:1.5;`;
-  notice.textContent = 'CHECK YOUR JUNK FOLDER! AND ADD THE ELEVENSIES EMAIL ADDRESS TO YOUR CONTACTS TO GET REMINDERS RELIABLY.';
-  document.body.appendChild(notice);
-  setTimeout(() => notice.remove(), 6000);
+  notice.className = 'badge-tooltip';
+  notice.style.cssText = 'margin-top:8px;text-align:center;line-height:1.6;max-width:280px;margin-left:auto;margin-right:auto;';
+  notice.textContent = 'Check your junk folder and add the Elevensies email to your contacts to get reminders reliably.';
+  anchor.parentNode.insertBefore(notice, anchor.nextSibling);
+  setTimeout(() => { if (notice.parentNode) notice.remove(); }, 6000);
 }
 
 remindBells.forEach(btn => btn && btn.addEventListener('click', handleRemindBell));
