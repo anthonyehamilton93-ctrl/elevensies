@@ -3670,20 +3670,20 @@ async function openLeagueDetail(leagueId) {
         return { uid, name: profileMap[uid]||'PLAYER', avg, best, played: s.length, streak, badgeCount, today: todayByUser[uid] };
       }).sort((a,b) => mode === 'avg' ? b.avg - a.avg : b.best - a.best);
 
-      const GRID = '14px minmax(0,1fr) 28px 22px 22px 24px 26px';
+      const GRID = '14px minmax(0,1fr) 28px 24px 24px 26px 28px';
       const board = document.getElementById('leagueDetailBoard');
       board.innerHTML = `
-        <div style="display:flex;gap:6px;margin-bottom:8px;">
-          <button class="lb-tab${mode==='avg'?' active':''}" id="leagueLbAvg" style="font-size:10px;padding:4px 10px;">AVG</button>
-          <button class="lb-tab${mode==='best'?' active':''}" id="leagueLbBest" style="font-size:10px;padding:4px 10px;">BEST</button>
+        <div class="lb-tabs" style="margin-bottom:8px;">
+          <button class="lb-tab${mode==='avg'?' active':''}" id="leagueLbAvg">AVG</button>
+          <button class="lb-tab${mode==='best'?' active':''}" id="leagueLbBest">BST</button>
         </div>
         <div class="lb-row lb-header" style="cursor:default;grid-template-columns:${GRID};">
           <span></span><span></span>
-          <span class="lb-games" style="text-align:center;font-size:9px;">BDG</span>
-          <span class="lb-games" style="text-align:center;">PLD</span>
-          <span class="lb-games" style="text-align:center;">STK</span>
-          <span class="lb-games" style="font-size:9px;">TDY</span>
-          <span class="lb-score" style="font-size:9px;">${mode==='avg'?'AVG':'BST'}</span>
+          <span class="lb-games" style="text-align:center;">BDG</span>
+          <span class="lb-games">PLD</span>
+          <span class="lb-games">STK</span>
+          <span class="lb-games">TDY</span>
+          <span class="lb-score">${mode==='avg'?'AVG':'BST'}</span>
         </div>` +
         ranked.map((u, i) => {
           const isYou = u.uid === currentUser.id;
