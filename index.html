@@ -1356,7 +1356,7 @@
   }
   .lb-row {
     display: grid;
-    grid-template-columns: 20px 1fr 44px 30px 30px 38px;
+    grid-template-columns: 20px 1fr 44px 30px 30px 38px 32px;
     gap: 0;
     font-size: 12px;
     letter-spacing: 0.04em;
@@ -2514,7 +2514,6 @@
         <button class="auth-submit-btn" id="createLeagueBtn" style="margin:0;font-size:11px;">+ CREATE</button>
         <button class="auth-submit-btn" id="joinLeagueBtn" style="margin:0;font-size:11px;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);">JOIN</button>
       </div>
-      <button class="cancel-btn" id="leaguesCloseBtn">CLOSE</button>
     </div>
 
     <button class="cancel-btn" id="fullGameStatsCloseBtn">CLOSE</button>
@@ -2649,23 +2648,44 @@
 <div class="overlay" id="leagueDetailOverlay" style="z-index:2000;">
   <div class="modal">
     <div class="modal-title" id="leagueDetailName">LEAGUE</div>
-    <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-size:10px;letter-spacing:0.12em;opacity:0.4;margin-bottom:6px;">PASSWORD</div>
-      <div id="leagueDetailCode" style="font-size:16px;font-weight:900;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;cursor:pointer;" title="Tap to copy"></div>
-      <button class="cancel-btn" id="leagueShareBtn" style="font-size:10px;padding:6px 16px;margin:0;">SHARE INVITE</button>
-    </div>
+
+    <!-- Leaderboard immediately below title -->
     <div id="leagueDetailBoard" style="margin-bottom:16px;"></div>
-    <div class="expand-section" id="leagueDetailMembersSection">
+
+    <!-- Password & share dropdown -->
+    <div class="expand-section" style="margin-bottom:4px;">
+      <div class="expand-header" id="leagueDetailInviteToggle">INVITE FRIENDS <span class="expand-arrow">▼</span></div>
+      <div class="expand-body" id="leagueDetailInviteBody">
+        <div style="text-align:center;padding:8px 0 4px;">
+          <div style="font-size:10px;letter-spacing:0.12em;opacity:0.4;margin-bottom:4px;">LEAGUE NAME</div>
+          <div id="leagueDetailNameDisplay" style="font-size:14px;font-weight:900;letter-spacing:0.12em;color:var(--gold);margin-bottom:10px;"></div>
+          <div style="font-size:10px;letter-spacing:0.12em;opacity:0.4;margin-bottom:4px;">PASSWORD</div>
+          <div id="leagueDetailCode" style="font-size:16px;font-weight:900;letter-spacing:0.2em;color:var(--gold);margin-bottom:12px;cursor:pointer;" title="Tap to copy"></div>
+          <button class="cancel-btn" id="leagueShareBtn" style="font-size:10px;padding:6px 16px;margin:0;">SHARE INVITE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Members dropdown -->
+    <div class="expand-section" style="margin-bottom:4px;">
       <div class="expand-header" id="leagueDetailMembersToggle">MEMBERS <span class="expand-arrow">▼</span></div>
       <div class="expand-body" id="leagueDetailMembersBody">
         <div id="leagueDetailMembersList"></div>
       </div>
     </div>
-    <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
-      <button class="cancel-btn" id="leagueDetailLeaveBtn" style="color:#ff7c7c;border-color:rgba(255,124,124,0.3);">LEAVE LEAGUE</button>
-      <button class="cancel-btn" id="leagueDetailDeleteBtn" style="display:none;color:#ff7c7c;border-color:rgba(255,124,124,0.3);">DELETE LEAGUE</button>
-      <button class="cancel-btn" id="leagueDetailCloseBtn">CLOSE</button>
+
+    <!-- Leave / Delete dropdown -->
+    <div class="expand-section" style="margin-bottom:16px;">
+      <div class="expand-header" id="leagueDetailDangerToggle" style="color:#ff7c7c;opacity:0.7;">OPTIONS <span class="expand-arrow">▼</span></div>
+      <div class="expand-body" id="leagueDetailDangerBody">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:8px 0;">
+          <button class="cancel-btn" id="leagueDetailLeaveBtn" style="color:#ff7c7c;border-color:rgba(255,124,124,0.3);">LEAVE LEAGUE</button>
+          <button class="cancel-btn" id="leagueDetailDeleteBtn" style="display:none;color:#ff7c7c;border-color:rgba(255,124,124,0.3);">DELETE LEAGUE</button>
+        </div>
+      </div>
     </div>
+
+    <button class="cancel-btn" id="leagueDetailCloseBtn">CLOSE</button>
   </div>
 </div>
 
@@ -3540,7 +3560,7 @@ async function renderLeaguesList() {
       const isAdmin = l.created_by === currentUser.id;
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(240,192,32,0.1);cursor:pointer;" data-league-id="${l.id}">
         <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;">${l.name}${isAdmin ? ' ★' : ''}</span>
-        <span style="font-size:10px;opacity:0.4;letter-spacing:0.1em;">${l.join_code} ›</span>
+        <span style="font-size:10px;opacity:0.4;letter-spacing:0.1em;">VIEW ›</span>
       </div>`;
     }).join('');
     list.querySelectorAll('[data-league-id]').forEach(el => {
@@ -3569,6 +3589,7 @@ async function openLeagueDetail(leagueId) {
     const isAdmin = league.created_by === currentUser.id;
 
     document.getElementById('leagueDetailName').textContent = league.name;
+    document.getElementById('leagueDetailNameDisplay').textContent = league.name;
     const codeEl = document.getElementById('leagueDetailCode');
     codeEl.textContent = league.join_code;
     codeEl.onclick = () => {
@@ -3578,43 +3599,104 @@ async function openLeagueDetail(leagueId) {
     };
     document.getElementById('leagueDetailDeleteBtn').style.display = isAdmin ? '' : 'none';
 
-    const memberIds = members.map(m => m.user_id);
+    // Wire toggles
+    ['leagueDetailInviteToggle','leagueDetailMembersToggle','leagueDetailDangerToggle'].forEach(id => {
+      const toggle = document.getElementById(id);
+      const body = document.getElementById(id.replace('Toggle', 'Body'));
+      const fresh = toggle.cloneNode(true);
+      toggle.parentNode.replaceChild(fresh, toggle);
+      fresh.addEventListener('click', () => { const open = body.classList.toggle('open'); fresh.classList.toggle('open', open); });
+    });
     const [profilesRes, scoresRes] = await Promise.all([
       sbClient.from('profiles').select('id,display_name').in('id', memberIds),
-      sbClient.from('game_results').select('user_id,total_score').in('user_id', memberIds).eq('game_status', 'completed'),
+      sbClient.from('game_results').select('user_id,total_score,played_at').in('user_id', memberIds).eq('game_status', 'completed'),
     ]);
 
     const profileMap = {};
     (profilesRes.data || []).forEach(p => { profileMap[p.id] = p.display_name || 'PLAYER'; });
 
+    const today = todayString();
     const scoresByUser = {};
+    const todayByUser = {};
     (scoresRes.data || []).forEach(r => {
       if (!scoresByUser[r.user_id]) scoresByUser[r.user_id] = [];
       scoresByUser[r.user_id].push(r.total_score);
+      if (r.played_at?.slice(0,10) === today) todayByUser[r.user_id] = r.total_score;
     });
 
-    const ranked = memberIds.map(uid => {
-      const s = scoresByUser[uid] || [];
-      return { uid, name: profileMap[uid] || 'PLAYER', avg: s.length ? s.reduce((a,b)=>a+b,0)/s.length : 0, played: s.length };
-    }).sort((a,b) => b.avg - a.avg);
+    // Fetch badges and streaks for members
+    const { data: profilesFull } = await sbClient.from('profiles').select('id,badges').in('id', memberIds);
+    const badgeMap = {};
+    (profilesFull || []).forEach(p => { badgeMap[p.id] = p.badges || []; });
 
-    document.getElementById('leagueDetailBoard').innerHTML =
-      `<div class="lb-row lb-header" style="cursor:default;grid-template-columns:20px 1fr 30px 38px;">
-        <span></span><span></span><span class="lb-games">PLD</span><span class="lb-score">AVG</span>
-      </div>` +
-      ranked.map((u, i) => {
-        const isYou = u.uid === currentUser.id;
-        return `<div class="lb-row" style="grid-template-columns:20px 1fr 30px 38px;cursor:pointer;" data-uid="${u.uid}">
-          <span class="lb-rank">${i+1}</span>
-          <span class="lb-name"><span class="lb-name-text">${u.name}${isYou ? ' ★' : ''}</span></span>
-          <span class="lb-games">${u.played}</span>
-          <span class="lb-score">${u.played ? u.avg.toFixed(0) : '—'}</span>
-        </div>`;
-      }).join('');
+    // Build streak per user from scores
+    function userStreak(uid) {
+      const dates = (scoresByUser[uid] || []).map((_, i) => scoresRes.data.filter(r => r.user_id === uid)[i]?.played_at?.slice(0,10)).filter(Boolean).sort().reverse();
+      if (!dates.length) return 0;
+      const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+      if (dates[0] !== today && dates[0] !== yesterday) return 0;
+      let streak = 1;
+      for (let i = 1; i < dates.length; i++) {
+        const prev = new Date(dates[i-1]+'T12:00:00');
+        const curr = new Date(dates[i]+'T12:00:00');
+        if (Math.round((prev-curr)/86400000) === 1) streak++;
+        else break;
+      }
+      return streak;
+    }
 
-    document.getElementById('leagueDetailBoard').querySelectorAll('[data-uid]').forEach(row => {
-      row.addEventListener('click', () => openPlayerProfile(row.dataset.uid));
-    });
+    const leagueLbMode = { current: 'avg' };
+
+    function renderLeagueBoard(mode) {
+      const ranked = memberIds.map(uid => {
+        const s = scoresByUser[uid] || [];
+        const avg = s.length ? s.reduce((a,b)=>a+b,0)/s.length : 0;
+        const best = s.length ? Math.max(...s) : 0;
+        const streak = userStreak(uid);
+        const badgeCount = (badgeMap[uid] || []).length + (streak > 0 ? 1 : 0);
+        return { uid, name: profileMap[uid]||'PLAYER', avg, best, played: s.length, streak, badgeCount, today: todayByUser[uid] };
+      }).sort((a,b) => mode === 'avg' ? b.avg - a.avg : b.best - a.best);
+
+      const GRID = '16px 1fr 28px 24px 26px 36px 32px';
+      const board = document.getElementById('leagueDetailBoard');
+      board.innerHTML = `
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <button class="lb-tab${mode==='avg'?' active':''}" id="leagueLbAvg" style="font-size:10px;padding:4px 10px;">AVG</button>
+          <button class="lb-tab${mode==='best'?' active':''}" id="leagueLbBest" style="font-size:10px;padding:4px 10px;">BEST</button>
+        </div>
+        <div class="lb-row lb-header" style="cursor:default;grid-template-columns:${GRID};">
+          <span></span><span></span>
+          <span class="lb-games" style="text-align:center;font-size:9px;">BDGS</span>
+          <span class="lb-games" style="text-align:center;">PLD</span>
+          <span class="lb-games" style="text-align:center;">STK</span>
+          <span class="lb-score" style="font-size:9px;">${mode==='avg'?'AVG':'BEST'}</span>
+          <span class="lb-score" style="font-size:9px;">TODAY</span>
+        </div>` +
+        ranked.map((u, i) => {
+          const isYou = u.uid === currentUser.id;
+          const pips = Array.from({length:11},(_,j)=>`<span style="width:3px;height:3px;border-radius:50%;display:block;background:var(--gold);opacity:${j<u.badgeCount?'0.75':'0.12'};"></span>`).join('');
+          const pipGrid = `<span style="display:grid;grid-template-columns:repeat(6,3px);grid-template-rows:repeat(2,3px);gap:1px;justify-self:center;">${pips}</span>`;
+          const scoreVal = mode==='avg' ? (u.played?u.avg.toFixed(0):'—') : (u.played?u.best:'—');
+          const todayVal = u.today !== undefined ? u.today : '—';
+          return `<div class="lb-row" style="grid-template-columns:${GRID};cursor:pointer;" data-uid="${u.uid}">
+            <span class="lb-rank">${i+1}</span>
+            <span class="lb-name"><span class="lb-name-text">${u.name}${isYou?' ★':''}</span></span>
+            ${pipGrid}
+            <span class="lb-games" style="text-align:center;">${u.played}</span>
+            <span class="lb-games" style="text-align:center;">${u.streak||'—'}</span>
+            <span class="lb-score">${scoreVal}</span>
+            <span class="lb-score" style="${u.today!==undefined?'color:var(--gold);':''}">${todayVal}</span>
+          </div>`;
+        }).join('');
+
+      board.querySelectorAll('[data-uid]').forEach(row => {
+        row.addEventListener('click', () => openPlayerProfile(row.dataset.uid));
+      });
+      document.getElementById('leagueLbAvg')?.addEventListener('click', () => { leagueLbMode.current='avg'; renderLeagueBoard('avg'); });
+      document.getElementById('leagueLbBest')?.addEventListener('click', () => { leagueLbMode.current='best'; renderLeagueBoard('best'); });
+    }
+
+    renderLeagueBoard('avg');
 
     document.getElementById('leagueDetailMembersList').innerHTML = members.map(m => {
       const name = profileMap[m.user_id] || 'PLAYER';
@@ -3626,11 +3708,6 @@ async function openLeagueDetail(leagueId) {
       </div>`;
     }).join('');
 
-    const toggle = document.getElementById('leagueDetailMembersToggle');
-    const body = document.getElementById('leagueDetailMembersBody');
-    const fresh = toggle.cloneNode(true);
-    toggle.parentNode.replaceChild(fresh, toggle);
-    fresh.addEventListener('click', () => { const open = body.classList.toggle('open'); fresh.classList.toggle('open', open); });
   } catch(e) { console.error('League detail error:', e); }
 }
 
@@ -3716,12 +3793,6 @@ document.getElementById('leagueDetailDeleteBtn').addEventListener('click', async
   else alert(result.error || 'Could not delete league');
 });
 
-document.getElementById('leagueDetailCloseBtn').addEventListener('click', () => {
-  document.getElementById('leagueDetailOverlay').classList.remove('show');
-});
-document.getElementById('leaguesCloseBtn').addEventListener('click', () => {
-  document.getElementById('fullGameStatsOverlay').classList.remove('show');
-});
 
 // ===== END LEAGUES =====
 
@@ -6274,6 +6345,7 @@ function renderLeaderboardRows(allUsers, container, mode) {
     const scoreVal = mode === 'avg' ? Number(row.avg_score).toFixed(0) : row.best_score;
     const streak = row.streak > 0 ? row.streak : '—';
     const badgeCount = (row.badges || []).length;
+    const todayVal = row.today_score !== null && row.today_score !== undefined ? row.today_score : '—';
     return `<div class="lb-row${isYou ? ' lb-you' : ''}" data-uid="${row.user_id}">
       <span class="lb-rank">${i + 1}</span>
       <span class="lb-name"><span class="lb-name-text">${name}${isYou ? ' ★' : ''}</span><span style="opacity:0.25;font-size:12px;flex-shrink:0;">›</span></span>
@@ -6281,6 +6353,7 @@ function renderLeaderboardRows(allUsers, container, mode) {
       <span class="lb-games">${row.games_played}</span>
       <span class="lb-games">${streak}</span>
       <span class="lb-score">${scoreVal}</span>
+      <span class="lb-score" style="${row.today_score !== null && row.today_score !== undefined ? 'color:var(--gold);' : 'opacity:0.3;'}">${todayVal}</span>
     </div>`;
   };
 
@@ -6290,6 +6363,7 @@ function renderLeaderboardRows(allUsers, container, mode) {
     <span class="lb-games">PLD</span>
     <span class="lb-games">STK</span>
     <span class="lb-score">${scoreLabel}</span>
+    <span class="lb-score" style="font-size:9px;">TODAY</span>
   </div>`;
 
   let html = header + top11.map((row, i) => rowHTML(row, i)).join('');
@@ -6331,10 +6405,12 @@ async function loadLeaderboard(targetEl, mode) {
     return;
   }
 
+  const todayStr = todayString();
+
   // Group by user
   const map = {};
   for (const row of data) {
-    if (!map[row.user_id]) map[row.user_id] = { user_id: row.user_id, total: 0, count: 0, best: 0, abandoned: 0, dates: [], freezeDates: [], wordTotal: 0, wordCount: 0, allDoubleDigit: false };
+    if (!map[row.user_id]) map[row.user_id] = { user_id: row.user_id, total: 0, count: 0, best: 0, abandoned: 0, dates: [], freezeDates: [], wordTotal: 0, wordCount: 0, allDoubleDigit: false, today_score: null };
     if (row.game_status === 'completed') {
       map[row.user_id].total += row.total_score;
       map[row.user_id].count++;
@@ -6345,6 +6421,10 @@ async function loadLeaderboard(targetEl, mode) {
       }
       if (!map[row.user_id].allDoubleDigit && Array.isArray(row.history) && row.history.length > 0) {
         if (row.history.every(h => h.score >= 10)) map[row.user_id].allDoubleDigit = true;
+      }
+      // Track today's score
+      if (row.played_at?.slice(0,10) === todayStr) {
+        map[row.user_id].today_score = row.total_score;
       }
     }
     // Add date for streak calculation for both completed and freeze rows
@@ -6429,6 +6509,7 @@ async function loadLeaderboard(targetEl, mode) {
       best_score: u.best,
       streak,
       badges,
+      today_score: u.today_score,
     };
   });
 
@@ -7572,6 +7653,9 @@ document.getElementById('statsModeEliminator').addEventListener('click', async (
 document.getElementById('statsModeAnagram').addEventListener('click', async () => {
   document.getElementById('statsModeOverlay').classList.remove('show');
   await openAnagramStats();
+});
+document.getElementById('leagueDetailCloseBtn').addEventListener('click', () => {
+  document.getElementById('leagueDetailOverlay').classList.remove('show');
 });
 document.getElementById('fullGameStatsCloseBtn').addEventListener('click', () => {
   document.getElementById('fullGameStatsOverlay').classList.remove('show');
