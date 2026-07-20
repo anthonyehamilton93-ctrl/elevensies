@@ -7017,19 +7017,17 @@ async function handleRemindBell() {
 }
 
 function showJunkNotice() {
-  // Remove any existing notice
   const existing = document.getElementById('junkNotice');
   if (existing) existing.remove();
 
-  // Find the clicked bell button and insert notice after it
-  const bells = remindBells.filter(b => b && b.style.display !== 'none');
-  const anchor = bells[0];
+  // Find the visible bell button that was just clicked
+  const anchor = remindBells.find(b => b && b.offsetParent !== null);
   if (!anchor) return;
 
   const notice = document.createElement('div');
   notice.id = 'junkNotice';
   notice.className = 'badge-tooltip';
-  notice.style.cssText = 'margin-top:8px;text-align:center;line-height:1.6;max-width:280px;margin-left:auto;margin-right:auto;';
+  notice.style.cssText = 'margin-top:8px;margin-bottom:18px;text-align:center;line-height:1.6;max-width:280px;margin-left:auto;margin-right:auto;display:block;';
   notice.textContent = 'Check your junk folder and add the Elevensies email to your contacts to get reminders reliably.';
   anchor.parentNode.insertBefore(notice, anchor.nextSibling);
   setTimeout(() => { if (notice.parentNode) notice.remove(); }, 6000);
