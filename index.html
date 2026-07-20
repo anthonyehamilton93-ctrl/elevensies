@@ -3211,22 +3211,23 @@ function resetStatsOverlay(title) {
   const overlay = document.getElementById('fullGameStatsOverlay');
   overlay.querySelector('#fullGameStatsTitle').textContent = title;
 
-  // Reset all section visibility to default hidden state
+  // Reset all tab active states
+  ['statsTabStats','statsTabLb','statsTabLeagues'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+
+  // Reset all content visibility
+  document.getElementById('statsTabStatsContent').style.display = 'none';
+  document.getElementById('statsTabLbContent').style.display = 'none';
+  document.getElementById('statsTabLeaguesContent').style.display = 'none';
   document.getElementById('statsOverlayBadgesSection').style.display = 'none';
   document.getElementById('statsOverlayMilestonesSection').style.display = 'none';
   document.getElementById('statsOverlayBestScoresSection').style.display = 'none';
   document.getElementById('statsOverlayHistorySection').style.display = 'none';
   document.getElementById('statsTabStats').parentElement.style.display = 'none';
-  document.getElementById('statsTabStatsContent').style.display = '';
-  document.getElementById('statsTabLbContent').style.display = 'none';
-  document.getElementById('statsTabStats').classList.add('active');
-  document.getElementById('statsTabLb').classList.remove('active');
 
-  // Reset all row labels and values
-  const rows = document.querySelectorAll('#statsOverlayStats .account-stats-row');
-  rows.forEach(r => r.style.display = '');
-
-  // Strip and re-add toggle listeners cleanly using cloneNode
+  // Strip and re-add toggle listeners cleanly
   ['statsOverlayBadgesToggle','statsOverlayMilestonesToggle','statsOverlayLbToggle',
    'statsOverlayHistoryToggle','statsOverlayBestScoresToggle'].forEach(headerId => {
     const header = document.getElementById(headerId);
@@ -3246,16 +3247,12 @@ async function openFullGameStats() {
   const loggedOut = document.getElementById('fullGameStatsLoggedOut');
 
   resetStatsOverlay('FULL GAME');
+  document.getElementById('statsTabStats').classList.add('active');
+  document.getElementById('statsTabStatsContent').style.display = '';
+  document.getElementById('statsTabStats').parentElement.style.display = '';
   document.getElementById('statsOverlayBadgesSection').style.display = '';
   document.getElementById('statsOverlayMilestonesSection').style.display = '';
   document.getElementById('statsOverlayBestScoresSection').style.display = '';
-  document.getElementById('statsTabStats').parentElement.style.display = '';
-
-  // Reset row labels to full game defaults
-  const rowLabels = ['GAMES PLAYED', 'CURRENT STREAK', 'BEST SCORE', 'AVG WORD SCORE', 'AVG OVERALL', 'BEST WORD'];
-  const rowIds = ['statsOverlayGames','statsOverlayStreak','statsOverlayBest','statsOverlayAvgWord','statsOverlayAvg','statsOverlayBestWord'];
-  const rows = document.querySelectorAll('#statsOverlayStats .account-stats-row');
-  rowLabels.forEach((label, i) => { if (rows[i]) rows[i].querySelector('span:first-child').textContent = label; });
 
   overlay.classList.add('show');
 
@@ -3516,11 +3513,8 @@ async function authFetch(path, body) {
 }
 
 async function openLeaguesTab() {
-  document.getElementById('statsTabStats').classList.remove('active');
-  document.getElementById('statsTabLb').classList.remove('active');
+  resetStatsOverlay('LEAGUES');
   document.getElementById('statsTabLeagues').classList.add('active');
-  document.getElementById('statsTabStatsContent').style.display = 'none';
-  document.getElementById('statsTabLbContent').style.display = 'none';
   document.getElementById('statsTabLeaguesContent').style.display = '';
   document.getElementById('fullGameStatsOverlay').classList.add('show');
   await renderLeaguesList();
@@ -3739,6 +3733,8 @@ async function openAnagramStats() {
   const loggedOut = document.getElementById('fullGameStatsLoggedOut');
 
   resetStatsOverlay('ANAGRAM');
+  document.getElementById('statsTabStats').classList.add('active');
+  document.getElementById('statsTabStatsContent').style.display = '';
   document.getElementById('statsOverlayHistorySection').style.display = '';
 
   // Reset row labels for anagram
@@ -7582,21 +7578,22 @@ document.getElementById('fullGameStatsCloseBtn').addEventListener('click', () =>
 
 // Top-level stats overlay tabs
 document.getElementById('statsTabStats').addEventListener('click', () => {
+  ['statsTabStats','statsTabLb','statsTabLeagues'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('statsTabStats').classList.add('active');
   document.getElementById('statsTabStatsContent').style.display = '';
   document.getElementById('statsTabLbContent').style.display = 'none';
-  document.getElementById('statsTabStats').classList.add('active');
-  document.getElementById('statsTabLb').classList.remove('active');
+  document.getElementById('statsTabLeaguesContent').style.display = 'none';
 });
 document.getElementById('statsTabLb').addEventListener('click', async () => {
+  ['statsTabStats','statsTabLb','statsTabLeagues'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('statsTabLb').classList.add('active');
   document.getElementById('statsTabStatsContent').style.display = 'none';
   document.getElementById('statsTabLbContent').style.display = '';
-  document.getElementById('statsTabStats').classList.remove('active');
-  document.getElementById('statsTabLb').classList.add('active');
+  document.getElementById('statsTabLeaguesContent').style.display = 'none';
   const lbList = document.getElementById('statsOverlayLbList');
   await loadLeaderboard(lbList, 'best');
   document.getElementById('statsLbTabBest').classList.add('active');
   document.getElementById('statsLbTabAvg').classList.remove('active');
-  // Wire BEST/AVG sub-tabs — clone to avoid duplicate listeners
   ['statsLbTabBest','statsLbTabAvg'].forEach(id => {
     const old = document.getElementById(id);
     const fresh = old.cloneNode(true);
