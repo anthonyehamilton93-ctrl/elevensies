@@ -1356,13 +1356,14 @@
   }
   .lb-row {
     display: grid;
-    grid-template-columns: 20px 1fr 34px 38px;
+    grid-template-columns: 20px 1fr 44px 30px 30px 38px;
     gap: 0;
     font-size: 12px;
     letter-spacing: 0.04em;
     padding: 6px 0;
     border-bottom: 1px solid rgba(240,192,32,0.12);
     align-items: center;
+    cursor: pointer;
   }
   .lb-row:last-child { border-bottom: none; }
   .lb-rank { opacity: 0.45; font-size: 10px; }
@@ -1621,6 +1622,26 @@
 </div>
 
 <!-- Streak at risk popup -->
+<div class="overlay" id="playerProfileOverlay" style="z-index:2000;">
+  <div class="modal">
+    <div class="modal-title" id="playerProfileName">—</div>
+    <div class="account-stats" id="playerProfileStats" style="margin-bottom:12px;"></div>
+    <div class="expand-section" id="playerProfileBadgesSection" style="display:none;">
+      <div class="expand-header" id="playerProfileBadgesToggle">BADGES <span class="expand-arrow">▼</span></div>
+      <div class="expand-body" id="playerProfileBadgesBody">
+        <div class="badges-grid" id="playerProfileBadgesGrid"></div>
+      </div>
+    </div>
+    <div class="expand-section" id="playerProfileBestSection" style="display:none;margin-top:8px;">
+      <div class="expand-header" id="playerProfileBestToggle">BEST SCORES <span class="expand-arrow">▼</span></div>
+      <div class="expand-body" id="playerProfileBestBody">
+        <div id="playerProfileBestList"></div>
+      </div>
+    </div>
+    <button class="cancel-btn" id="playerProfileCloseBtn" style="margin-top:16px;">CLOSE</button>
+  </div>
+</div>
+
 <div class="overlay" id="freezeAtRiskOverlay">
   <div class="modal">
     <div style="font-size:48px;margin-bottom:8px;text-align:center;display:block;">🔥</div>
@@ -1932,6 +1953,20 @@
 
 </div>
 
+<!-- Practice entry overlay -->
+<div class="overlay" id="practiceEntryOverlay">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">PRACTICE</div>
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
+      Same format as the full game — random letters, 11 turns, score as high as you can.<br><br>
+      No streaks, no leaderboard. Play as many times as you like.
+    </div>
+    <button class="auth-submit-btn" id="practiceEntryPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
+    <button class="cancel-btn" id="practiceEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
+    <button class="cancel-btn" id="practiceEntryCloseBtn">CLOSE</button>
+  </div>
+</div>
+
 <!-- Play confirmation popup -->
 <div class="overlay" id="playConfirmOverlay">
   <div class="modal">
@@ -1941,6 +1976,7 @@
       YOU ONLY GET ONE GAME PER DAY. MAKE IT COUNT.
     </div>
     <button class="auth-submit-btn" id="playConfirmBtn" style="margin-bottom:10px;">LET'S PLAY</button>
+    <button class="cancel-btn" id="playConfirmHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
     <button class="cancel-btn" id="playConfirmCancelBtn">NOT NOW</button>
   </div>
 </div>
@@ -1980,35 +2016,35 @@
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
       <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);">FULL GAME</span>
+          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');fullGameBtn.click();">FULL GAME ›</span>
           <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">11 WORDS · 11 TURNS · 11AM</span>
         </div>
         <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Get the highest score from random letters.</div>
       </div>
       <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);">ANAGRAM</span>
+          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');(function(){const after=isAfterAnagramReveal();const solved=localStorage.getItem('elevensies_anagram_solved')===todayString();document.getElementById('anagramPlayBtn').textContent=solved?'SEE RESULT':after?'SEE TODAY\'S WORD':'LET\'S PLAY';document.getElementById('anagramEntryOverlay').classList.add('show');})();">ANAGRAM ›</span>
           <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">ONE 11-LETTER WORD DAILY</span>
         </div>
         <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same word for everyone — find the 11th letter and unscramble.</div>
       </div>
       <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);">HEAD TO HEAD</span>
+          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');openH2H();">HEAD TO HEAD ›</span>
           <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">CHALLENGE A FRIEND</span>
         </div>
         <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same letters and bonus 11th tile every turn — pure skill.</div>
       </div>
-      <div>
+      <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);">PRACTICE</span>
+          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');document.getElementById('practiceEntryOverlay').classList.add('show');">PRACTICE ›</span>
           <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">ANY TIME · NO PRESSURE</span>
         </div>
         <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same format as the full game — scores don't count.</div>
       </div>
       <div style="border-top:1px solid rgba(240,192,32,0.12);padding-top:12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);">ELIMINATOR</span>
+          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');document.getElementById('eliminatorEntryOverlay').classList.add('show');">ELIMINATOR ›</span>
           <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">11 ROUNDS · 60 SECONDS EACH</span>
         </div>
         <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Find a word scoring 11+ points from your letters. Run out of time and you're out.</div>
@@ -2525,7 +2561,7 @@
       <div class="modal-title">YOUR ACCOUNT</div>
       <div class="account-email" id="accountEmail"></div>
       <div class="username-row">
-        <input class="username-input" id="usernameInput" type="text" maxlength="10" placeholder="SET A USERNAME">
+        <input class="username-input" id="usernameInput" type="text" maxlength="11" placeholder="SET A USERNAME">
         <button class="username-save-btn" id="usernameSaveBtn">SAVE</button>
       </div>
       <div class="username-msg" id="usernameMsg"></div>
@@ -2747,12 +2783,12 @@ function drawBalancedBatch(count, unchangedLetters) {
 // Fetched from dictionary.txt on first load, then cached in localStorage.
 let DICTIONARY_TEXT = '';
 let SCRABBLE_WORDS = new Set();
-const DICT_CACHE_KEY = 'elevensies_dict_v3';
+const DICT_CACHE_KEY = 'elevensies_dict_v4';
 const DICT_URL = '/dictionary.txt';
 
 async function loadDictionary() {
   // Clear old cache versions
-  try { localStorage.removeItem('elevensies_dict_v2'); localStorage.removeItem('elevensies_dict_v1'); } catch(e) {}
+  try { localStorage.removeItem('elevensies_dict_v3'); localStorage.removeItem('elevensies_dict_v2'); localStorage.removeItem('elevensies_dict_v1'); } catch(e) {}
 
   // Try cache first
   try {
@@ -3186,7 +3222,9 @@ async function openFullGameStats() {
   const completed = data.filter(r => r.game_status === 'completed');
   const scores = completed.map(r => r.total_score);
   const avgWordScores = completed.map(r => r.avg_points_per_word).filter(Boolean);
-  const bestWordEntry = completed.reduce((b, r) => (r.best_word_score > (b?.best_word_score ?? -1) ? r : b), null);
+  const bestWordEntry = completed
+    .filter(r => r.best_word && r.best_word_score != null)
+    .reduce((b, r) => (r.best_word_score > (b?.best_word_score ?? -1) ? r : b), null);
   const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const dates = [...new Set(allRows.map(r => r.played_at ? localDateStr(new Date(r.played_at)) : null).filter(Boolean))].sort().reverse();
   const streak = (() => {
@@ -3262,6 +3300,126 @@ async function openFullGameStats() {
     bestScoresList.innerHTML = '<div style="opacity:0.5;font-size:11px;padding:8px 0;">NO GAMES PLAYED YET</div>';
   }
 }
+
+async function openPlayerProfile(uid) {
+  const overlay = document.getElementById('playerProfileOverlay');
+  document.getElementById('playerProfileName').textContent = '…';
+  document.getElementById('playerProfileStats').innerHTML = '';
+  document.getElementById('playerProfileBadgesSection').style.display = 'none';
+  document.getElementById('playerProfileBestSection').style.display = 'none';
+  overlay.classList.add('show');
+
+  // Fetch profile
+  const { data: profile } = await sbClient.from('profiles').select('display_name, badges').eq('id', uid).single();
+  const name = profile?.display_name || 'PLAYER';
+  document.getElementById('playerProfileName').textContent = name;
+
+  // Fetch game results
+  const { data: games } = await sbClient
+    .from('game_results')
+    .select('total_score, avg_points_per_word, best_word, best_word_score, played_at, game_status')
+    .eq('user_id', uid)
+    .in('game_status', ['completed', 'freeze']);
+
+  if (!games || games.length === 0) {
+    document.getElementById('playerProfileStats').innerHTML = '<div style="opacity:0.4;font-size:12px;letter-spacing:0.08em;text-align:center;padding:12px 0;">NO GAMES YET</div>';
+    return;
+  }
+
+  const completed = games.filter(r => r.game_status === 'completed');
+  const scores = completed.map(r => r.total_score);
+  const avgWordScores = completed.map(r => r.avg_points_per_word).filter(Boolean);
+  const best = completed.reduce((b, r) => r.total_score > (b?.total_score ?? -1) ? r : b, null);
+
+  // Streak
+  const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const dates = [...new Set(games.map(r => localDateStr(new Date(r.played_at))))].sort().reverse();
+  const freezeDates = new Set(games.filter(r => r.game_status === 'freeze').map(r => localDateStr(new Date(r.played_at))));
+  let streak = 0;
+  if (dates.length) {
+    const today = localDateStr(new Date());
+    const yesterday = localDateStr(new Date(Date.now() - 86400000));
+    if (dates[0] === today || dates[0] === yesterday || freezeDates.has(today) || freezeDates.has(yesterday)) {
+      streak = 1;
+      for (let i = 1; i < dates.length; i++) {
+        const prev = new Date(dates[i-1] + 'T12:00:00');
+        const curr = new Date(dates[i] + 'T12:00:00');
+        const diff = Math.round((prev - curr) / 86400000);
+        if (diff === 1) streak++;
+        else break;
+      }
+    }
+  }
+
+  const avgOverall = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(0) : '—';
+  const avgWord = avgWordScores.length ? (avgWordScores.reduce((a,b)=>a+b,0)/avgWordScores.length).toFixed(1) : '—';
+
+  document.getElementById('playerProfileStats').innerHTML = `
+    <div class="account-stats-row"><span>GAMES PLAYED</span><span>${completed.length}</span></div>
+    <div class="account-stats-row"><span>CURRENT STREAK</span><span>${streak > 0 ? streak : '—'}</span></div>
+    <div class="account-stats-row"><span>BEST SCORE</span><span>${best?.total_score ?? '—'}</span></div>
+    <div class="account-stats-row"><span>AVG WORD SCORE</span><span>${avgWord}</span></div>
+    <div class="account-stats-row"><span>AVG OVERALL</span><span>${avgOverall}</span></div>
+    <div class="account-stats-row"><span>BEST WORD</span><span>${best?.best_word ? `${best.best_word} (${best.best_word_score})` : '—'}</span></div>`;
+
+  // Badges
+  const earnedBadges = new Set(profile?.badges || []);
+  if (earnedBadges.size > 0) {
+    const badgeSection = document.getElementById('playerProfileBadgesSection');
+    badgeSection.style.display = '';
+    const grid = document.getElementById('playerProfileBadgesGrid');
+
+    // Use BADGE_DEFS for consistent rendering — show earned only
+    const earned = BADGE_DEFS.filter(b => earnedBadges.has(b.id) || earnedBadges.has(b.abbr));
+    grid.innerHTML = earned.map(b =>
+      `<div class="badge-item" data-desc="${b.desc}" data-name="${b.name}" role="button" tabindex="0">
+        <div class="badge-icon">${b.abbr}</div>
+        <div class="badge-name">${b.name}</div>
+      </div>`
+    ).join('');
+    grid.querySelectorAll('.badge-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const existing = document.getElementById('badgeTooltip');
+        if (existing) existing.remove();
+        const tip = document.createElement('div');
+        tip.className = 'badge-tooltip';
+        tip.textContent = el.dataset.name + ': ' + el.dataset.desc;
+        grid.parentNode.insertBefore(tip, grid.nextSibling);
+        setTimeout(() => { if (tip.parentNode) tip.remove(); }, 3000);
+      });
+    });
+    const toggle = document.getElementById('playerProfileBadgesToggle');
+    const body = document.getElementById('playerProfileBadgesBody');
+    const fresh = toggle.cloneNode(true);
+    toggle.parentNode.replaceChild(fresh, toggle);
+    fresh.addEventListener('click', () => { const open = body.classList.toggle('open'); fresh.classList.toggle('open', open); });
+  }
+
+  // Best scores
+  const top11 = [...completed].sort((a,b) => b.total_score - a.total_score).slice(0, 11);
+  if (top11.length > 0) {
+    const bestSection = document.getElementById('playerProfileBestSection');
+    bestSection.style.display = '';
+    document.getElementById('playerProfileBestList').innerHTML = top11.map((r, i) => {
+      const d = new Date(r.played_at);
+      const dateStr = d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }).toUpperCase();
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;letter-spacing:0.05em;border-bottom:1px solid rgba(240,192,32,0.08);">
+        <span style="opacity:0.5;flex:0 0 20px;">${i+1}</span>
+        <span style="opacity:0.6;flex:1;">${dateStr}</span>
+        <span style="color:var(--gold);font-weight:900;">${r.total_score}</span>
+      </div>`;
+    }).join('');
+    const toggle = document.getElementById('playerProfileBestToggle');
+    const body = document.getElementById('playerProfileBestBody');
+    const fresh = toggle.cloneNode(true);
+    toggle.parentNode.replaceChild(fresh, toggle);
+    fresh.addEventListener('click', () => { const open = body.classList.toggle('open'); fresh.classList.toggle('open', open); });
+  }
+}
+
+document.getElementById('playerProfileCloseBtn').addEventListener('click', () => {
+  document.getElementById('playerProfileOverlay').classList.remove('show');
+});
 
 async function openAnagramStats() {
   const overlay = document.getElementById('fullGameStatsOverlay');
@@ -5793,25 +5951,34 @@ function renderLeaderboardRows(allUsers, container, mode) {
 
   const scoreLabel = mode === 'avg' ? 'AVG' : 'BEST';
 
+  const pips = (badgeCount) => {
+    const dots = Array.from({length: 11}, (_, j) =>
+      `<span style="width:4px;height:4px;border-radius:50%;display:block;background:var(--gold);opacity:${j < badgeCount ? '0.75' : '0.12'};"></span>`
+    ).join('');
+    return `<span style="display:grid;grid-template-columns:repeat(6,4px);grid-template-rows:repeat(2,4px);gap:2px;justify-self:center;">${dots}</span>`;
+  };
+
   const rowHTML = (row, i) => {
     const isYou = row.user_id === userId;
     const name = row.display_name || randomPlayerName();
     const scoreVal = mode === 'avg' ? Number(row.avg_score).toFixed(0) : row.best_score;
-    const streakChip = row.streak > 0
-      ? `<span class="lb-badge-chip">${row.streak}</span>`
-      : '';
-    const badgeChips = (row.badges || []).filter(b => b !== 'STK').map(b => `<span class="lb-badge-chip">${b}</span>`).join('');
-    return `<div class="lb-row${isYou ? ' lb-you' : ''}">
+    const streak = row.streak > 0 ? row.streak : '—';
+    const badgeCount = (row.badges || []).length;
+    return `<div class="lb-row${isYou ? ' lb-you' : ''}" data-uid="${row.user_id}">
       <span class="lb-rank">${i + 1}</span>
-      <span class="lb-name"><span class="lb-name-text">${name}${isYou ? ' ★' : ''}</span>${streakChip}${badgeChips}</span>
+      <span class="lb-name"><span class="lb-name-text">${name}${isYou ? ' ★' : ''}</span><span style="opacity:0.25;font-size:12px;flex-shrink:0;">›</span></span>
+      ${pips(badgeCount)}
       <span class="lb-games">${row.games_played}</span>
+      <span class="lb-games">${streak}</span>
       <span class="lb-score">${scoreVal}</span>
     </div>`;
   };
 
-  const header = `<div class="lb-row lb-header">
+  const header = `<div class="lb-row lb-header" style="cursor:default;">
     <span></span><span></span>
+    <span class="lb-games" style="text-align:center;">BDGS</span>
     <span class="lb-games">PLD</span>
+    <span class="lb-games">STK</span>
     <span class="lb-score">${scoreLabel}</span>
   </div>`;
 
@@ -5825,6 +5992,11 @@ function renderLeaderboardRows(allUsers, container, mode) {
   }
 
   container.innerHTML = html;
+
+  // Wire row clicks to open player profile
+  container.querySelectorAll('.lb-row[data-uid]').forEach(row => {
+    row.addEventListener('click', () => openPlayerProfile(row.dataset.uid));
+  });
 }
 
 async function loadLeaderboard(targetEl, mode) {
@@ -6664,6 +6836,10 @@ document.getElementById('playConfirmBtn').addEventListener('click', () => {
   document.getElementById('playConfirmOverlay').classList.remove('show');
   startFullGame();
 });
+document.getElementById('playConfirmHowToBtn').addEventListener('click', () => {
+  document.getElementById('playConfirmOverlay').classList.remove('show');
+  openHowTo();
+});
 document.getElementById('playConfirmCancelBtn').addEventListener('click', () => {
   document.getElementById('playConfirmOverlay').classList.remove('show');
 });
@@ -6672,9 +6848,20 @@ document.getElementById('playConfirmCancelBtn').addEventListener('click', () => 
 const moreGamesOverlay = document.getElementById('moreGamesOverlay');
 document.getElementById('moreGamesBtn').addEventListener('click', () => moreGamesOverlay.classList.add('show'));
 document.getElementById('moreGamesCloseBtn').addEventListener('click', () => moreGamesOverlay.classList.remove('show'));
+document.getElementById('practiceEntryPlayBtn').addEventListener('click', () => {
+  document.getElementById('practiceEntryOverlay').classList.remove('show');
+  startPractice();
+});
+document.getElementById('practiceEntryHowToBtn').addEventListener('click', () => {
+  document.getElementById('practiceEntryOverlay').classList.remove('show');
+  document.getElementById('aboutPracticeOverlay').classList.add('show');
+});
+document.getElementById('practiceEntryCloseBtn').addEventListener('click', () => {
+  document.getElementById('practiceEntryOverlay').classList.remove('show');
+});
 document.getElementById('moreGamesPracticeBtn').addEventListener('click', () => {
   moreGamesOverlay.classList.remove('show');
-  startPractice();
+  document.getElementById('practiceEntryOverlay').classList.add('show');
 });
 document.getElementById('moreGamesAnagramBtn').addEventListener('click', () => {
   moreGamesOverlay.classList.remove('show');
@@ -7169,7 +7356,7 @@ setupExpandToggle('emailPrefsToggle', 'emailPrefsBody');
 
 // Username save
 document.getElementById('usernameSaveBtn').addEventListener('click', async () => {
-  const val = document.getElementById('usernameInput').value.trim().slice(0, 10);
+  const val = document.getElementById('usernameInput').value.trim().slice(0, 11);
   const msg = document.getElementById('usernameMsg');
   if (!val || !sbClient || !currentUser) return;
   if (containsProfanity(val)) {
