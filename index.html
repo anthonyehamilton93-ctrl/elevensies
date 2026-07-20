@@ -1356,7 +1356,7 @@
   }
   .lb-row {
     display: grid;
-    grid-template-columns: 18px minmax(0,1fr) 40px 26px 26px 30px 32px;
+    grid-template-columns: 16px minmax(0,1fr) 32px 24px 24px 28px 28px;
     gap: 0;
     font-size: 12px;
     letter-spacing: 0.04em;
@@ -3670,7 +3670,7 @@ async function openLeagueDetail(leagueId) {
         return { uid, name: profileMap[uid]||'PLAYER', avg, best, played: s.length, streak, badgeCount, today: todayByUser[uid] };
       }).sort((a,b) => mode === 'avg' ? b.avg - a.avg : b.best - a.best);
 
-      const GRID = '16px 1fr 26px 22px 22px 28px 30px';
+      const GRID = '14px minmax(0,1fr) 28px 22px 22px 24px 26px';
       const board = document.getElementById('leagueDetailBoard');
       board.innerHTML = `
         <div style="display:flex;gap:6px;margin-bottom:8px;">
@@ -3679,11 +3679,11 @@ async function openLeagueDetail(leagueId) {
         </div>
         <div class="lb-row lb-header" style="cursor:default;grid-template-columns:${GRID};">
           <span></span><span></span>
-          <span class="lb-games" style="text-align:center;font-size:9px;">BDGS</span>
+          <span class="lb-games" style="text-align:center;font-size:9px;">BDG</span>
           <span class="lb-games" style="text-align:center;">PLD</span>
           <span class="lb-games" style="text-align:center;">STK</span>
-          <span class="lb-games" style="font-size:9px;">TODAY</span>
-          <span class="lb-score" style="font-size:9px;">${mode==='avg'?'AVG':'BEST'}</span>
+          <span class="lb-games" style="font-size:9px;">TDY</span>
+          <span class="lb-score" style="font-size:9px;">${mode==='avg'?'AVG':'BST'}</span>
         </div>` +
         ranked.map((u, i) => {
           const isYou = u.uid === currentUser.id;
@@ -6372,11 +6372,11 @@ function renderLeaderboardRows(allUsers, container, mode) {
 
   const header = `<div class="lb-row lb-header" style="cursor:default;">
     <span></span><span></span>
-    <span class="lb-games" style="text-align:center;">BDGS</span>
+    <span class="lb-games" style="text-align:center;">BDG</span>
     <span class="lb-games">PLD</span>
     <span class="lb-games">STK</span>
-    <span class="lb-games">TODAY</span>
-    <span class="lb-score">${scoreLabel}</span>
+    <span class="lb-games">TDY</span>
+    <span class="lb-score">${mode === 'avg' ? 'AVG' : 'BST'}</span>
   </div>`;
 
   let html = header + top11.map((row, i) => rowHTML(row, i)).join('');
