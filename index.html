@@ -2502,7 +2502,7 @@
     <div id="statsTabLbContent" style="display:none;">
       <div class="lb-tabs" style="margin-bottom:8px;">
         <button class="lb-tab active" id="statsLbTabBest">BEST</button>
-        <button class="lb-tab" id="statsLbTabAvg">AVG</button>
+        <button class="lb-tab" id="statsLbTabAvg">AVERAGE</button>
       </div>
       <div id="statsOverlayLbList"><div class="lb-loading">LOADING…</div></div>
     </div>
@@ -2608,7 +2608,7 @@
   <div class="modal">
     <div class="modal-title">LEADERBOARD</div>
     <div class="lb-tabs">
-      <button class="lb-tab active" id="lbTabBest">BEST SCORE</button>
+      <button class="lb-tab active" id="lbTabBest">BEST</button>
       <button class="lb-tab" id="lbTabAvg">AVERAGE <span class="lb-tab-note">11+ GAMES</span></button>
     </div>
     <div id="leaderboardList"><div class="lb-loading">LOADING…</div></div>
@@ -3674,8 +3674,8 @@ async function openLeagueDetail(leagueId) {
       const board = document.getElementById('leagueDetailBoard');
       board.innerHTML = `
         <div class="lb-tabs" style="margin-bottom:8px;">
-          <button class="lb-tab${mode==='avg'?' active':''}" id="leagueLbAvg">AVG</button>
-          <button class="lb-tab${mode==='best'?' active':''}" id="leagueLbBest">BST</button>
+          <button class="lb-tab${mode==='best'?' active':''}" id="leagueLbBest">BEST</button>
+          <button class="lb-tab${mode==='avg'?' active':''}" id="leagueLbAvg">AVERAGE</button>
         </div>
         <div class="lb-row lb-header" style="cursor:default;grid-template-columns:${GRID};">
           <span></span><span></span>
@@ -3683,7 +3683,7 @@ async function openLeagueDetail(leagueId) {
           <span class="lb-games">PLD</span>
           <span class="lb-games">STK</span>
           <span class="lb-games">TDY</span>
-          <span class="lb-score">${mode==='avg'?'AVG':'BST'}</span>
+          <span class="lb-score">${mode==='avg'?'AVG':'BEST'}</span>
         </div>` +
         ranked.map((u, i) => {
           const isYou = u.uid === currentUser.id;
@@ -3709,7 +3709,7 @@ async function openLeagueDetail(leagueId) {
       document.getElementById('leagueLbBest')?.addEventListener('click', () => { leagueLbMode.current='best'; renderLeagueBoard('best'); });
     }
 
-    renderLeagueBoard('avg');
+    renderLeagueBoard('best');
 
     document.getElementById('leagueDetailMembersList').innerHTML = members.map(m => {
       const name = profileMap[m.user_id] || 'PLAYER';
@@ -6376,7 +6376,7 @@ function renderLeaderboardRows(allUsers, container, mode) {
     <span class="lb-games">PLD</span>
     <span class="lb-games">STK</span>
     <span class="lb-games">TDY</span>
-    <span class="lb-score">${mode === 'avg' ? 'AVG' : 'BST'}</span>
+    <span class="lb-score">${mode === 'avg' ? 'AVG' : 'BEST'}</span>
   </div>`;
 
   let html = header + top11.map((row, i) => rowHTML(row, i)).join('');
