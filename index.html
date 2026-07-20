@@ -1356,7 +1356,7 @@
   }
   .lb-row {
     display: grid;
-    grid-template-columns: 20px 1fr 44px 30px 30px 38px 32px;
+    grid-template-columns: 18px 1fr 40px 26px 26px 30px 32px;
     gap: 0;
     font-size: 12px;
     letter-spacing: 0.04em;
@@ -3657,7 +3657,7 @@ async function openLeagueDetail(leagueId) {
         return { uid, name: profileMap[uid]||'PLAYER', avg, best, played: s.length, streak, badgeCount, today: todayByUser[uid] };
       }).sort((a,b) => mode === 'avg' ? b.avg - a.avg : b.best - a.best);
 
-      const GRID = '16px 1fr 28px 24px 26px 36px 32px';
+      const GRID = '16px 1fr 26px 22px 22px 28px 30px';
       const board = document.getElementById('leagueDetailBoard');
       board.innerHTML = `
         <div style="display:flex;gap:6px;margin-bottom:8px;">
@@ -3669,8 +3669,8 @@ async function openLeagueDetail(leagueId) {
           <span class="lb-games" style="text-align:center;font-size:9px;">BDGS</span>
           <span class="lb-games" style="text-align:center;">PLD</span>
           <span class="lb-games" style="text-align:center;">STK</span>
+          <span class="lb-games" style="font-size:9px;">TODAY</span>
           <span class="lb-score" style="font-size:9px;">${mode==='avg'?'AVG':'BEST'}</span>
-          <span class="lb-score" style="font-size:9px;">TODAY</span>
         </div>` +
         ranked.map((u, i) => {
           const isYou = u.uid === currentUser.id;
@@ -3684,8 +3684,8 @@ async function openLeagueDetail(leagueId) {
             ${pipGrid}
             <span class="lb-games" style="text-align:center;">${u.played}</span>
             <span class="lb-games" style="text-align:center;">${u.streak||'—'}</span>
+            <span class="lb-games" style="${u.today!==undefined?'color:var(--gold);':'opacity:0.3;'}">${todayVal}</span>
             <span class="lb-score">${scoreVal}</span>
-            <span class="lb-score" style="${u.today!==undefined?'color:var(--gold);':''}">${todayVal}</span>
           </div>`;
         }).join('');
 
@@ -6352,8 +6352,8 @@ function renderLeaderboardRows(allUsers, container, mode) {
       ${pips(badgeCount)}
       <span class="lb-games">${row.games_played}</span>
       <span class="lb-games">${streak}</span>
+      <span class="lb-games" style="${row.today_score !== null && row.today_score !== undefined ? 'color:var(--gold);' : 'opacity:0.3;'}">${todayVal}</span>
       <span class="lb-score">${scoreVal}</span>
-      <span class="lb-score" style="${row.today_score !== null && row.today_score !== undefined ? 'color:var(--gold);' : 'opacity:0.3;'}">${todayVal}</span>
     </div>`;
   };
 
@@ -6362,8 +6362,8 @@ function renderLeaderboardRows(allUsers, container, mode) {
     <span class="lb-games" style="text-align:center;">BDGS</span>
     <span class="lb-games">PLD</span>
     <span class="lb-games">STK</span>
+    <span class="lb-games">TODAY</span>
     <span class="lb-score">${scoreLabel}</span>
-    <span class="lb-score" style="font-size:9px;">TODAY</span>
   </div>`;
 
   let html = header + top11.map((row, i) => rowHTML(row, i)).join('');
