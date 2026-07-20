@@ -1895,7 +1895,7 @@
     <button class="auth-submit-btn" id="h2hCreateBtn" style="margin-bottom:12px;">CREATE GAME</button>
     <div style="font-size:10px;letter-spacing:0.1em;opacity:0.4;margin-bottom:12px;">OR</div>
     <div style="display:flex;gap:8px;margin-bottom:32px;">
-      <input id="h2hCodeInput" type="text" maxlength="11" placeholder="ENTER CODE"
+      <input id="h2hJoinCodeInput" type="text" maxlength="11" placeholder="ENTER CODE"
         style="flex:1;background:rgba(240,192,32,0.08);border:1px solid var(--gold-dark);color:var(--gold);
         font-family:inherit;font-size:14px;font-weight:700;letter-spacing:0.15em;padding:12px;text-transform:uppercase;
         text-align:center;">
@@ -4690,7 +4690,7 @@ async function createH2HGame() {
 }
 
 async function joinH2HGame() {
-  const code = document.getElementById('h2hCodeInput').value.toUpperCase().trim();
+  const code = document.getElementById('h2hJoinCodeInput').value.toUpperCase().trim();
   if (code.length !== 11) {
     document.getElementById('h2hEntryMsg').textContent = 'Enter the 11-character game code.';
     return;
@@ -7205,7 +7205,7 @@ document.getElementById('headToHeadCloseBtn').addEventListener('click', () => {
 });
 document.getElementById('h2hCreateBtn').addEventListener('click', createH2HGame);
 document.getElementById('h2hJoinBtn').addEventListener('click', joinH2HGame);
-document.getElementById('h2hCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') joinH2HGame(); });
+document.getElementById('h2hJoinCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') joinH2HGame(); });
 document.getElementById('h2hShareBtn').addEventListener('click', async () => {
   const word = h2hGame?.code || '';
   const text = `Join my Elevensies Head to Head game! The game word is: ${word} — play at playelevensies.com`;
