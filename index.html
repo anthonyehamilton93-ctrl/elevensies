@@ -3528,7 +3528,9 @@ async function renderLeaguesList() {
   }
   list.innerHTML = '<div style="font-size:11px;letter-spacing:0.08em;opacity:0.4;text-align:center;padding:8px 0;">LOADING…</div>';
   try {
-    const { data: memberships } = await sbClient.from('league_members').select('league_id').eq('user_id', currentUser.id);
+    const { data: memberships, error: mErr } = await sbClient.from('league_members').select('league_id').eq('user_id', currentUser.id);
+    console.log('league_members query:', { memberships, mErr });
+    if (mErr) throw mErr;
     if (!memberships?.length) {
       list.innerHTML = '<div style="font-size:11px;letter-spacing:0.08em;opacity:0.4;text-align:center;padding:12px 0;">NO LEAGUES YET — CREATE ONE OR JOIN A FRIEND\'S</div>';
       return;
