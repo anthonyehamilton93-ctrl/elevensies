@@ -3222,9 +3222,17 @@ async function openFullGameStats() {
   const completed = data.filter(r => r.game_status === 'completed');
   const scores = completed.map(r => r.total_score);
   const avgWordScores = completed.map(r => r.avg_points_per_word).filter(Boolean);
-  const bestWordEntry = completed
-    .filter(r => r.best_word && r.best_word_score != null)
-    .reduce((b, r) => (Number(r.best_word_score) > Number(b?.best_word_score ?? -1) ? r : b), null);
+  const bestWordEntry = completed.reduce((best, r) => {
+    const history = Array.isArray(r.history) ? r.history : [];
+    const rowBest = history.reduce((b, h) => h.score > (b?.score ?? -1) ? h : b, null);
+    if (!rowBest) return best;
+    // Also check the stored best_word_score in case history is missing
+    const storedScore = Number(r.best_word_score) || 0;
+    const effectiveScore = Math.max(rowBest.score, storedScore);
+    const effectiveWord = rowBest.score >= storedScore ? rowBest.word : r.best_word;
+    if (effectiveScore > (best?.score ?? -1)) return { word: effectiveWord, score: effectiveScore };
+    return best;
+  }, null);
   const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const dates = [...new Set(allRows.map(r => r.played_at ? localDateStr(new Date(r.played_at)) : null).filter(Boolean))].sort().reverse();
   const streak = (() => {
@@ -3255,7 +3263,7 @@ async function openFullGameStats() {
   document.getElementById('statsOverlayBest').textContent = scores.length ? Math.max(...scores) : '—';
   document.getElementById('statsOverlayAvgWord').textContent = avgWordScores.length ? (avgWordScores.reduce((a,b)=>a+b,0)/avgWordScores.length).toFixed(1) : '—';
   document.getElementById('statsOverlayAvg').textContent = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : '—';
-  document.getElementById('statsOverlayBestWord').textContent = bestWordEntry?.best_word ? `${bestWordEntry.best_word} (${bestWordEntry.best_word_score})` : '—';
+  document.getElementById('statsOverlayBestWord').textContent = bestWordEntry?.word ? `${bestWordEntry.word} (${bestWordEntry.score})` : '—';
 
   const allDoubleDigit = hasBadge('doubledown') || completed.some(r => Array.isArray(r.history) && r.history.length > 0 && r.history.every(h => h.score >= 10));
   const last11 = completed.slice(-11);
@@ -3317,7 +3325,7 @@ async function openPlayerProfile(uid) {
   // Fetch game results
   const { data: games } = await sbClient
     .from('game_results')
-    .select('total_score, avg_points_per_word, best_word, best_word_score, played_at, game_status')
+    .select('total_score, avg_points_per_word, best_word, best_word_score, played_at, game_status, history')
     .eq('user_id', uid)
     .in('game_status', ['completed', 'freeze']);
 
@@ -3329,7 +3337,15 @@ async function openPlayerProfile(uid) {
   const completed = games.filter(r => r.game_status === 'completed');
   const scores = completed.map(r => r.total_score);
   const avgWordScores = completed.map(r => r.avg_points_per_word).filter(Boolean);
-  const best = completed.reduce((b, r) => r.total_score > (b?.total_score ?? -1) ? r : b, null);
+  const best = completed.reduce((best, r) => {
+    const hist = Array.isArray(r.history) ? r.history : [];
+    const rowBest = hist.reduce((b, h) => h.score > (b?.score ?? -1) ? h : b, null);
+    const storedScore = Number(r.best_word_score) || 0;
+    const effectiveScore = rowBest ? Math.max(rowBest.score, storedScore) : storedScore;
+    const effectiveWord = (rowBest && rowBest.score >= storedScore) ? rowBest.word : r.best_word;
+    if (effectiveScore > (best?.effectiveScore ?? -1)) return { total_score: r.total_score, best_word: effectiveWord, best_word_score: effectiveScore, effectiveScore };
+    return best;
+  }, null);
 
   // Streak
   const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
