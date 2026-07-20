@@ -1356,7 +1356,7 @@
   }
   .lb-row {
     display: grid;
-    grid-template-columns: 18px 1fr 40px 26px 26px 30px 32px;
+    grid-template-columns: 18px minmax(0,1fr) 40px 26px 26px 30px 32px;
     gap: 0;
     font-size: 12px;
     letter-spacing: 0.04em;
@@ -1381,7 +1381,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
-    max-width: 80px;
+    flex-shrink: 1;
   }
   .lb-badge-chip {
     flex-shrink: 0;
@@ -3607,27 +3607,40 @@ async function openLeagueDetail(leagueId) {
       toggle.parentNode.replaceChild(fresh, toggle);
       fresh.addEventListener('click', () => { const open = body.classList.toggle('open'); fresh.classList.toggle('open', open); });
     });
+    const memberIds = members.map(m => m.user_id);
+    if (!memberIds.length) {
+      document.getElementById('leagueDetailBoard').innerHTML = '<div style="font-size:11px;opacity:0.4;text-align:center;padding:12px 0;">NO MEMBERS YET</div>';
+      return;
+    }
+
     const [profilesRes, scoresRes] = await Promise.all([
-      sbClient.from('profiles').select('id,display_name').in('id', memberIds),
+      sbClient.from('profiles').select('id,display_name,badges').in('id', memberIds),
       sbClient.from('game_results').select('user_id,total_score,played_at').in('user_id', memberIds).eq('game_status', 'completed'),
     ]);
 
     const profileMap = {};
-    (profilesRes.data || []).forEach(p => { profileMap[p.id] = p.display_name || 'PLAYER'; });
+    const badgeMap = {};
+    (profilesRes.data || []).forEach(p => {
+      profileMap[p.id] = p.display_name || 'PLAYER';
+      badgeMap[p.id] = p.badges || [];
+    });
 
     const today = todayString();
+    const yesterday24 = new Date(Date.now() - 86400000).toISOString().slice(0,10);
     const scoresByUser = {};
     const todayByUser = {};
     (scoresRes.data || []).forEach(r => {
       if (!scoresByUser[r.user_id]) scoresByUser[r.user_id] = [];
       scoresByUser[r.user_id].push(r.total_score);
-      if (r.played_at?.slice(0,10) === today) todayByUser[r.user_id] = r.total_score;
+      const playedDate = r.played_at?.slice(0,10);
+      if (playedDate === today || playedDate === yesterday24) {
+        if (Date.now() - new Date(r.played_at).getTime() < 86400000) {
+          if (todayByUser[r.user_id] === undefined || r.total_score > todayByUser[r.user_id]) {
+            todayByUser[r.user_id] = r.total_score;
+          }
+        }
+      }
     });
-
-    // Fetch badges and streaks for members
-    const { data: profilesFull } = await sbClient.from('profiles').select('id,badges').in('id', memberIds);
-    const badgeMap = {};
-    (profilesFull || []).forEach(p => { badgeMap[p.id] = p.badges || []; });
 
     // Build streak per user from scores
     function userStreak(uid) {
@@ -6406,6 +6419,7 @@ async function loadLeaderboard(targetEl, mode) {
   }
 
   const todayStr = todayString();
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
 
   // Group by user
   const map = {};
@@ -6422,9 +6436,15 @@ async function loadLeaderboard(targetEl, mode) {
       if (!map[row.user_id].allDoubleDigit && Array.isArray(row.history) && row.history.length > 0) {
         if (row.history.every(h => h.score >= 10)) map[row.user_id].allDoubleDigit = true;
       }
-      // Track today's score
-      if (row.played_at?.slice(0,10) === todayStr) {
-        map[row.user_id].today_score = row.total_score;
+      // Today: within last 24 hours covers all timezones
+      const playedDate = row.played_at?.slice(0,10);
+      if (playedDate === todayStr || playedDate === yesterday) {
+        const playedMs = new Date(row.played_at).getTime();
+        if (Date.now() - playedMs < 86400000) {
+          if (map[row.user_id].today_score === null || row.total_score > map[row.user_id].today_score) {
+            map[row.user_id].today_score = row.total_score;
+          }
+        }
       }
     }
     // Add date for streak calculation for both completed and freeze rows
