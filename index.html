@@ -3224,7 +3224,7 @@ async function openFullGameStats() {
   const avgWordScores = completed.map(r => r.avg_points_per_word).filter(Boolean);
   const bestWordEntry = completed
     .filter(r => r.best_word && r.best_word_score != null)
-    .reduce((b, r) => (r.best_word_score > (b?.best_word_score ?? -1) ? r : b), null);
+    .reduce((b, r) => (Number(r.best_word_score) > Number(b?.best_word_score ?? -1) ? r : b), null);
   const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const dates = [...new Set(allRows.map(r => r.played_at ? localDateStr(new Date(r.played_at)) : null).filter(Boolean))].sort().reverse();
   const streak = (() => {
@@ -3363,7 +3363,11 @@ async function openPlayerProfile(uid) {
     <div class="account-stats-row"><span>BEST WORD</span><span>${best?.best_word ? `${best.best_word} (${best.best_word_score})` : '—'}</span></div>`;
 
   // Badges
-  const earnedBadges = new Set(profile?.badges || []);
+  const earnedBadges = new Set([
+    ...(profile?.badges || []),
+    ...(streak > 0 ? ['streak'] : []),
+    ...(avgWordScores.length > 0 && (avgWordScores.reduce((a,b)=>a+b,0)/avgWordScores.length) > 11 ? ['wordsmith'] : []),
+  ]);
   if (earnedBadges.size > 0) {
     const badgeSection = document.getElementById('playerProfileBadgesSection');
     badgeSection.style.display = '';
@@ -6102,8 +6106,8 @@ async function loadLeaderboard(targetEl, mode) {
   const allUsers = completedUsers.map(u => {
     const streak = calcStreak(u.dates, u.freezeDates);
     const avgWord = u.wordCount > 0 ? u.wordTotal / u.wordCount : 0;
-    const BADGE_ABBR = { purist:'PUR', linguist:'LIN', spotter:'SPT', centurion:'CEN', doubledown:'DBL', wordsmith:'WRD', avid:'AVD', expert:'EXP', elevensies:'ELE', favourite:'FAV' };
-    const profileBadges = (badgeMap[u.user_id] || []).map(id => BADGE_ABBR[id] || null).filter(Boolean);
+    const BADGE_ABBR = Object.fromEntries(BADGE_DEFS.map(b => [b.id, b.abbr]));
+    const profileBadges = (badgeMap[u.user_id] || []).map(id => BADGE_ABBR[id] || id).filter(Boolean);
     const gameBadges = [
       streak > 0       ? 'STK' : null,
       avgWord > 11     ? 'WRD' : null,
