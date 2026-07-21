@@ -1967,6 +1967,19 @@
   </div>
 </div>
 
+<!-- Mini Leagues intro popup -->
+<div class="overlay" id="leaguesIntroOverlay">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">NEW: MINI LEAGUES</div>
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
+      Create a private league with friends, share a password, and compete on your own leaderboard.<br><br>
+      Find it in STATS → LEAGUES.
+    </div>
+    <button class="auth-submit-btn" id="leaguesIntroTryBtn" style="margin-bottom:10px;">TRY IT</button>
+    <button class="cancel-btn" id="leaguesIntroCloseBtn">MAYBE LATER</button>
+  </div>
+</div>
+
 <!-- Play confirmation popup -->
 <div class="overlay" id="playConfirmOverlay">
   <div class="modal">
@@ -3528,7 +3541,27 @@ async function openPlayerProfile(uid) {
   }
 }
 
-// ===== LEAGUES =====
+// Mini leagues intro popup — show once from July 22nd 2026
+(function() {
+  const LEAGUES_INTRO_KEY = 'elevensies_leagues_intro_seen';
+  const LAUNCH_DATE = '2026-07-22';
+  if (localStorage.getItem(LEAGUES_INTRO_KEY)) return;
+  if (todayString() < LAUNCH_DATE) return;
+  // Only show if they haven't played today — don't interrupt post-game
+  if (localStorage.getItem(FULL_GAME_PLAYED_KEY) === todayString()) return;
+  document.getElementById('leaguesIntroOverlay').classList.add('show');
+})();
+
+document.getElementById('leaguesIntroTryBtn').addEventListener('click', () => {
+  localStorage.setItem('elevensies_leagues_intro_seen', '1');
+  document.getElementById('leaguesIntroOverlay').classList.remove('show');
+  // Open leagues tab in stats
+  openLeaguesTab();
+});
+document.getElementById('leaguesIntroCloseBtn').addEventListener('click', () => {
+  localStorage.setItem('elevensies_leagues_intro_seen', '1');
+  document.getElementById('leaguesIntroOverlay').classList.remove('show');
+});
 let currentLeagueDetail = null;
 
 async function authFetch(path, body) {
@@ -3636,15 +3669,17 @@ async function openLeagueDetail(leagueId) {
     });
 
     const today = todayString();
-    const yesterday24 = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+    const now = new Date();
+    const todayWindowStart = new Date(now);
+    todayWindowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
     const scoresByUser = {};
     const todayByUser = {};
     (scoresRes.data || []).forEach(r => {
       if (!scoresByUser[r.user_id]) scoresByUser[r.user_id] = [];
       scoresByUser[r.user_id].push(r.total_score);
-      const playedDate = r.played_at?.slice(0,10);
-      if (playedDate === today || playedDate === yesterday24) {
-        if (Date.now() - new Date(r.played_at).getTime() < 86400000) {
+      if (r.played_at) {
+        const playedMs = new Date(r.played_at).getTime();
+        if (playedMs >= todayWindowStart.getTime()) {
           if (todayByUser[r.user_id] === undefined || r.total_score > todayByUser[r.user_id]) {
             todayByUser[r.user_id] = r.total_score;
           }
@@ -6448,11 +6483,16 @@ async function loadLeaderboard(targetEl, mode) {
       if (!map[row.user_id].allDoubleDigit && Array.isArray(row.history) && row.history.length > 0) {
         if (row.history.every(h => h.score >= 10)) map[row.user_id].allDoubleDigit = true;
       }
-      // Today: within last 24 hours covers all timezones
-      const playedDate = row.played_at?.slice(0,10);
-      if (playedDate === todayStr || playedDate === yesterday) {
+      // TODAY: only show if played in today's local game window (11am-2pm local)
+      if (row.played_at) {
+        const now = new Date();
+        const todayWindowStart = new Date(now);
+        todayWindowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+        const todayWindowEnd = new Date(now);
+        todayWindowEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
         const playedMs = new Date(row.played_at).getTime();
-        if (Date.now() - playedMs < 86400000) {
+        // Score counts if played after today's window opened
+        if (playedMs >= todayWindowStart.getTime()) {
           if (map[row.user_id].today_score === null || row.total_score > map[row.user_id].today_score) {
             map[row.user_id].today_score = row.total_score;
           }
@@ -6643,8 +6683,13 @@ async function showGameOver() {
   if (bestPossible) {
     const myBestScore = history.length ? Math.max(...history.map(h => h.score)) : 0;
     const missed = bestPossible.score > myBestScore;
+    const foundIt = !missed && history.some(h => h.score >= bestPossible.score);
     bestSection.style.display = 'block';
-    document.getElementById('bestWordLabel').textContent = missed ? 'YOU MISSED THIS ONE' : 'BEST POSSIBLE WORD';
+    document.getElementById('bestWordLabel').textContent = missed
+      ? 'YOU MISSED THIS ONE'
+      : foundIt
+        ? 'YOU GOT THE BEST POSSIBLE WORD! 🎉'
+        : 'BEST POSSIBLE WORD';
     document.getElementById('bestWordLabel').className = 'best-word-label' + (missed ? ' missed' : '');
     document.getElementById('bestWordValue').textContent = bestPossible.word;
     document.getElementById('bestWordPts').textContent = bestPossible.score + ' PTS';
