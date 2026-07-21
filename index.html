@@ -2099,6 +2099,13 @@
       </div>
       <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');document.getElementById('practiceEntryOverlay').classList.add('show');">PRACTICE ›</span>
+          <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">ANY TIME · NO PRESSURE</span>
+        </div>
+        <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same format as the full game — scores don't count.</div>
+      </div>
+      <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
           <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');(function(){const after=isAfterAnagramReveal();const solved=localStorage.getItem('elevensies_anagram_solved')===todayString();document.getElementById('anagramPlayBtn').textContent=solved?'SEE RESULT':after?'SEE TODAY\'S WORD':'LET\'S PLAY';document.getElementById('anagramEntryOverlay').classList.add('show');})();">ANAGRAM ›</span>
           <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">ONE 11-LETTER WORD DAILY</span>
         </div>
@@ -2111,14 +2118,7 @@
         </div>
         <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same letters and bonus 11th tile every turn — pure skill.</div>
       </div>
-      <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');document.getElementById('practiceEntryOverlay').classList.add('show');">PRACTICE ›</span>
-          <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">ANY TIME · NO PRESSURE</span>
-        </div>
-        <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same format as the full game — scores don't count.</div>
-      </div>
-      <div style="border-top:1px solid rgba(240,192,32,0.12);padding-top:12px;">
+      <div style="padding-top:12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
           <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');document.getElementById('eliminatorEntryOverlay').classList.add('show');">ELIMINATOR ›</span>
           <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">11 ROUNDS · 60 SECONDS EACH</span>
@@ -3626,15 +3626,17 @@ async function showDailyBriefing() {
     ? 'YESTERDAY\'S WORD OF THE DAY'
     : 'WORD OF THE DAY';
 
-  if (sbClient) {
-    try {
+  // sbClient is always initialised with anon key — works for logged out users too
+  const client = sbClient;
+  if (!client) return;
+  try {
       const windowStart = new Date(now);
       if (isBeforeWindow) windowStart.setDate(windowStart.getDate() - 1);
       windowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
       const windowEnd = new Date(windowStart);
       windowEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
 
-      const { data } = await sbClient
+      const { data } = await client
         .from('game_results')
         .select('user_id, best_word, best_word_score, history')
         .eq('game_status', 'completed')
@@ -3655,7 +3657,7 @@ async function showDailyBriefing() {
         }
         if (best) {
           document.getElementById('briefingWord').textContent = best.word;
-          const { data: prof } = await sbClient.from('profiles').select('display_name').eq('id', best.user_id).single();
+          const { data: prof } = await client.from('profiles').select('display_name').eq('id', best.user_id).single();
           document.getElementById('briefingWordMeta').textContent = `${best.score} PTS · ${prof?.display_name || 'A PLAYER'}`;
         } else {
           document.getElementById('briefingWord').textContent = '—';
@@ -3666,7 +3668,6 @@ async function showDailyBriefing() {
         document.getElementById('briefingWordMeta').textContent = isBeforeWindow ? 'No games yesterday' : 'No games yet today';
       }
     } catch(e) { console.error('Briefing fetch error:', e); }
-  }
 }
 
 document.getElementById('briefingCloseBtn').addEventListener('click', () => {
