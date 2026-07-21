@@ -3274,6 +3274,16 @@ async function openFullGameStats() {
   document.getElementById('statsOverlayMilestonesSection').style.display = '';
   document.getElementById('statsOverlayBestScoresSection').style.display = '';
 
+  // Reset all row labels and visibility to full game defaults
+  const fullGameLabels = ['GAMES PLAYED','CURRENT STREAK','BEST SCORE','AVG WORD SCORE','AVG OVERALL','BEST WORD'];
+  const fullGameIds = ['statsOverlayGames','statsOverlayStreak','statsOverlayBest','statsOverlayAvgWord','statsOverlayAvg','statsOverlayBestWord'];
+  const rows = document.querySelectorAll('#statsOverlayStats .account-stats-row');
+  rows.forEach((r, i) => {
+    r.style.display = '';
+    if (fullGameLabels[i]) r.querySelector('span:first-child').textContent = fullGameLabels[i];
+  });
+  fullGameIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+
   overlay.classList.add('show');
 
   if (!sbClient || !currentUser) {
@@ -5592,6 +5602,8 @@ async function showAnagramReveal() {
 function showAnagramResult(solved) {
   const msg = document.getElementById('anagramMessage');
   if (msg) { msg.textContent = ''; msg.className = 'message'; }
+  const swapHint = document.getElementById('anagramSwapHint');
+  if (swapHint) swapHint.style.display = 'none';
   const overlay = document.getElementById('anagramResultOverlay');
   const title = document.getElementById('anagramResultTitle');
   const body = document.getElementById('anagramResultBody');
@@ -8444,14 +8456,8 @@ async function openEliminatorStats() {
     const overlay = document.getElementById('fullGameStatsOverlay');
     const loggedOut = document.getElementById('fullGameStatsLoggedOut');
 
-    overlay.querySelector('#fullGameStatsTitle').textContent = 'ELIMINATOR';
-    document.getElementById('statsTabStats').parentElement.style.display = 'none';
-    document.getElementById('statsTabLbContent').style.display = 'none';
+    resetStatsOverlay('ELIMINATOR');
     document.getElementById('statsTabStatsContent').style.display = '';
-    document.getElementById('statsOverlayBadgesSection').style.display = 'none';
-    document.getElementById('statsOverlayMilestonesSection').style.display = 'none';
-    document.getElementById('statsOverlayBestScoresSection').style.display = 'none';
-    document.getElementById('statsOverlayHistorySection').style.display = 'none';
 
     overlay.classList.add('show');
 
