@@ -1797,6 +1797,19 @@
   </div>
 </div>
 
+<!-- Head to Head: entry overlay -->
+<div class="overlay" id="h2hEntryOverlay">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">HEAD TO HEAD</div>
+    <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">
+      Challenge a friend. Same letters every turn. Best of 3 rounds.
+    </div>
+    <button class="auth-submit-btn" id="h2hEntryPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
+    <button class="cancel-btn" id="h2hEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
+    <button class="cancel-btn" id="h2hEntryCloseBtn">CLOSE</button>
+  </div>
+</div>
+
 <!-- Head to Head: entry (create or join) -->
 <div class="overlay" id="headToHeadOverlay">
   <div class="modal">
@@ -1967,6 +1980,56 @@
   </div>
 </div>
 
+<!-- Daily Briefing overlay -->
+<div class="overlay" id="dailyBriefingOverlay">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:28px;font-weight:900;letter-spacing:0.15em;color:var(--gold);margin-bottom:4px;">ELEVENSIES</div>
+    <div style="font-size:10px;letter-spacing:0.12em;opacity:0.5;margin-bottom:20px;">TAKE A BREAK, MAKE A WORD.</div>
+
+    <!-- Best word section -->
+    <div id="briefingBestWord" style="margin-bottom:14px;padding:10px;background:rgba(240,192,32,0.06);border:1px solid rgba(240,192,32,0.15);">
+      <div style="font-size:9px;letter-spacing:0.14em;opacity:0.45;margin-bottom:6px;" id="briefingWordLabel">YESTERDAY'S BEST WORD</div>
+      <div style="font-size:32px;font-weight:900;color:var(--gold);letter-spacing:0.1em;" id="briefingWord">—</div>
+      <div style="font-size:11px;opacity:0.55;margin-top:4px;" id="briefingWordMeta"></div>
+    </div>
+
+    <!-- How to play -->
+    <div style="margin-bottom:8px;font-size:12px;letter-spacing:0.05em;line-height:1.7;opacity:0.75;">
+      Make words from your tiles. Score as many points as possible in 11 turns.
+    </div>
+    <div style="margin-bottom:12px;">
+      <button class="auth-submit-btn" id="briefingHowToBtn" style="font-size:11px;">HOW TO PLAY</button>
+    </div>
+
+    <!-- What's new -->
+    <div style="margin-bottom:16px;">
+      <button class="auth-submit-btn" id="briefingWhatsNewBtn" style="font-size:11px;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);">WHAT'S NEW ›</button>
+    </div>
+
+    <button class="auth-submit-btn" id="briefingCloseBtn">LET'S PLAY</button>
+  </div>
+</div>
+
+<!-- What's New overlay -->
+<div class="overlay" id="whatsNewOverlay" style="z-index:2000;">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">WHAT'S NEW</div>
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:8px;opacity:0.85;">
+      <strong style="color:var(--gold);">MINI LEAGUES</strong><br>
+      Create a private league with friends and compete on your own leaderboard. Find it in STATS → LEAGUES.
+    </div>
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:8px;opacity:0.85;">
+      <strong style="color:var(--gold);">ELIMINATOR</strong><br>
+      A new unlimited mode — find a word scoring 11+ points before the clock runs out.
+    </div>
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
+      <strong style="color:var(--gold);">PLAYER PROFILES</strong><br>
+      Tap any player on the leaderboard to see their stats and badges.
+    </div>
+    <button class="cancel-btn" id="whatsNewCloseBtn">CLOSE</button>
+  </div>
+</div>
+
 <!-- Mini Leagues intro popup -->
 <div class="overlay" id="leaguesIntroOverlay">
   <div class="modal" style="text-align:center;">
@@ -2043,7 +2106,7 @@
       </div>
       <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');openH2H();">HEAD TO HEAD ›</span>
+          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');document.getElementById('h2hEntryOverlay').classList.add('show');">HEAD TO HEAD ›</span>
           <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">CHALLENGE A FRIEND</span>
         </div>
         <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same letters and bonus 11th tile every turn — pure skill.</div>
@@ -2303,7 +2366,7 @@
         </div>
 
         <!-- Step 1: Same tiles -->
-        <div class="how-to-step h2h-step" id="h2hStep1" style="display:none;position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div class="how-to-step h2h-step" id="h2hStep1" style="position:absolute;inset:0;text-align:center;flex-direction:column;align-items:center;justify-content:center;display:none;">
           <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:14px;">SAME TILES. PURE SKILL.</div>
           <div style="display:flex;gap:20px;justify-content:center;margin-bottom:16px;">
             <div>
@@ -2332,7 +2395,7 @@
         </div>
 
         <!-- Step 2: Best of 3 -->
-        <div class="how-to-step h2h-step" id="h2hStep2" style="display:none;position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div class="how-to-step h2h-step" id="h2hStep2" style="position:absolute;inset:0;text-align:center;flex-direction:column;align-items:center;justify-content:center;display:none;">
           <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:20px;">BEST OF THREE</div>
           <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
             <div style="width:52px;height:52px;border:2px solid var(--gold);background:rgba(240,192,32,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:var(--gold);">1</div>
@@ -3541,17 +3604,6 @@ async function openPlayerProfile(uid) {
   }
 }
 
-// Mini leagues intro popup — show once from July 22nd 2026
-(function() {
-  const LEAGUES_INTRO_KEY = 'elevensies_leagues_intro_seen';
-  const LAUNCH_DATE = '2026-07-22';
-  if (localStorage.getItem(LEAGUES_INTRO_KEY)) return;
-  if (todayString() < LAUNCH_DATE) return;
-  // Only show if they haven't played today — don't interrupt post-game
-  if (localStorage.getItem(FULL_GAME_PLAYED_KEY) === todayString()) return;
-  document.getElementById('leaguesIntroOverlay').classList.add('show');
-})();
-
 document.getElementById('leaguesIntroTryBtn').addEventListener('click', () => {
   localStorage.setItem('elevensies_leagues_intro_seen', '1');
   document.getElementById('leaguesIntroOverlay').classList.remove('show');
@@ -3562,6 +3614,76 @@ document.getElementById('leaguesIntroCloseBtn').addEventListener('click', () => 
   localStorage.setItem('elevensies_leagues_intro_seen', '1');
   document.getElementById('leaguesIntroOverlay').classList.remove('show');
 });
+// ===== DAILY BRIEFING =====
+async function showDailyBriefing() {
+  const overlay = document.getElementById('dailyBriefingOverlay');
+  overlay.classList.add('show');
+
+  const now = new Date();
+  const isBeforeWindow = now.getHours() < FULL_GAME_HOUR_START;
+
+  document.getElementById('briefingWordLabel').textContent = isBeforeWindow
+    ? 'YESTERDAY\'S WORD OF THE DAY'
+    : 'WORD OF THE DAY';
+
+  if (sbClient) {
+    try {
+      const windowStart = new Date(now);
+      if (isBeforeWindow) windowStart.setDate(windowStart.getDate() - 1);
+      windowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+      const windowEnd = new Date(windowStart);
+      windowEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
+
+      const { data } = await sbClient
+        .from('game_results')
+        .select('user_id, best_word, best_word_score, history')
+        .eq('game_status', 'completed')
+        .gte('played_at', windowStart.toISOString())
+        .lte('played_at', windowEnd.toISOString())
+        .limit(200);
+
+      if (data && data.length > 0) {
+        let best = null;
+        for (const row of data) {
+          const hist = Array.isArray(row.history) ? row.history : [];
+          for (const h of hist) {
+            if (!best || h.score > best.score) best = { word: h.word, score: h.score, user_id: row.user_id };
+          }
+          if (row.best_word_score && (!best || Number(row.best_word_score) > best.score)) {
+            best = { word: row.best_word, score: Number(row.best_word_score), user_id: row.user_id };
+          }
+        }
+        if (best) {
+          document.getElementById('briefingWord').textContent = best.word;
+          const { data: prof } = await sbClient.from('profiles').select('display_name').eq('id', best.user_id).single();
+          document.getElementById('briefingWordMeta').textContent = `${best.score} PTS · ${prof?.display_name || 'A PLAYER'}`;
+        } else {
+          document.getElementById('briefingWord').textContent = '—';
+          document.getElementById('briefingWordMeta').textContent = '';
+        }
+      } else {
+        document.getElementById('briefingWord').textContent = '—';
+        document.getElementById('briefingWordMeta').textContent = isBeforeWindow ? 'No games yesterday' : 'No games yet today';
+      }
+    } catch(e) { console.error('Briefing fetch error:', e); }
+  }
+}
+
+document.getElementById('briefingCloseBtn').addEventListener('click', () => {
+  document.getElementById('dailyBriefingOverlay').classList.remove('show');
+});
+document.getElementById('briefingHowToBtn').addEventListener('click', () => {
+  document.getElementById('dailyBriefingOverlay').classList.remove('show');
+  openHowTo();
+});
+document.getElementById('briefingWhatsNewBtn').addEventListener('click', () => {
+  document.getElementById('whatsNewOverlay').classList.add('show');
+});
+document.getElementById('whatsNewCloseBtn').addEventListener('click', () => {
+  document.getElementById('whatsNewOverlay').classList.remove('show');
+});
+// ===== END DAILY BRIEFING =====
+
 let currentLeagueDetail = null;
 
 async function authFetch(path, body) {
@@ -7302,6 +7424,14 @@ fullGameBtn.addEventListener('click', async () => {
 
 document.getElementById('playConfirmBtn').addEventListener('click', () => {
   document.getElementById('playConfirmOverlay').classList.remove('show');
+  if (!currentUser) {
+    authOverlay.classList.add('show');
+    showAuthForm();
+    const check = setInterval(() => {
+      if (currentUser) { clearInterval(check); document.getElementById('playConfirmOverlay').classList.add('show'); }
+    }, 500);
+    return;
+  }
   startFullGame();
 });
 document.getElementById('playConfirmHowToBtn').addEventListener('click', () => {
@@ -7316,6 +7446,26 @@ document.getElementById('playConfirmCancelBtn').addEventListener('click', () => 
 const moreGamesOverlay = document.getElementById('moreGamesOverlay');
 document.getElementById('moreGamesBtn').addEventListener('click', () => moreGamesOverlay.classList.add('show'));
 document.getElementById('moreGamesCloseBtn').addEventListener('click', () => moreGamesOverlay.classList.remove('show'));
+document.getElementById('h2hEntryPlayBtn').addEventListener('click', () => {
+  if (!currentUser) {
+    document.getElementById('h2hEntryOverlay').classList.remove('show');
+    authOverlay.classList.add('show');
+    showAuthForm();
+    const check = setInterval(() => {
+      if (currentUser) { clearInterval(check); document.getElementById('h2hEntryOverlay').classList.add('show'); }
+    }, 500);
+    return;
+  }
+  document.getElementById('h2hEntryOverlay').classList.remove('show');
+  openH2H();
+});
+document.getElementById('h2hEntryHowToBtn').addEventListener('click', () => {
+  document.getElementById('h2hEntryOverlay').classList.remove('show');
+  document.getElementById('aboutH2HOverlay').classList.add('show');
+});
+document.getElementById('h2hEntryCloseBtn').addEventListener('click', () => {
+  document.getElementById('h2hEntryOverlay').classList.remove('show');
+});
 document.getElementById('practiceEntryPlayBtn').addEventListener('click', () => {
   document.getElementById('practiceEntryOverlay').classList.remove('show');
   startPractice();
@@ -7357,7 +7507,7 @@ document.getElementById('anagramEntryCloseBtn').addEventListener('click', () => 
 // Head to Head button wiring
 document.getElementById('moreGamesHeadToHeadBtn').addEventListener('click', () => {
   document.getElementById('moreGamesOverlay').classList.remove('show');
-  openH2H();
+  document.getElementById('h2hEntryOverlay').classList.add('show');
 });
 document.getElementById('headToHeadCloseBtn').addEventListener('click', () => {
   document.getElementById('headToHeadOverlay').classList.remove('show');
@@ -8839,10 +8989,7 @@ dictReady.then(() => {
   try {
     showScreen('welcome');
     startWelcomeLabelTicker();
-    // Show how-to once on first visit
-    if (!localStorage.getItem('elevensies_how_to_seen')) {
-      setTimeout(openHowTo, 800);
-    }
+    showDailyBriefing();
   } catch (err) {
     console.error('Startup failed:', err);
     showScreen('welcome');
