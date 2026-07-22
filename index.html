@@ -1216,11 +1216,12 @@
   .badge-icon {
     width: 36px;
     height: 36px;
-    background: var(--gold);
+    background: #f0c020;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    flex-shrink: 0;
   }
   .badge-item.locked .badge-icon { opacity: 0.3; filter: grayscale(1); }
   .badge-name { font-size: 8px; letter-spacing: 0.05em; font-weight: 700; line-height: 1.3; }
@@ -3593,13 +3594,18 @@ async function openPlayerProfile(uid) {
     const earned = BADGE_DEFS.filter(b => earnedBadges.has(b.id) || earnedBadges.has(b.abbr));
     grid.innerHTML = earned.map(b => {
       const isStreak = b.id === 'streak';
-      const streakVal = isStreak ? (stats?.streak || '') : '';
-      const iconSrc = isStreak && !streakVal ? '/icons/badges/No-Streak.png' : `/icons/badges/${b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase()}.png`;
-      const iconContent = isStreak && streakVal
-        ? `<div style="font-size:18px;font-weight:900;color:var(--green);width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${streakVal}</div>`
-        : `<img src="${iconSrc}" style="width:100%;height:100%;object-fit:contain;">`;
+      let iconContent;
+      if (isStreak) {
+        const streakVal = stats?.streak || 0;
+        iconContent = streakVal > 0
+          ? `<div style="width:100%;height:100%;background:#f0c020;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1a6b3c;line-height:1;">${streakVal}</div>`
+          : `<img src="/icons/badges/No-Streak.png" style="width:100%;height:100%;object-fit:contain;">`;
+      } else {
+        const fname = b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase();
+        iconContent = `<img src="/icons/badges/${fname}.png" style="width:100%;height:100%;object-fit:contain;">`;
+      }
       return `<div class="badge-item" data-desc="${b.desc}" data-name="${b.name}" role="button" tabindex="0">
-        <div class="badge-icon" style="overflow:hidden;padding:2px;">${iconContent}</div>
+        <div class="badge-icon" style="overflow:hidden;padding:0;">${iconContent}</div>
         <div class="badge-name">${b.name}</div>
       </div>`;
     }).join('');
@@ -6508,18 +6514,20 @@ function renderBadges(stats, prefix) {
 
   const renderBadgeItem = (b) => {
     const earned = b.check(stats);
-    // Streak badge: show number if earned (dynamic), flame if not, no-streak if locked
-    let iconSrc;
+    let iconContent;
     if (b.id === 'streak') {
-      iconSrc = earned ? null : '/icons/badges/No-Streak.png'; // earned uses number overlay
+      if (earned) {
+        // Gold box with streak number in green
+        iconContent = `<div style="width:100%;height:100%;background:#f0c020;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1a6b3c;line-height:1;">${b.dynamic(stats)}</div>`;
+      } else {
+        iconContent = `<img src="/icons/badges/No-Streak.png" style="width:100%;height:100%;object-fit:contain;">`;
+      }
     } else {
-      iconSrc = `/icons/badges/${b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase()}.png`;
+      const fname = b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase();
+      iconContent = `<img src="/icons/badges/${fname}.png" style="width:100%;height:100%;object-fit:contain;">`;
     }
-    const iconContent = (b.id === 'streak' && earned)
-      ? `<div class="badge-icon" style="font-size:18px;font-weight:900;">${b.dynamic(stats)}</div>`
-      : `<img src="${iconSrc}" style="width:100%;height:100%;object-fit:contain;">`;
     return `<div class="badge-item${earned ? '' : ' locked'}" data-desc="${b.desc}" data-name="${b.name}" role="button" tabindex="0">
-      <div class="badge-icon" style="overflow:hidden;padding:2px;">${iconContent}</div>
+      <div class="badge-icon" style="overflow:hidden;padding:0;">${iconContent}</div>
       <div class="badge-name">${b.name}</div>
     </div>`;
   };
