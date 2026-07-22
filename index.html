@@ -3860,10 +3860,24 @@ async function openLeagueDetail(leagueId) {
     });
 
     // Build streak per user from scores
+    // Build a proper date map per user
+    const datesByUser = {};
+    (scoresRes.data || []).forEach(r => {
+      if (!datesByUser[r.user_id]) datesByUser[r.user_id] = [];
+      if (r.played_at) {
+        const d = new Date(r.played_at);
+        const local = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        datesByUser[r.user_id].push(local);
+      }
+    });
+
     function userStreak(uid) {
-      const dates = (scoresByUser[uid] || []).map((_, i) => scoresRes.data.filter(r => r.user_id === uid)[i]?.played_at?.slice(0,10)).filter(Boolean).sort().reverse();
+      const dates = [...new Set(datesByUser[uid] || [])].sort().reverse();
       if (!dates.length) return 0;
-      const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+      const yest = new Date(now); yest.setDate(yest.getDate()-1);
+      const yesterday = `${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,'0')}-${String(yest.getDate()).padStart(2,'0')}`;
       if (dates[0] !== today && dates[0] !== yesterday) return 0;
       let streak = 1;
       for (let i = 1; i < dates.length; i++) {
