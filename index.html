@@ -324,8 +324,8 @@
   /* Header */
   .header {
     width: 380px;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     padding: 18px 0 10px;
   }
@@ -335,6 +335,7 @@
     cursor: pointer;
     padding: 0;
     display: block;
+    justify-self: start;
   }
   .logo-btn img {
     height: 44px;
@@ -349,6 +350,8 @@
     flex-direction: column;
     gap: 5px;
     padding: 6px;
+    justify-self: end;
+    grid-column: 3;
   }
   .menu-btn span {
     width: 28px;
@@ -1436,6 +1439,7 @@
   <!-- Header — always visible so burger menu is accessible on all screens -->
   <div class="header" id="appHeader">
     <button class="logo-btn" id="logoHomeBtn"><img id="headerLogo" alt="Elevensies"></button>
+    <div id="headerModeIcon" style="display:none;opacity:0.7;align-items:center;justify-content:center;"></div>
     <button class="menu-btn" id="menuBtn">
       <span></span><span></span><span></span>
     </button>
@@ -1672,11 +1676,36 @@
 <div class="overlay" id="moreGamesOverlay">
   <div class="modal">
     <div class="modal-title">MORE GAMES</div>
-    <div class="alphabet-grid" style="display:flex; flex-direction:column; gap:10px;">
-      <button class="auth-submit-btn" id="moreGamesPracticeBtn" style="margin-top:0;">PRACTICE</button>
-      <button class="auth-submit-btn" id="moreGamesAnagramBtn" style="margin-top:0;">ANAGRAM</button>
-      <button class="auth-submit-btn" id="moreGamesHeadToHeadBtn" style="margin-top:0;">HEAD TO HEAD</button>
-      <button class="auth-submit-btn" id="moreGamesEliminatorBtn" style="margin-top:0;">ELIMINATOR</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+
+      <button id="moreGamesPracticeBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;font-family:inherit;">
+        <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/practice.png" style="height:48px;width:auto;">
+        </div>
+        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">PRACTICE</div>
+      </button>
+
+      <button id="moreGamesAnagramBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;font-family:inherit;">
+        <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/anagram.png" style="height:48px;width:auto;">
+        </div>
+        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">ANAGRAM</div>
+      </button>
+
+      <button id="moreGamesEliminatorBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;font-family:inherit;">
+        <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/eliminator.png" style="height:48px;width:auto;">
+        </div>
+        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">ELIMINATOR</div>
+      </button>
+
+      <button id="moreGamesHeadToHeadBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;font-family:inherit;">
+        <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/h2h.png" style="height:48px;width:auto;">
+        </div>
+        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">HEAD TO HEAD</div>
+      </button>
+
     </div>
     <button class="cancel-btn" id="moreGamesCloseBtn">CLOSE</button>
   </div>
@@ -1684,7 +1713,8 @@
 
 <!-- Eliminator entry overlay -->
 <div class="overlay" id="eliminatorEntryOverlay">
-  <div class="modal">
+  <div class="modal" style="text-align:center;">
+    <div style="display:flex;justify-content:center;align-items:center;height:48px;margin-bottom:12px;"><img src="/icons/eliminator.png" style="height:48px;width:auto;"></div>
     <div class="modal-title">ELIMINATOR</div>
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;text-align:center;">
       11 rounds. 60 seconds each.<br>Find a word scoring 11+ or you're out.
@@ -1786,7 +1816,8 @@
   </div>
 </div>
 <div class="overlay" id="anagramEntryOverlay">
-  <div class="modal">
+  <div class="modal" style="text-align:center;">
+    <div style="display:flex;justify-content:center;align-items:center;height:48px;margin-bottom:12px;"><img src="/icons/anagram.png" style="height:48px;width:auto;"></div>
     <div class="modal-title">ANAGRAM</div>
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;text-align:center;">
       One 11-letter word. Same puzzle for every player.<br>New word at midnight.
@@ -1800,6 +1831,7 @@
 <!-- Head to Head: entry overlay -->
 <div class="overlay" id="h2hEntryOverlay">
   <div class="modal" style="text-align:center;">
+    <div style="display:flex;justify-content:center;align-items:center;height:48px;margin-bottom:12px;"><img src="/icons/h2h.png" style="height:48px;width:auto;"></div>
     <div class="modal-title">HEAD TO HEAD</div>
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">
       Challenge a friend. Same letters every turn. Best of 3 rounds.
@@ -1969,6 +2001,9 @@
 <!-- Practice entry overlay -->
 <div class="overlay" id="practiceEntryOverlay">
   <div class="modal" style="text-align:center;">
+    <div style="display:flex;justify-content:center;align-items:center;height:48px;margin-bottom:12px;">
+      <img src="/icons/practice.png" style="height:48px;width:auto;">
+    </div>
     <div class="modal-title">PRACTICE</div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
       Same format as the full game — random letters, 11 turns, score as high as you can.<br><br>
@@ -2087,43 +2122,39 @@
 <!-- About: Homepage (platform overview) -->
 <div class="overlay" id="aboutHomepageOverlay">
   <div class="modal">
-    <div class="modal-title">ELEVENSIES</div>
-    <div style="font-size:11px;letter-spacing:0.08em;opacity:0.6;text-align:center;margin-bottom:20px;line-height:1.6;">WELCOME TO ELEVENSIES.<br>HERE ARE YOUR GAME MODES.</div>
-    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-      <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');fullGameBtn.click();">FULL GAME ›</span>
-          <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">11 WORDS · 11 TURNS · 11AM</span>
-        </div>
-        <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Get the highest score from random letters.</div>
-      </div>
-      <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');document.getElementById('practiceEntryOverlay').classList.add('show');">PRACTICE ›</span>
-          <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">ANY TIME · NO PRESSURE</span>
-        </div>
-        <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same format as the full game — scores don't count.</div>
-      </div>
-      <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');(function(){const after=isAfterAnagramReveal();const solved=localStorage.getItem('elevensies_anagram_solved')===todayString();document.getElementById('anagramPlayBtn').textContent=solved?'SEE RESULT':after?'SEE TODAY\'S WORD':'LET\'S PLAY';document.getElementById('anagramEntryOverlay').classList.add('show');})();">ANAGRAM ›</span>
-          <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">ONE 11-LETTER WORD DAILY</span>
-        </div>
-        <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same word for everyone — find the 11th letter and unscramble.</div>
-      </div>
-      <div style="border-bottom:1px solid rgba(240,192,32,0.12);padding-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');document.getElementById('h2hEntryOverlay').classList.add('show');">HEAD TO HEAD ›</span>
-          <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">CHALLENGE A FRIEND</span>
-        </div>
-        <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Same letters and bonus 11th tile every turn — pure skill.</div>
-      </div>
-      <div style="padding-top:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.08em;color:var(--gold);cursor:pointer;" onclick="aboutHomepageOverlay.classList.remove('show');document.getElementById('eliminatorEntryOverlay').classList.add('show');">ELIMINATOR ›</span>
-          <span style="font-size:10px;letter-spacing:0.05em;opacity:0.55;">11 ROUNDS · 60 SECONDS EACH</span>
-        </div>
-        <div style="font-size:11px;letter-spacing:0.04em;opacity:0.45;line-height:1.5;">Find a word scoring 11+ points from your letters. Run out of time and you're out.</div>
+    <div class="modal-title">ABOUT ELEVENSIES</div>
+    <div style="font-size:12px;letter-spacing:0.06em;text-align:center;line-height:1.7;opacity:0.75;margin-bottom:16px;">
+      A free-to-play online word game that tests your vocabulary and strategy. Make 11 words at 11am from a maximum of 11 tiles.
+    </div>
+    <button class="auth-submit-btn" onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');fullGameBtn.click();" style="margin-bottom:16px;">PLAY NOW</button>
+    <div style="border-top:1px solid rgba(240,192,32,0.2);padding-top:16px;margin-bottom:12px;">
+      <div style="font-size:10px;letter-spacing:0.16em;opacity:0.45;text-align:center;margin-bottom:14px;font-weight:700;">OTHER GAMES</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+
+        <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('practiceEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+          <img src="/icons/practice.png" style="height:48px;width:auto;">
+          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">PRACTICE</div>
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;">UNLIMITED PLAY, ANY TIME, SCORES DON'T COUNT</div>
+        </button>
+
+        <button onclick="(function(){document.getElementById('aboutHomepageOverlay').classList.remove('show');const after=isAfterAnagramReveal();const solved=localStorage.getItem('elevensies_anagram_solved')===todayString();document.getElementById('anagramPlayBtn').textContent=solved?'SEE RESULT':after?'SEE TODAY\'S WORD':'LET\'S PLAY';document.getElementById('anagramEntryOverlay').classList.add('show');})()" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+          <img src="/icons/anagram.png" style="height:48px;width:auto;">
+          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">ANAGRAM</div>
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;">ONE WORD, FIND THE MISSING LETTER, UNSCRAMBLE</div>
+        </button>
+
+        <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('eliminatorEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+          <img src="/icons/eliminator.png" style="height:48px;width:auto;">
+          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">ELIMINATOR</div>
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;">60 SECS PER TURN, MAKE AN 11-POINT WORD OR YOU'RE OUT</div>
+        </button>
+
+        <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('h2hEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+          <img src="/icons/h2h.png" style="height:48px;width:auto;">
+          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">HEAD TO HEAD</div>
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;">CHALLENGE A FRIEND, SAME TILES, 11TH LETTER EVERY TURN</div>
+        </button>
+
       </div>
     </div>
     <button class="cancel-btn" id="aboutHomepageCloseBtn">CLOSE</button>
@@ -4266,6 +4297,13 @@ function formatCountdown(ms) {
 
 let countdownInterval = null;
 
+const MODE_ICONS = {
+  practice: '<img src="/icons/practice.png" style="height:28px;width:auto;">',
+  anagram: '<img src="/icons/anagram.png" style="height:28px;width:auto;">',
+  eliminator: '<img src="/icons/eliminator.png" style="height:28px;width:auto;">',
+  h2h: '<img src="/icons/h2h.png" style="height:28px;width:auto;">',
+};
+
 function showScreen(name) {
   // name: 'welcome' | 'countdown' | 'game' | 'anagram' | 'h2h' | 'eliminator'
   welcomeScreen.style.display = name === 'welcome' ? '' : 'none';
@@ -4279,6 +4317,11 @@ function showScreen(name) {
   menuBtn.style.display = '';
   menuBtn.dataset.screen = name;
   menuBtn.dataset.mode = gameMode || '';
+  // Update header mode icon
+  const iconEl = document.getElementById('headerModeIcon');
+  const modeKey = name === 'game' ? (gameMode === 'practice' ? 'practice' : null) : (name === 'h2h' ? 'h2h' : name === 'anagram' ? 'anagram' : name === 'eliminator' ? 'eliminator' : null);
+  if (modeKey && MODE_ICONS[modeKey]) { iconEl.innerHTML = MODE_ICONS[modeKey]; iconEl.style.display = 'flex'; }
+  else { iconEl.style.display = 'none'; }
 }
 
 let welcomeLabelInterval = null;
