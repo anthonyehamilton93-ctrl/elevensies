@@ -3627,9 +3627,7 @@ async function openPlayerProfile(uid) {
     });
     const toggle = document.getElementById('playerProfileBadgesToggle');
     const body = document.getElementById('playerProfileBadgesBody');
-    const fresh = toggle.cloneNode(true);
-    toggle.parentNode.replaceChild(fresh, toggle);
-    fresh.addEventListener('click', () => { const open = body.classList.toggle('open'); fresh.classList.toggle('open', open); });
+    toggle.onclick = () => { const open = body.classList.toggle('open'); toggle.classList.toggle('open', open); };
   }
 
   // Best scores
@@ -3648,9 +3646,7 @@ async function openPlayerProfile(uid) {
     }).join('');
     const toggle = document.getElementById('playerProfileBestToggle');
     const body = document.getElementById('playerProfileBestBody');
-    const fresh = toggle.cloneNode(true);
-    toggle.parentNode.replaceChild(fresh, toggle);
-    fresh.addEventListener('click', () => { const open = body.classList.toggle('open'); fresh.classList.toggle('open', open); });
+    toggle.onclick = () => { const open = body.classList.toggle('open'); toggle.classList.toggle('open', open); };
   }
 }
 
@@ -3887,7 +3883,9 @@ async function openLeagueDetail(leagueId) {
         const avg = s.length ? s.reduce((a,b)=>a+b,0)/s.length : 0;
         const best = s.length ? Math.max(...s) : 0;
         const streak = userStreak(uid);
-        const badgeCount = (badgeMap[uid] || []).length + (streak > 0 ? 1 : 0);
+        const storedBadges = badgeMap[uid] || [];
+        const hasStreakStored = storedBadges.includes('streak') || storedBadges.includes('STK');
+        const badgeCount = storedBadges.length + (streak > 0 && !hasStreakStored ? 1 : 0);
         return { uid, name: profileMap[uid]||'PLAYER', avg, best, played: s.length, streak, badgeCount, today: todayByUser[uid] };
       }).sort((a,b) => mode === 'avg' ? b.avg - a.avg : b.best - a.best);
 
@@ -6606,7 +6604,7 @@ function renderLeaderboardRows(allUsers, container, mode) {
     const name = row.display_name || randomPlayerName();
     const scoreVal = mode === 'avg' ? Number(row.avg_score).toFixed(0) : row.best_score;
     const streak = row.streak > 0 ? row.streak : '—';
-    const badgeCount = (row.badges || []).length + (row.streak > 0 ? 1 : 0);
+    const badgeCount = (row.badges || []).length;
     const todayVal = row.today_score !== null && row.today_score !== undefined ? row.today_score : '—';
     return `<div class="lb-row${isYou ? ' lb-you' : ''}" data-uid="${row.user_id}">
       <span class="lb-rank">${i + 1}</span>
