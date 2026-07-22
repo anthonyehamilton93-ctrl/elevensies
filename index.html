@@ -3600,7 +3600,7 @@ async function openPlayerProfile(uid) {
       const isStreak = b.id === 'streak';
       let iconContent;
       if (isStreak) {
-        const streakVal = stats?.streak || 0;
+        const streakVal = streak || 0;
         iconContent = streakVal > 0
           ? `<div style="width:100%;height:100%;background:#f0c020;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1a6b3c;line-height:1;">${streakVal}</div>`
           : `<img src="/icons/badges/No-Streak.png" style="width:100%;height:100%;object-fit:contain;">`;
