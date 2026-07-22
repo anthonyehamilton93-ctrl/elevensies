@@ -350,8 +350,6 @@
     flex-direction: column;
     gap: 5px;
     padding: 6px;
-    justify-self: end;
-    grid-column: 3;
   }
   .menu-btn span {
     width: 28px;
@@ -1216,17 +1214,15 @@
   }
   .badge-item.locked { opacity: 0.25; border-style: dashed; }
   .badge-icon {
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
     background: var(--gold);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 8px;
-    font-weight: 900;
-    color: var(--green);
+    overflow: hidden;
   }
-  .badge-item.locked .badge-icon { background: var(--gold-dark); }
+  .badge-item.locked .badge-icon { opacity: 0.3; filter: grayscale(1); }
   .badge-name { font-size: 8px; letter-spacing: 0.05em; font-weight: 700; line-height: 1.3; }
   .badge-item { cursor: pointer; }
   .badge-tooltip {
@@ -1440,9 +1436,12 @@
   <div class="header" id="appHeader">
     <button class="logo-btn" id="logoHomeBtn"><img id="headerLogo" alt="Elevensies"></button>
     <div id="headerModeIcon" style="display:none;opacity:0.7;align-items:center;justify-content:center;"></div>
-    <button class="menu-btn" id="menuBtn">
-      <span></span><span></span><span></span>
-    </button>
+    <div style="display:flex;align-items:center;gap:4px;grid-column:3;justify-self:end;">
+      <button id="briefingInfoBtn" style="background:none;border:none;cursor:pointer;color:var(--gold);font-family:inherit;font-size:20px;font-weight:900;padding:4px 6px;opacity:0.6;line-height:1;display:none;">ⓘ</button>
+      <button class="menu-btn" id="menuBtn">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
 
   <!-- Welcome screen -->
@@ -1648,7 +1647,7 @@
 
 <div class="overlay" id="freezeAtRiskOverlay">
   <div class="modal">
-    <div style="font-size:48px;margin-bottom:8px;text-align:center;display:block;">🔥</div>
+    <div style="margin-bottom:8px;text-align:center;display:block;"><img src="/icons/badges/No-Streak.png" style="width:56px;height:56px;object-fit:contain;"></div>
     <div class="modal-title">STREAK AT RISK</div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:8px;opacity:0.85;" id="freezeAtRiskDesc">
       YOU MISSED YESTERDAY. USE A LIFELINE TO PROTECT IT?
@@ -1682,6 +1681,7 @@
         <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/practice.png" style="height:48px;width:auto;">
         </div>
+        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">UNLIMITED PLAY, ANY TIME.<br>SCORES DON'T COUNT.</div>
         <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">PRACTICE</div>
       </button>
 
@@ -1689,6 +1689,7 @@
         <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/anagram.png" style="height:48px;width:auto;">
         </div>
+        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">ONE WORD DAILY.<br>UNSCRAMBLE THE LETTERS.</div>
         <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">ANAGRAM</div>
       </button>
 
@@ -1696,6 +1697,7 @@
         <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/eliminator.png" style="height:48px;width:auto;">
         </div>
+        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">MAKE AN 11-POINT WORD<br>OR YOU'RE ELIMINATED.</div>
         <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">ELIMINATOR</div>
       </button>
 
@@ -1703,6 +1705,7 @@
         <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/h2h.png" style="height:48px;width:auto;">
         </div>
+        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">CHALLENGE A FRIEND.<br>SAME TILES EVERY TURN.</div>
         <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">HEAD TO HEAD</div>
       </button>
 
@@ -2133,26 +2136,26 @@
 
         <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('practiceEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
           <img src="/icons/practice.png" style="height:48px;width:auto;">
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">UNLIMITED PLAY, ANY TIME.<br>SCORES DON'T COUNT.</div>
           <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">PRACTICE</div>
-          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;">UNLIMITED PLAY, ANY TIME, SCORES DON'T COUNT</div>
         </button>
 
         <button onclick="(function(){document.getElementById('aboutHomepageOverlay').classList.remove('show');const after=isAfterAnagramReveal();const solved=localStorage.getItem('elevensies_anagram_solved')===todayString();document.getElementById('anagramPlayBtn').textContent=solved?'SEE RESULT':after?'SEE TODAY\'S WORD':'LET\'S PLAY';document.getElementById('anagramEntryOverlay').classList.add('show');})()" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
           <img src="/icons/anagram.png" style="height:48px;width:auto;">
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">ONE WORD DAILY.<br>UNSCRAMBLE THE LETTERS.</div>
           <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">ANAGRAM</div>
-          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;">ONE WORD, FIND THE MISSING LETTER, UNSCRAMBLE</div>
         </button>
 
         <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('eliminatorEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
           <img src="/icons/eliminator.png" style="height:48px;width:auto;">
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">MAKE AN 11-POINT WORD<br>OR YOU'RE ELIMINATED.</div>
           <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">ELIMINATOR</div>
-          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;">60 SECS PER TURN, MAKE AN 11-POINT WORD OR YOU'RE OUT</div>
         </button>
 
         <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('h2hEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
           <img src="/icons/h2h.png" style="height:48px;width:auto;">
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">CHALLENGE A FRIEND.<br>SAME TILES EVERY TURN.</div>
           <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">HEAD TO HEAD</div>
-          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;">CHALLENGE A FRIEND, SAME TILES, 11TH LETTER EVERY TURN</div>
         </button>
 
       </div>
@@ -2255,21 +2258,21 @@
           <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:16px;">STREAKS, LIFELINES & BADGES</div>
           <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;">
             <div style="text-align:center;">
-              <div style="font-size:40px;line-height:1;">🔥</div>
+              <div style="line-height:1;"><img src="/icons/badges/No-Streak.png" style="width:40px;height:40px;object-fit:contain;"></div>
               <div style="font-size:10px;letter-spacing:0.1em;opacity:0.6;margin-top:6px;">STREAK</div>
             </div>
             <div style="text-align:center;">
-              <div style="font-size:40px;font-weight:900;color:var(--gold);line-height:1;">✦</div>
+              <div style="width:40px;height:40px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:var(--green);margin:0 auto;line-height:1;">✦</div>
               <div style="font-size:10px;letter-spacing:0.1em;opacity:0.6;margin-top:6px;">LIFELINE</div>
             </div>
             <div style="text-align:center;">
-              <div style="width:40px;height:40px;border:2px solid var(--gold);background:rgba(240,192,32,0.1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:var(--gold);margin:0 auto;">STK</div>
+              <img src="/icons/badges/Spotter.png" style="width:40px;height:40px;object-fit:contain;">
               <div style="font-size:10px;letter-spacing:0.1em;opacity:0.6;margin-top:6px;">BADGE</div>
             </div>
           </div>
           <div style="font-size:12px;letter-spacing:0.07em;line-height:1.8;opacity:0.8;text-align:left;padding:0 8px;">
             Play every day to build your streak.<br>
-            Miss a day? Use a <strong style="color:var(--gold);">Lifeline</strong> to protect it.<br>
+            Miss a day? Use a <strong style="color:var(--gold);">Lifeline ✦</strong> to protect it.<br>
             Earn <strong style="color:var(--gold);">Badges</strong> for milestones — streaks, high scores, rare words and more.
           </div>
         </div>
@@ -2350,7 +2353,7 @@
         <!-- Step 2: Streak -->
         <div class="how-to-step anagram-step" id="anagramStep2" style="display:none;position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
           <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:20px;">BUILD YOUR STREAK</div>
-          <div style="font-size:64px;line-height:1;margin-bottom:12px;">🔥</div>
+          <div style="line-height:1;"><img src="/icons/badges/No-Streak.png" style="width:64px;height:64px;object-fit:contain;margin-bottom:12px;"></div>
           <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:16px;">7</div>
           <div style="font-size:12px;letter-spacing:0.07em;line-height:1.8;opacity:0.8;text-align:left;padding:0 16px;">
             Solve the anagram each day to build your streak.<br>
@@ -2821,7 +2824,7 @@
     </div>
     <div id="lifelineOfferRow" style="display:none; margin-bottom:14px; text-align:center;">
       <div style="font-size:11px;letter-spacing:0.08em;opacity:0.7;margin-bottom:8px;" id="lifelineOfferText">USE A LIFELINE TO PROTECT YOUR STREAK?</div>
-      <button class="auth-submit-btn" id="lifelineOfferBtn" style="margin:0;">USE A LIFELINE</button>
+      <button class="auth-submit-btn" id="lifelineOfferBtn" style="margin:0;">✦ USE A LIFELINE</button>
     </div>
     <div class="gameover-actions">
       <button class="share-btn" id="shareBtn">SHARE RESULT</button>
@@ -3588,12 +3591,18 @@ async function openPlayerProfile(uid) {
 
     // Use BADGE_DEFS for consistent rendering — show earned only
     const earned = BADGE_DEFS.filter(b => earnedBadges.has(b.id) || earnedBadges.has(b.abbr));
-    grid.innerHTML = earned.map(b =>
-      `<div class="badge-item" data-desc="${b.desc}" data-name="${b.name}" role="button" tabindex="0">
-        <div class="badge-icon">${b.abbr}</div>
+    grid.innerHTML = earned.map(b => {
+      const isStreak = b.id === 'streak';
+      const streakVal = isStreak ? (stats?.streak || '') : '';
+      const iconSrc = isStreak && !streakVal ? '/icons/badges/No-Streak.png' : `/icons/badges/${b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase()}.png`;
+      const iconContent = isStreak && streakVal
+        ? `<div style="font-size:18px;font-weight:900;color:var(--green);width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${streakVal}</div>`
+        : `<img src="${iconSrc}" style="width:100%;height:100%;object-fit:contain;">`;
+      return `<div class="badge-item" data-desc="${b.desc}" data-name="${b.name}" role="button" tabindex="0">
+        <div class="badge-icon" style="overflow:hidden;padding:2px;">${iconContent}</div>
         <div class="badge-name">${b.name}</div>
-      </div>`
-    ).join('');
+      </div>`;
+    }).join('');
     grid.querySelectorAll('.badge-item').forEach(el => {
       el.addEventListener('click', () => {
         let tip = document.getElementById('badgeTooltip');
@@ -3701,6 +3710,9 @@ async function showDailyBriefing() {
     } catch(e) { console.error('Briefing fetch error:', e); }
 }
 
+document.getElementById('briefingInfoBtn').addEventListener('click', () => {
+  showDailyBriefing();
+});
 document.getElementById('briefingCloseBtn').addEventListener('click', () => {
   document.getElementById('dailyBriefingOverlay').classList.remove('show');
 });
@@ -4314,6 +4326,7 @@ function showScreen(name) {
   document.getElementById('eliminatorScreen').style.display = name === 'eliminator' ? 'flex' : 'none';
   const onWelcome = name === 'welcome';
   document.getElementById('logoHomeBtn').style.visibility = onWelcome ? 'hidden' : '';
+  document.getElementById('briefingInfoBtn').style.display = onWelcome ? '' : 'none';
   menuBtn.style.display = '';
   menuBtn.dataset.screen = name;
   menuBtn.dataset.mode = gameMode || '';
@@ -6495,9 +6508,18 @@ function renderBadges(stats, prefix) {
 
   const renderBadgeItem = (b) => {
     const earned = b.check(stats);
-    const iconText = (b.id === 'streak' && earned) ? b.dynamic(stats) : b.abbr;
+    // Streak badge: show number if earned (dynamic), flame if not, no-streak if locked
+    let iconSrc;
+    if (b.id === 'streak') {
+      iconSrc = earned ? null : '/icons/badges/No-Streak.png'; // earned uses number overlay
+    } else {
+      iconSrc = `/icons/badges/${b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase()}.png`;
+    }
+    const iconContent = (b.id === 'streak' && earned)
+      ? `<div class="badge-icon" style="font-size:18px;font-weight:900;">${b.dynamic(stats)}</div>`
+      : `<img src="${iconSrc}" style="width:100%;height:100%;object-fit:contain;">`;
     return `<div class="badge-item${earned ? '' : ' locked'}" data-desc="${b.desc}" data-name="${b.name}" role="button" tabindex="0">
-      <div class="badge-icon">${iconText}</div>
+      <div class="badge-icon" style="overflow:hidden;padding:2px;">${iconContent}</div>
       <div class="badge-name">${b.name}</div>
     </div>`;
   };
@@ -6528,11 +6550,13 @@ function showNewBadges(badges) {
     return;
   }
   section.style.display = 'block';
-  list.innerHTML = badges.map(b => `
-    <div class="new-badge-item">
-      <div class="new-badge-abbr">${b.abbr}</div>
+  list.innerHTML = badges.map(b => {
+    const iconSrc = `/icons/badges/${b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase()}.png`;
+    return `<div class="new-badge-item">
+      <img src="${iconSrc}" style="width:40px;height:40px;object-fit:contain;">
       <div class="new-badge-name">${b.name}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ===== Leaderboard =====
@@ -7109,23 +7133,25 @@ async function generateShareImage(overrideScore, overrideHistory, earnedBadges) 
     ctx.fillText('BADGES EARNED TODAY', W / 2, by - 14);
     ctx.globalAlpha = 1;
 
-    badges.forEach(b => {
-      // Border
-      ctx.strokeStyle = gold;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(bx, by, badgeW, badgeH);
-      // Subtle fill
-      ctx.fillStyle = 'rgba(240,192,32,0.10)';
-      ctx.fillRect(bx, by, badgeW, badgeH);
-      // Abbreviation
-      ctx.font = '900 20px Jost';
+    const badgeImgPromises = badges.map(b => new Promise(resolve => {
+      const img = new Image();
+      const name = b.id === 'streak' ? 'No-Streak' : b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase();
+      img.onload = () => resolve({ img, b });
+      img.onerror = () => resolve({ img: null, b });
+      img.src = `/icons/badges/${name}.png`;
+    }));
+    const badgeImgs = await Promise.all(badgeImgPromises);
+    badgeImgs.forEach(({ img, b }) => {
       ctx.fillStyle = gold;
-      ctx.textAlign = 'center';
-      ctx.fillText(b.abbr, bx + badgeW / 2, by + badgeH / 2 - 2);
-      // Name
-      ctx.font = '700 11px Jost';
-      ctx.globalAlpha = 0.7;
-      ctx.fillText(b.name, bx + badgeW / 2, by + badgeH / 2 + 16);
+      ctx.fillRect(bx, by, badgeW, badgeH);
+      if (img) ctx.drawImage(img, bx, by, badgeW, badgeH);
+      // Show streak number overlay
+      if (b.id === 'streak' && b.dynamic) {
+        ctx.font = '900 20px Jost'; ctx.fillStyle = green; ctx.textAlign = 'center';
+        ctx.fillText(b.dynamic({ streak: b._streakVal || 0 }), bx + badgeW / 2, by + badgeH / 2 + 7);
+      }
+      ctx.font = '700 11px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 0.7;
+      ctx.fillText(b.name, bx + badgeW / 2, by + badgeH + 14);
       ctx.globalAlpha = 1;
       bx += badgeW + badgeGap;
     });
@@ -7215,13 +7241,18 @@ async function generateStatsImage(name, games, streak, best, avg, bestWord, earn
     ctx.globalAlpha = 0.6;
     ctx.fillText('BADGES', W / 2, by - 12);
     ctx.globalAlpha = 1;
-    badges.forEach(b => {
+    const b2Promises = badges.map(b => new Promise(resolve => {
+      const img = new Image();
+      const bname = (b.id === 'streak' || b === 'streak') ? 'No-Streak' : (b.name || b).charAt(0).toUpperCase() + (b.name || b).slice(1).toLowerCase();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = `/icons/badges/${bname}.png`;
+    }));
+    const b2Imgs = await Promise.all(b2Promises);
+    b2Imgs.forEach((img, i) => {
       ctx.fillStyle = gold;
       ctx.fillRect(bx, by, badgeSize, badgeSize);
-      ctx.fillStyle = green;
-      ctx.font = '900 14px Jost';
-      ctx.textAlign = 'center';
-      ctx.fillText(b.abbr || b, bx + badgeSize / 2, by + badgeSize / 2 + 5);
+      if (img) ctx.drawImage(img, bx, by, badgeSize, badgeSize);
       bx += badgeSize + badgeGap;
     });
   }
