@@ -1356,11 +1356,11 @@
   }
   .lb-row {
     display: grid;
-    grid-template-columns: 16px minmax(0,1fr) 32px 24px 24px 28px 28px;
-    gap: 0;
+    grid-template-columns: 16px minmax(0,1fr) 32px 28px 28px 32px 32px;
+    gap: 4px;
     font-size: 12px;
     letter-spacing: 0.04em;
-    padding: 6px 0;
+    padding: 8px 0;
     border-bottom: 1px solid rgba(240,192,32,0.12);
     align-items: center;
     cursor: pointer;
@@ -3516,6 +3516,10 @@ async function openPlayerProfile(uid) {
   document.getElementById('playerProfileStats').innerHTML = '';
   document.getElementById('playerProfileBadgesSection').style.display = 'none';
   document.getElementById('playerProfileBestSection').style.display = 'none';
+  document.getElementById('playerProfileBadgesBody').classList.remove('open');
+  document.getElementById('playerProfileBestBody').classList.remove('open');
+  document.getElementById('playerProfileBadgesToggle').classList.remove('open');
+  document.getElementById('playerProfileBestToggle').classList.remove('open');
   overlay.classList.add('show');
 
   // Fetch profile
@@ -3887,7 +3891,7 @@ async function openLeagueDetail(leagueId) {
         return { uid, name: profileMap[uid]||'PLAYER', avg, best, played: s.length, streak, badgeCount, today: todayByUser[uid] };
       }).sort((a,b) => mode === 'avg' ? b.avg - a.avg : b.best - a.best);
 
-      const GRID = '14px minmax(0,1fr) 28px 24px 24px 26px 28px';
+      const GRID = '16px minmax(0,1fr) 32px 28px 28px 32px 32px';
       const board = document.getElementById('leagueDetailBoard');
       board.innerHTML = `
         <div class="lb-tabs" style="margin-bottom:8px;">
@@ -6602,7 +6606,7 @@ function renderLeaderboardRows(allUsers, container, mode) {
     const name = row.display_name || randomPlayerName();
     const scoreVal = mode === 'avg' ? Number(row.avg_score).toFixed(0) : row.best_score;
     const streak = row.streak > 0 ? row.streak : '—';
-    const badgeCount = (row.badges || []).length;
+    const badgeCount = (row.badges || []).length + (row.streak > 0 ? 1 : 0);
     const todayVal = row.today_score !== null && row.today_score !== undefined ? row.today_score : '—';
     return `<div class="lb-row${isYou ? ' lb-you' : ''}" data-uid="${row.user_id}">
       <span class="lb-rank">${i + 1}</span>
