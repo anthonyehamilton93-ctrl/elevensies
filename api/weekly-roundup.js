@@ -177,9 +177,31 @@ export default async function handler(req, res) {
     const allResults = await db('/game_results?select=user_id,total_score,best_word,best_word_score,played_at&game_status=eq.completed&order=played_at.desc');
     const weekResults = allResults.filter(r => r.played_at > oneWeekAgo);
 
-    const profiles = await db('/profiles?select=id,display_name,badges,current_streak,email_unsubscribed');
+    const profiles = await db('/profiles?select=id,display_name,badges,email_unsubscribed');
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.id] = p; });
+
+    // Calculate streak per user from game results
+    const streakMap = {};
+    const datesByUser = {};
+    for (const r of allResults) {
+      if (!datesByUser[r.user_id]) datesByUser[r.user_id] = new Set();
+      datesByUser[r.user_id].add(r.played_at.slice(0, 10));
+    }
+    for (const [uid, datesSet] of Object.entries(datesByUser)) {
+      const dates = [...datesSet].sort().reverse();
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+      const yest = new Date(now - 86400000).toISOString().slice(0, 10);
+      if (dates[0] !== today && dates[0] !== yest) { streakMap[uid] = 0; continue; }
+      let streak = 1;
+      for (let i = 1; i < dates.length; i++) {
+        const diff = Math.round((new Date(dates[i-1]) - new Date(dates[i])) / 86400000);
+        if (diff === 1) streak++;
+        else break;
+      }
+      streakMap[uid] = streak;
+    }
 
     const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?per_page=1000`, {
       headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
@@ -238,7 +260,7 @@ export default async function handler(req, res) {
         const storedBadges = Array.isArray(profile?.badges)
           ? profile.badges.map(id => ({ id, streak: null }))
           : [];
-        const userStreak = profile?.current_streak || 0;
+        const userStreak = streakMap[user.id] || 0;
         if (userStreak > 0) storedBadges.push({ id: 'streak', streak: userStreak });
         const badges = storedBadges;
 
