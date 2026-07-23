@@ -32,9 +32,10 @@ const badgeCell = (id, streakCount) => {
 
 async function db(path) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
-    headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
+    headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, 'Accept': 'application/json' },
   });
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 const divider = (label) => `
