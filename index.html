@@ -3734,7 +3734,7 @@ document.getElementById('leaguesIntroCloseBtn').addEventListener('click', () => 
 const FOOTER_OVERLAYS = {
   footerGamesBtn: 'aboutHomepageOverlay',
   footerStatsBtn: 'statsModeOverlay',
-  footerAccountBtn: null,
+  footerAccountBtn: 'authOverlay',
 };
 
 function setFooterActive(id) {
@@ -3761,8 +3761,9 @@ document.getElementById('footerStatsBtn').addEventListener('click', () => {
 });
 document.getElementById('footerAccountBtn').addEventListener('click', () => {
   setFooterActive('footerAccountBtn');
+  authOverlay.classList.add('show');
   if (currentUser) showAccountPanel();
-  else { authOverlay.classList.add('show'); showAuthForm(); }
+  else showAuthForm();
 });
 // Clear active state when overlays close
 document.getElementById('aboutHomepageCloseBtn').addEventListener('click', clearFooterActive, true);
