@@ -25,7 +25,7 @@ const BADGE_LABELS = {
 const badgeCell = (id, streakCount) => {
   const label = BADGE_LABELS[id] || id.toUpperCase();
   const inner = (id === 'streak' && streakCount)
-    ? `<div style="width:44px;height:44px;background:#f0c020;display:inline-flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:18px;font-weight:900;color:#155c33;line-height:1;">${streakCount}</div>`
+    ? `<table cellpadding="0" cellspacing="0" style="width:44px;height:44px;background:#f0c020;"><tr><td align="center" valign="middle" style="font-family:'Jost',sans-serif;font-size:18px;font-weight:900;color:#155c33;line-height:1;">${streakCount}</td></tr></table>`
     : `<img src="${GAME_URL}/icons/badges/${BADGE_FILENAMES[id] || 'No-Streak'}.png" width="44" height="44" style="display:block;margin:0 auto;" alt="${label}">`;
   return `<td style="padding:0 6px;text-align:center;">${inner}<p style="font-family:'Jost',sans-serif;font-size:9px;color:#8ba895;margin:4px 0 0;letter-spacing:0.08em;">${label}</p></td>`;
 };
