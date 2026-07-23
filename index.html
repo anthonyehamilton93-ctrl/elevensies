@@ -66,7 +66,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-bottom: 40px;
+    padding-bottom: 80px;
   }
 
   /* Welcome screen */
@@ -772,7 +772,40 @@
     font-family: inherit;
   }
 
-  .gameover-modal {
+  .app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 380px;
+    background: var(--green-dark);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 10px 0 14px;
+    z-index: 100;
+    border-top: 1px solid rgba(240,192,32,0.15);
+  }
+  .footer-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    opacity: 0.55;
+    font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .footer-btn.active { opacity: 1; }
+  .footer-btn img { width: 28px; height: 28px; object-fit: contain; }
+  .footer-btn span {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+  }
     text-align: center;
   }
   .gameover-title {
@@ -2117,7 +2150,7 @@
     <div style="display:flex; flex-direction:column; gap:10px;">
       <button class="auth-submit-btn" id="menuAccountBtn" style="margin-top:0;">ACCOUNT</button>
       <button class="auth-submit-btn" id="menuStatsBtn" style="margin-top:0; display:none;">STATS</button>
-      <button class="auth-submit-btn" id="menuAboutBtn" style="margin-top:0;">ABOUT</button>
+      <button class="auth-submit-btn" id="menuAboutBtn" style="margin-top:0;">GAMES</button>
     </div>
     <button class="cancel-btn" id="menuCloseBtn">CLOSE</button>
   </div>
@@ -2833,6 +2866,22 @@
     </div>
     <div class="save-status" id="saveStatus"></div>
   </div>
+</div>
+
+<!-- App footer -->
+<div class="app-footer" id="appFooter">
+  <button class="footer-btn" id="footerGamesBtn">
+    <img src="/icons/games.png" alt="Games">
+    <span>GAMES</span>
+  </button>
+  <button class="footer-btn" id="footerStatsBtn">
+    <img src="/icons/stats.png" alt="Stats">
+    <span>STATS</span>
+  </button>
+  <button class="footer-btn" id="footerAccountBtn">
+    <img src="/icons/profile.png" alt="Account">
+    <span>ACCOUNT</span>
+  </button>
 </div>
 
 <!-- Hidden canvas used to render the share image -->
@@ -3660,7 +3709,24 @@ document.getElementById('leaguesIntroCloseBtn').addEventListener('click', () => 
   localStorage.setItem('elevensies_leagues_intro_seen', '1');
   document.getElementById('leaguesIntroOverlay').classList.remove('show');
 });
-// ===== DAILY BRIEFING =====
+// ===== FOOTER =====
+document.getElementById('footerGamesBtn').addEventListener('click', () => {
+  document.getElementById('aboutHomepageOverlay').classList.add('show');
+});
+document.getElementById('footerStatsBtn').addEventListener('click', () => {
+  openFullGameStats();
+});
+document.getElementById('footerAccountBtn').addEventListener('click', () => {
+  if (currentUser) openAccountSettings();
+  else { authOverlay.classList.add('show'); showAuthForm(); }
+});
+
+function updateFooterActive(screen) {
+  document.getElementById('footerGamesBtn').classList.remove('active');
+  document.getElementById('footerStatsBtn').classList.remove('active');
+  document.getElementById('footerAccountBtn').classList.remove('active');
+}
+// ===== END FOOTER =====
 async function showDailyBriefing() {
   const overlay = document.getElementById('dailyBriefingOverlay');
   overlay.classList.add('show');
@@ -7928,7 +7994,7 @@ menuBtn.addEventListener('click', async () => {
     menuStatsBtn.style.display = currentUser ? '' : 'none';
     menuStatsBtn.textContent = 'STATS';
     menuAboutBtn.style.display = '';
-    menuAboutBtn.textContent = 'ABOUT';
+    menuAboutBtn.textContent = 'GAMES';
     menuStatsBtn.dataset.target = 'stats-picker';
     menuAboutBtn.dataset.target = 'about-homepage';
   }
