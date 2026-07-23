@@ -809,6 +809,10 @@
   }
     text-align: center;
   }
+  #contactName::placeholder, #contactEmail::placeholder, #contactMessage::placeholder {
+    color: #155c33;
+    opacity: 1;
+  }
   .gameover-title {
     font-size: 28px;
     font-weight: 900;
@@ -2148,31 +2152,69 @@
 <div class="overlay" id="mainMenuOverlay">
   <div class="modal">
     <div class="modal-title" id="mainMenuTitle">ELEVENSIES</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
 
+    <!-- Homepage: 3 squares -->
+    <div id="menuHomepageGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
       <button id="menuAboutBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/games.png" style="height:40px;width:auto;">
         </div>
-        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">GAMES</div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">GAMES</div>
       </button>
-
       <button id="menuStatsBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/stats.png" style="height:40px;width:auto;">
         </div>
-        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">STATS</div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">STATS</div>
       </button>
-
       <button id="menuAccountBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/profile.png" style="height:40px;width:auto;">
         </div>
-        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);" id="menuAccountLabel">ACCOUNT</div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;" id="menuAccountLabel">ACCOUNT</div>
       </button>
-
     </div>
+
+    <!-- In-game: 2 squares evenly spaced -->
+    <div id="menuIngameGrid" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <button id="menuHowToBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/games.png" style="height:40px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;" id="menuHowToLabel">HOW TO PLAY</div>
+      </button>
+      <button id="menuIngameAccountBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/profile.png" style="height:40px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">ACCOUNT</div>
+      </button>
+    </div>
+
+    <!-- Homepage extra content -->
+    <div id="menuHomepageExtra" style="border-top:1px solid rgba(240,192,32,0.15);padding-top:12px;margin-bottom:14px;">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <button id="menuAboutElevenBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">ABOUT ELEVENSIES ›</button>
+        <button id="menuPrivacyBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">PRIVACY POLICY ›</button>
+        <button id="menuContactBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">CONTACT / FEEDBACK ›</button>
+      </div>
+    </div>
+
     <button class="cancel-btn" id="menuCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- Contact form overlay -->
+<div class="overlay" id="contactOverlay" style="z-index:2000;">
+  <div class="modal" style="text-align:left;">
+    <div class="modal-title">CONTACT US</div>
+    <p style="font-size:11px;letter-spacing:0.06em;opacity:0.6;line-height:1.6;margin-bottom:12px;">Got feedback, spotted a bug, or just want to say hello?</p>
+    <input id="contactName" type="text" placeholder="YOUR NAME" style="width:100%;background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;padding:8px 12px;margin-bottom:8px;outline:none;box-sizing:border-box;::placeholder {color:#155c33;}">
+    <input id="contactEmail" type="email" placeholder="YOUR EMAIL (OPTIONAL)" style="width:100%;background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;padding:8px 12px;margin-bottom:8px;outline:none;box-sizing:border-box;">
+    <textarea id="contactMessage" placeholder="YOUR MESSAGE" rows="4" style="width:100%;background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;padding:8px 12px;margin-bottom:8px;outline:none;resize:none;box-sizing:border-box;"></textarea>
+    <div id="contactStatus" style="font-size:11px;letter-spacing:0.06em;opacity:0.7;margin-bottom:6px;min-height:14px;"></div>
+    <button class="auth-submit-btn" id="contactSendBtn" style="margin-bottom:8px;">SEND MESSAGE</button>
+    <button class="cancel-btn" id="contactCloseBtn">CLOSE</button>
   </div>
 </div>
 
@@ -8012,45 +8054,42 @@ submitBtn.addEventListener('click', submitWord);
 jokerBtn.addEventListener('click', handleJokerBtnClick);
 // playAgainBtn and shareBtn clicks are set dynamically in showGameOver
 
-// Burger menu opens the main menu
+// Burger menu
 menuBtn.addEventListener('click', async () => {
   const screen = menuBtn.dataset.screen || 'welcome';
   const mode = gameMode || menuBtn.dataset.mode || '';
   const menuTitle = document.getElementById('mainMenuTitle');
-  const menuStatsBtn = document.getElementById('menuStatsBtn');
-  const menuAboutBtn = document.getElementById('menuAboutBtn');
-  const menuAboutLabel = menuAboutBtn.querySelector('div:last-child');
-  const menuStatsLabel = menuStatsBtn.querySelector('div:last-child');
+  const homepageGrid = document.getElementById('menuHomepageGrid');
+  const ingameGrid = document.getElementById('menuIngameGrid');
+  const homepageExtra = document.getElementById('menuHomepageExtra');
+  const howToLabel = document.getElementById('menuHowToLabel');
 
-  if (screen === 'eliminator') {
+  const isHomepage = screen === 'welcome';
+
+  homepageGrid.style.display = isHomepage ? 'grid' : 'none';
+  ingameGrid.style.display = isHomepage ? 'none' : 'grid';
+  homepageExtra.style.display = isHomepage ? '' : 'none';
+
+  if (isHomepage) {
+    menuTitle.textContent = 'ELEVENSIES';
+    document.getElementById('menuAboutBtn').dataset.target = 'about-homepage';
+    document.getElementById('menuStatsBtn').dataset.target = 'stats-picker';
+  } else if (screen === 'eliminator') {
     menuTitle.textContent = 'ELIMINATOR';
-    menuAboutLabel.textContent = 'HOW TO PLAY';
-    menuAboutBtn.dataset.target = 'about-eliminator';
-    menuStatsBtn.dataset.target = 'eliminator-stats';
-    menuStatsBtn.style.display = '';
+    howToLabel.textContent = 'HOW TO PLAY';
+    document.getElementById('menuHowToBtn').dataset.target = 'about-eliminator';
   } else if (screen === 'anagram') {
     menuTitle.textContent = 'ANAGRAM';
-    menuAboutLabel.textContent = 'HOW TO PLAY';
-    menuAboutBtn.dataset.target = 'about-anagram';
-    menuStatsBtn.dataset.target = 'anagram-stats';
-    menuStatsBtn.style.display = '';
+    howToLabel.textContent = 'HOW TO PLAY';
+    document.getElementById('menuHowToBtn').dataset.target = 'about-anagram';
   } else if (screen === 'game' && mode === 'practice') {
     menuTitle.textContent = 'PRACTICE';
-    menuAboutLabel.textContent = 'HOW TO PLAY';
-    menuAboutBtn.dataset.target = 'about-practice';
-    menuStatsBtn.style.display = 'none';
-  } else if (screen === 'game' || screen === 'countdown') {
-    menuTitle.textContent = 'FULL GAME';
-    menuAboutLabel.textContent = 'HOW TO PLAY';
-    menuAboutBtn.dataset.target = 'about-fullgame';
-    menuStatsBtn.dataset.target = 'fullgame-stats';
-    menuStatsBtn.style.display = '';
+    howToLabel.textContent = 'HOW TO PLAY';
+    document.getElementById('menuHowToBtn').dataset.target = 'about-practice';
   } else {
-    menuTitle.textContent = 'ELEVENSIES';
-    menuAboutLabel.textContent = 'GAMES';
-    menuAboutBtn.dataset.target = 'about-homepage';
-    menuStatsBtn.dataset.target = 'stats-picker';
-    menuStatsBtn.style.display = currentUser ? '' : 'none';
+    menuTitle.textContent = 'FULL GAME';
+    howToLabel.textContent = 'HOW TO PLAY';
+    document.getElementById('menuHowToBtn').dataset.target = 'about-fullgame';
   }
   mainMenuOverlay.classList.add('show');
 });
@@ -8327,14 +8366,72 @@ document.getElementById('logoHomeBtn').addEventListener('click', () => {
   startWelcomeLabelTicker();
 });
 
-menuAccountBtn.addEventListener('click', async () => {
+// In-game menu how-to and account
+document.getElementById('menuHowToBtn').addEventListener('click', () => {
+  mainMenuOverlay.classList.remove('show');
+  const target = document.getElementById('menuHowToBtn').dataset.target;
+  const map = {
+    'about-fullgame': 'aboutFullGameOverlay',
+    'about-practice': 'aboutPracticeOverlay',
+    'about-anagram': 'aboutAnagramOverlay',
+    'about-eliminator': 'aboutEliminatorOverlay',
+  };
+  if (map[target]) document.getElementById(map[target])?.classList.add('show');
+});
+document.getElementById('menuIngameAccountBtn').addEventListener('click', () => {
   mainMenuOverlay.classList.remove('show');
   authOverlay.classList.add('show');
-  if (currentUser) {
-    showAccountPanel();
-  } else {
-    showAuthForm();
+  if (currentUser) showAccountPanel();
+  else showAuthForm();
+});
+
+// Homepage extra links
+document.getElementById('menuAboutElevenBtn').addEventListener('click', () => {
+  mainMenuOverlay.classList.remove('show');
+  document.getElementById('aboutHomepageOverlay').classList.add('show');
+});
+document.getElementById('menuPrivacyBtn').addEventListener('click', () => {
+  mainMenuOverlay.classList.remove('show');
+  window.open('https://ksniuexnzikitbadttxx.supabase.co/storage/v1/object/public/Privacy%20Policy/elevensies_privacy_policy.pdf', '_blank');
+});
+document.getElementById('menuContactBtn').addEventListener('click', () => {
+  mainMenuOverlay.classList.remove('show');
+  document.getElementById('contactOverlay').classList.add('show');
+});
+document.getElementById('contactCloseBtn').addEventListener('click', () => {
+  document.getElementById('contactOverlay').classList.remove('show');
+});
+document.getElementById('contactSendBtn').addEventListener('click', async () => {
+  const name = document.getElementById('contactName').value.trim();
+  const email = document.getElementById('contactEmail').value.trim();
+  const message = document.getElementById('contactMessage').value.trim();
+  const status = document.getElementById('contactStatus');
+  if (!message) { status.textContent = 'PLEASE ENTER A MESSAGE.'; return; }
+  status.textContent = 'SENDING…';
+  document.getElementById('contactSendBtn').disabled = true;
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_API_KEY || ''}` },
+      body: JSON.stringify({
+        from: 'Elevensies Feedback <noreply@playelevensies.com>',
+        to: ['anthonyehamilton93@gmail.com'],
+        subject: `Elevensies Feedback${name ? ' from ' + name : ''}`,
+        text: `${name ? 'Name: ' + name + '\n' : ''}${email ? 'Email: ' + email + '\n' : ''}Message:\n${message}`,
+      }),
+    });
+    if (res.ok) {
+      status.textContent = 'MESSAGE SENT — THANK YOU!';
+      document.getElementById('contactName').value = '';
+      document.getElementById('contactEmail').value = '';
+      document.getElementById('contactMessage').value = '';
+    } else {
+      status.textContent = 'SOMETHING WENT WRONG. TRY AGAIN.';
+    }
+  } catch(e) {
+    status.textContent = 'SOMETHING WENT WRONG. TRY AGAIN.';
   }
+  document.getElementById('contactSendBtn').disabled = false;
 });
 authCloseBtn.addEventListener('click', () => authOverlay.classList.remove('show'));
 
