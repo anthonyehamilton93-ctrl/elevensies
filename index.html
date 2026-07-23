@@ -810,8 +810,29 @@
     text-align: center;
   }
   #contactName::placeholder, #contactEmail::placeholder, #contactMessage::placeholder {
-    color: #155c33;
-    opacity: 1;
+    color: rgba(240,192,32,0.35) !important;
+    opacity: 1 !important;
+  }
+  #contactName::-webkit-input-placeholder, #contactEmail::-webkit-input-placeholder, #contactMessage::-webkit-input-placeholder {
+    color: rgba(240,192,32,0.35) !important;
+    opacity: 1 !important;
+  }
+  #contactName::-moz-placeholder, #contactEmail::-moz-placeholder, #contactMessage::-moz-placeholder {
+    color: rgba(240,192,32,0.35) !important;
+    opacity: 1 !important;
+  }
+  #contactName, #contactEmail, #contactMessage {
+    width: 100%;
+    background: var(--green-dark);
+    border: 1px solid rgba(240,192,32,0.3);
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding: 8px 12px;
+    outline: none;
+    box-sizing: border-box;
+    margin-bottom: 8px;
   }
   .gameover-title {
     font-size: 28px;
@@ -2209,9 +2230,9 @@
   <div class="modal" style="text-align:left;">
     <div class="modal-title">CONTACT US</div>
     <p style="font-size:11px;letter-spacing:0.06em;opacity:0.6;line-height:1.6;margin-bottom:12px;">Got feedback, spotted a bug, or just want to say hello?</p>
-    <input id="contactName" type="text" placeholder="YOUR NAME" style="width:100%;background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;padding:8px 12px;margin-bottom:8px;outline:none;box-sizing:border-box;::placeholder {color:#155c33;}">
-    <input id="contactEmail" type="email" placeholder="YOUR EMAIL (OPTIONAL)" style="width:100%;background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;padding:8px 12px;margin-bottom:8px;outline:none;box-sizing:border-box;">
-    <textarea id="contactMessage" placeholder="YOUR MESSAGE" rows="4" style="width:100%;background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;padding:8px 12px;margin-bottom:8px;outline:none;resize:none;box-sizing:border-box;"></textarea>
+    <input id="contactName" type="text" placeholder="YOUR NAME">
+    <input id="contactEmail" type="email" placeholder="YOUR EMAIL (OPTIONAL)">
+    <textarea id="contactMessage" placeholder="YOUR MESSAGE" rows="4" style="resize:none;"></textarea>
     <div id="contactStatus" style="font-size:11px;letter-spacing:0.06em;opacity:0.7;margin-bottom:6px;min-height:14px;"></div>
     <button class="auth-submit-btn" id="contactSendBtn" style="margin-bottom:8px;">SEND MESSAGE</button>
     <button class="cancel-btn" id="contactCloseBtn">CLOSE</button>
