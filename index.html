@@ -775,9 +775,9 @@
   .app-footer {
     position: fixed;
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 380px;
+    left: 0;
+    right: 0;
+    width: 100%;
     background: var(--green-dark);
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -2496,9 +2496,30 @@
 <div class="overlay" id="statsModeOverlay">
   <div class="modal">
     <div class="modal-title">YOUR STATS</div>
-    <button class="auth-submit-btn" id="statsModeFullGame" style="margin-bottom:10px;">FULL GAME</button>
-    <button class="auth-submit-btn" id="statsModeAnagram" style="margin-bottom:10px;">ANAGRAM</button>
-    <button class="auth-submit-btn" id="statsModeEliminator" style="margin-bottom:10px;">ELIMINATOR</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+
+      <button id="statsModeFullGame" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img id="statsModeFullGameLogo" style="height:36px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">FULL GAME</div>
+      </button>
+
+      <button id="statsModeAnagram" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/anagram.png" style="height:48px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">ANAGRAM</div>
+      </button>
+
+      <button id="statsModeEliminator" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/eliminator.png" style="height:48px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">ELIMINATOR</div>
+      </button>
+
+    </div>
     <button class="cancel-btn" id="statsModeClose">CLOSE</button>
   </div>
 </div>
@@ -3710,22 +3731,43 @@ document.getElementById('leaguesIntroCloseBtn').addEventListener('click', () => 
   document.getElementById('leaguesIntroOverlay').classList.remove('show');
 });
 // ===== FOOTER =====
+const FOOTER_OVERLAYS = {
+  footerGamesBtn: 'aboutHomepageOverlay',
+  footerStatsBtn: 'statsModeOverlay',
+  footerAccountBtn: null,
+};
+
+function setFooterActive(id) {
+  ['footerGamesBtn', 'footerStatsBtn', 'footerAccountBtn'].forEach(b => {
+    document.getElementById(b).classList.toggle('active', b === id);
+    // Close any overlay associated with other buttons
+    if (b !== id && FOOTER_OVERLAYS[b]) {
+      document.getElementById(FOOTER_OVERLAYS[b]).classList.remove('show');
+    }
+  });
+}
+function clearFooterActive() {
+  ['footerGamesBtn', 'footerStatsBtn', 'footerAccountBtn'].forEach(b => {
+    document.getElementById(b).classList.remove('active');
+  });
+}
 document.getElementById('footerGamesBtn').addEventListener('click', () => {
+  setFooterActive('footerGamesBtn');
   document.getElementById('aboutHomepageOverlay').classList.add('show');
 });
 document.getElementById('footerStatsBtn').addEventListener('click', () => {
-  openFullGameStats();
+  setFooterActive('footerStatsBtn');
+  document.getElementById('statsModeOverlay').classList.add('show');
 });
 document.getElementById('footerAccountBtn').addEventListener('click', () => {
-  if (currentUser) openAccountSettings();
+  setFooterActive('footerAccountBtn');
+  if (currentUser) showAccountPanel();
   else { authOverlay.classList.add('show'); showAuthForm(); }
 });
-
-function updateFooterActive(screen) {
-  document.getElementById('footerGamesBtn').classList.remove('active');
-  document.getElementById('footerStatsBtn').classList.remove('active');
-  document.getElementById('footerAccountBtn').classList.remove('active');
-}
+// Clear active state when overlays close
+document.getElementById('aboutHomepageCloseBtn').addEventListener('click', clearFooterActive, true);
+document.getElementById('statsModeClose').addEventListener('click', clearFooterActive, true);
+document.getElementById('fullGameStatsCloseBtn').addEventListener('click', clearFooterActive, true);
 // ===== END FOOTER =====
 async function showDailyBriefing() {
   const overlay = document.getElementById('dailyBriefingOverlay');
@@ -6000,6 +6042,7 @@ const tileGrid = document.getElementById('tileGrid');
 // Set all logo images from the single embedded data URL
 document.getElementById('headerLogo').src = LOGO_SRC;
 document.getElementById('welcomeLogo').src = LOGO_SRC;
+document.getElementById('statsModeFullGameLogo').src = LOGO_SRC;
 
 // Welcome & countdown DOM refs
 const welcomeScreen = document.getElementById('welcomeScreen');
