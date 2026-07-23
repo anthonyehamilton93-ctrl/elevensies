@@ -775,9 +775,10 @@
   .app-footer {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
+    max-width: 420px;
     background: var(--green-dark);
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -2147,10 +2148,29 @@
 <div class="overlay" id="mainMenuOverlay">
   <div class="modal">
     <div class="modal-title" id="mainMenuTitle">ELEVENSIES</div>
-    <div style="display:flex; flex-direction:column; gap:10px;">
-      <button class="auth-submit-btn" id="menuAccountBtn" style="margin-top:0;">ACCOUNT</button>
-      <button class="auth-submit-btn" id="menuStatsBtn" style="margin-top:0; display:none;">STATS</button>
-      <button class="auth-submit-btn" id="menuAboutBtn" style="margin-top:0;">GAMES</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+
+      <button id="menuAboutBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/games.png" style="height:40px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">GAMES</div>
+      </button>
+
+      <button id="menuStatsBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/stats.png" style="height:40px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">STATS</div>
+      </button>
+
+      <button id="menuAccountBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/profile.png" style="height:40px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);" id="menuAccountLabel">ACCOUNT</div>
+      </button>
+
     </div>
     <button class="cancel-btn" id="menuCloseBtn">CLOSE</button>
   </div>
@@ -3276,7 +3296,10 @@ async function handlePasswordReset() {
 }
 
 function updateAccountButtonLabel() {
-  menuAccountBtn.textContent = currentUser ? 'ACCOUNT' : 'SIGN IN / SIGN UP';
+  const label = document.getElementById('menuAccountLabel');
+  if (label) label.textContent = currentUser ? 'ACCOUNT' : 'SIGN IN';
+  const footerLabel = document.querySelector('#footerAccountBtn span');
+  if (footerLabel) footerLabel.textContent = currentUser ? 'ACCOUNT' : 'SIGN IN';
 }
 
 async function handleAuthSubmit(mode) {
@@ -7989,58 +8012,45 @@ submitBtn.addEventListener('click', submitWord);
 jokerBtn.addEventListener('click', handleJokerBtnClick);
 // playAgainBtn and shareBtn clicks are set dynamically in showGameOver
 
-// Burger menu opens the main menu (How to Play / Account)
+// Burger menu opens the main menu
 menuBtn.addEventListener('click', async () => {
   const screen = menuBtn.dataset.screen || 'welcome';
   const mode = gameMode || menuBtn.dataset.mode || '';
   const menuTitle = document.getElementById('mainMenuTitle');
-  const menuAccountBtn = document.getElementById('menuAccountBtn');
   const menuStatsBtn = document.getElementById('menuStatsBtn');
   const menuAboutBtn = document.getElementById('menuAboutBtn');
+  const menuAboutLabel = menuAboutBtn.querySelector('div:last-child');
+  const menuStatsLabel = menuStatsBtn.querySelector('div:last-child');
 
   if (screen === 'eliminator') {
     menuTitle.textContent = 'ELIMINATOR';
-    menuAccountBtn.style.display = '';
-    menuStatsBtn.style.display = '';
-    menuStatsBtn.textContent = 'STATS';
-    menuStatsBtn.dataset.target = 'eliminator-stats';
-    menuAboutBtn.style.display = '';
-    menuAboutBtn.textContent = 'HOW TO PLAY';
+    menuAboutLabel.textContent = 'HOW TO PLAY';
     menuAboutBtn.dataset.target = 'about-eliminator';
+    menuStatsBtn.dataset.target = 'eliminator-stats';
+    menuStatsBtn.style.display = '';
   } else if (screen === 'anagram') {
     menuTitle.textContent = 'ANAGRAM';
-    menuAccountBtn.style.display = '';
-    menuStatsBtn.style.display = '';
-    menuStatsBtn.textContent = 'STATS';
-    menuAboutBtn.style.display = '';
-    menuAboutBtn.textContent = 'HOW TO PLAY';
-    menuStatsBtn.dataset.target = 'anagram-stats';
+    menuAboutLabel.textContent = 'HOW TO PLAY';
     menuAboutBtn.dataset.target = 'about-anagram';
+    menuStatsBtn.dataset.target = 'anagram-stats';
+    menuStatsBtn.style.display = '';
   } else if (screen === 'game' && mode === 'practice') {
     menuTitle.textContent = 'PRACTICE';
-    menuAccountBtn.style.display = '';
-    menuStatsBtn.style.display = 'none';
-    menuAboutBtn.style.display = '';
-    menuAboutBtn.textContent = 'HOW TO PLAY';
+    menuAboutLabel.textContent = 'HOW TO PLAY';
     menuAboutBtn.dataset.target = 'about-practice';
+    menuStatsBtn.style.display = 'none';
   } else if (screen === 'game' || screen === 'countdown') {
     menuTitle.textContent = 'FULL GAME';
-    menuAccountBtn.style.display = '';
-    menuStatsBtn.style.display = '';
-    menuStatsBtn.textContent = 'STATS';
-    menuAboutBtn.style.display = '';
-    menuAboutBtn.textContent = 'HOW TO PLAY';
-    menuStatsBtn.dataset.target = 'fullgame-stats';
+    menuAboutLabel.textContent = 'HOW TO PLAY';
     menuAboutBtn.dataset.target = 'about-fullgame';
+    menuStatsBtn.dataset.target = 'fullgame-stats';
+    menuStatsBtn.style.display = '';
   } else {
     menuTitle.textContent = 'ELEVENSIES';
-    menuAccountBtn.style.display = '';
-    menuStatsBtn.style.display = currentUser ? '' : 'none';
-    menuStatsBtn.textContent = 'STATS';
-    menuAboutBtn.style.display = '';
-    menuAboutBtn.textContent = 'GAMES';
-    menuStatsBtn.dataset.target = 'stats-picker';
+    menuAboutLabel.textContent = 'GAMES';
     menuAboutBtn.dataset.target = 'about-homepage';
+    menuStatsBtn.dataset.target = 'stats-picker';
+    menuStatsBtn.style.display = currentUser ? '' : 'none';
   }
   mainMenuOverlay.classList.add('show');
 });
