@@ -7,12 +7,27 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const FROM_EMAIL = 'Elevensies <noreply@playelevensies.com>';
 const GAME_URL = 'https://playelevensies.com';
 const CRON_SECRET = process.env.CRON_SECRET;
-// const COFFEE_URL = 'https://ko-fi.com/YOUR_HANDLE'; // add when ready
 
-const BADGE_NAMES = {
+const BADGE_FILENAMES = {
+  streak: 'No-Streak', wordsmith: 'Wordsmith', avid: 'Avid',
+  doubledown: 'Doubles', spotter: 'Spotter', purist: 'Purist',
+  linguist: 'Lingust', centurion: 'Centurion', expert: 'Expert',
+  favourite: 'Favourite', elevensies: 'Elevensies',
+};
+
+const BADGE_LABELS = {
   streak: 'STREAK', wordsmith: 'WORDSMITH', avid: 'AVID',
   doubledown: 'DOUBLES', spotter: 'SPOTTER', purist: 'PURIST',
-  linguist: 'LINGUIST', centurion: 'CENTURION'
+  linguist: 'LINGUIST', centurion: 'CENTURION', expert: 'EXPERT',
+  favourite: 'FAVOURITE', elevensies: 'ELEVENSIES',
+};
+
+const badgeCell = (id, streakCount) => {
+  const label = BADGE_LABELS[id] || id.toUpperCase();
+  const inner = (id === 'streak' && streakCount)
+    ? `<div style="width:44px;height:44px;background:#f0c020;display:inline-flex;align-items:center;justify-content:center;font-family:'Jost',sans-serif;font-size:18px;font-weight:900;color:#155c33;line-height:1;">${streakCount}</div>`
+    : `<img src="${GAME_URL}/icons/badges/${BADGE_FILENAMES[id] || 'No-Streak'}.png" width="44" height="44" style="display:block;margin:0 auto;" alt="${label}">`;
+  return `<td style="padding:0 6px;text-align:center;">${inner}<p style="font-family:'Jost',sans-serif;font-size:9px;color:#8ba895;margin:4px 0 0;letter-spacing:0.08em;">${label}</p></td>`;
 };
 
 async function db(path) {
@@ -27,7 +42,7 @@ const divider = (label) => `
     <p style="font-family:'Jost',sans-serif;font-size:10px;letter-spacing:0.15em;color:#8ba895;margin:0;border-bottom:1px solid rgba(240,192,32,0.2);padding-bottom:8px;">${label}</p>
   </td></tr>`;
 
-function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, leaderboard, userRank, newBadges, totalUsers, totalGamesPlayed }) {
+function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, leaderboard, userRank, badges, totalUsers, totalGamesPlayed }) {
 
   const greeting = name && !name.startsWith('user') ? `Hey ${name},` : 'Hey,';
   const rankLine = userRank
@@ -46,15 +61,15 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
   const lbHTML = leaderboard.map(row => {
     if (row.rank === '···') return `<tr><td colspan="4" style="padding:4px 12px;text-align:center;color:#8ba895;font-size:12px;font-family:'Jost',sans-serif;">···</td></tr>`;
     return `<tr style="${row.isYou ? 'background-color:rgba(240,192,32,0.1);' : ''}">
-      <td style="padding:7px 12px;font-family:'Jost',sans-serif;font-size:13px;color:#f0c020;font-weight:700;">${row.rank}</td>
+      <td style="padding:7px 12px;font-family:'Jost',sans-serif;font-size:13px;color:#f0c020;font-weight:700;">#${row.rank}</td>
       <td style="padding:7px 12px;font-family:'Jost',sans-serif;font-size:13px;color:${row.isYou ? '#f0c020' : '#e2e8f0'};font-weight:${row.isYou ? '700' : '400'};">${row.name}${row.isYou ? ' ★' : ''}</td>
       <td style="padding:7px 12px;font-family:'Jost',sans-serif;font-size:13px;color:#e2e8f0;text-align:right;">${Math.round(row.avg)}</td>
       <td style="padding:7px 12px;font-family:'Jost',sans-serif;font-size:13px;color:#f0c020;font-weight:700;text-align:right;">${row.best}</td>
     </tr>`;
   }).join('');
 
-  const badgesHTML = newBadges.length > 0
-    ? newBadges.map(b => `<span style="display:inline-block;background-color:#f0c020;color:#155c33;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;margin:3px;letter-spacing:0.08em;">${b}</span>`).join('')
+  const badgesHTML = badges.length > 0
+    ? `<table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>${badges.map(b => badgeCell(b.id, b.streak)).join('')}</tr></table>`
     : null;
 
   return `<!DOCTYPE html>
@@ -63,25 +78,22 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>This Week in Elevensies</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700;800&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background-color:#1a6b3c;font-family:'Jost',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:#ffffff;">
+<body style="margin:0;padding:0;background-color:#1a6b3c;font-family:'Jost',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#1a6b3c;padding:40px 20px;">
     <tr><td align="center">
       <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:440px;background-color:#155c33;border-radius:16px;overflow:hidden;box-shadow:0 10px 15px -3px rgba(0,0,0,0.3);">
 
         <!-- Header -->
         <tr><td align="center" style="padding:44px 40px 16px 40px;">
-          <h1 style="font-family:'Jost',sans-serif;font-size:32px;font-weight:800;color:#f0c020;margin:0;letter-spacing:0.1em;text-transform:uppercase;">ELEVENSIES</h1>
+          <h1 style="font-family:'Jost',sans-serif;font-size:32px;font-weight:800;color:#f0c020;margin:0;letter-spacing:0.1em;">ELEVENSIES</h1>
         </td></tr>
         <tr><td style="padding:0 40px 20px;text-align:center;">
           <h2 style="font-family:'Jost',sans-serif;font-size:18px;font-weight:700;color:#ffffff;margin:0 0 6px 0;">This week's roundup</h2>
           <p style="font-family:'Jost',sans-serif;font-size:13px;color:#e2e8f0;margin:0;opacity:0.8;">${greeting} here's how your week looked.</p>
         </td></tr>
 
-        <!-- Your word of the week -->
         ${myBestWord ? `
         ${divider('YOUR WORD OF THE WEEK')}
         <tr><td style="padding:8px 40px 20px;text-align:center;">
@@ -89,7 +101,6 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
           <p style="font-family:'Jost',sans-serif;font-size:12px;color:#e2e8f0;margin:0;opacity:0.7;">${myBestWord.score} pts</p>
         </td></tr>` : ''}
 
-        <!-- Best word in the game this week -->
         ${globalBestWord && (!myBestWord || globalBestWord.word !== myBestWord.word) ? `
         ${divider('BEST WORD THIS WEEK')}
         <tr><td style="padding:8px 40px 20px;text-align:center;">
@@ -97,7 +108,6 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
           <p style="font-family:'Jost',sans-serif;font-size:12px;color:#e2e8f0;margin:0;opacity:0.7;">${globalBestWord.score} pts · played by ${globalBestWord.playerName}</p>
         </td></tr>` : ''}
 
-        <!-- Your scores -->
         ${divider('YOUR SCORES THIS WEEK')}
         <tr><td style="padding:4px 24px 16px;">
           <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
@@ -110,12 +120,10 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
           </table>
         </td></tr>
 
-        <!-- Badges -->
         ${badgesHTML ? `
-        ${divider('BADGES EARNED')}
+        ${divider('YOUR BADGES')}
         <tr><td style="padding:8px 40px 16px;text-align:center;">${badgesHTML}</td></tr>` : ''}
 
-        <!-- Leaderboard -->
         ${divider('LEADERBOARD — TOP 10')}
         <tr><td style="padding:4px 24px 8px;">
           <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
@@ -132,25 +140,22 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
           <p style="font-family:'Jost',sans-serif;font-size:12px;color:#e2e8f0;margin:0;opacity:0.7;">${rankLine}</p>
         </td></tr>
 
-        <!-- Games played this week -->
         <tr><td style="padding:8px 40px 24px;text-align:center;">
-          <p style="font-family:'Jost',sans-serif;font-size:13px;color:#8ba895;margin:0;">
-            ${totalGamesPlayed} games played across all players this week.
-          </p>
+          <p style="font-family:'Jost',sans-serif;font-size:13px;color:#8ba895;margin:0;">${totalGamesPlayed} games played across all players this week.</p>
         </td></tr>
 
-        <!-- CTA -->
         <tr><td align="center" style="padding:0 40px 44px 40px;">
           <a href="${GAME_URL}" style="display:inline-block;background-color:#f0c020;color:#155c33;font-family:'Jost',sans-serif;font-size:15px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:8px;letter-spacing:0.02em;text-transform:uppercase;">Play This Week</a>
         </td></tr>
 
-        <!-- Footer -->
         <tr><td style="padding:20px 40px;background-color:#114b29;text-align:center;">
           <p style="font-family:'Jost',sans-serif;font-size:12px;line-height:18px;color:#8ba895;margin:0;">
             You're receiving this as a registered Elevensies player.
             <a href="${GAME_URL}/api/unsubscribe?uid=${userId}" style="color:#8ba895;text-decoration:underline;">Unsubscribe</a>
           </p>
-          <p style="font-family:'Jost',sans-serif;font-size:11px;line-height:16px;color:#6f8a78;margin:8px 0 0 0;"><a href="https://ksniuexnzikitbadttxx.supabase.co/storage/v1/object/public/Privacy%20Policy/elevensies_privacy_policy.pdf" style="color:#6f8a78;text-decoration:underline;">Privacy Policy</a></p>
+          <p style="font-family:'Jost',sans-serif;font-size:11px;line-height:16px;color:#6f8a78;margin:8px 0 0 0;">
+            <a href="https://ksniuexnzikitbadttxx.supabase.co/storage/v1/object/public/Privacy%20Policy/elevensies_privacy_policy.pdf" style="color:#6f8a78;text-decoration:underline;">Privacy Policy</a>
+          </p>
         </td></tr>
 
       </table>
@@ -161,15 +166,17 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
 }
 
 export default async function handler(req, res) {
-  const secret = req.headers['x-cron-secret'];
+  const secret = req.headers['x-cron-secret'] || req.body?.secret;
   if (CRON_SECRET && secret !== CRON_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+
+  const previewEmail = req.body?.preview_email || null;
 
   try {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const allResults = await db('/game_results?select=user_id,total_score,best_word,best_word_score,played_at&game_status=eq.completed&order=played_at.desc');
     const weekResults = allResults.filter(r => r.played_at > oneWeekAgo);
 
-    const profiles = await db('/profiles?select=id,display_name,badges,email_unsubscribed');
+    const profiles = await db('/profiles?select=id,display_name,badges,current_streak,email_unsubscribed');
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.id] = p; });
 
@@ -203,37 +210,36 @@ export default async function handler(req, res) {
 
     const emails = confirmedUsers
       .filter(user => !profileMap[user.id]?.email_unsubscribed)
+      .filter(user => previewEmail ? user.email === previewEmail : true)
       .map(user => {
         const profile = profileMap[user.id];
         const name = profile?.display_name || null;
 
-        // This user's scores this week
         const myWeekScores = weekResults
           .filter(r => r.user_id === user.id)
           .sort((a, b) => new Date(a.played_at) - new Date(b.played_at));
 
-        // This user's best word this week
         const myBestThisWeek = myWeekScores.reduce((b, r) => (r.best_word_score || 0) > (b?.best_word_score || 0) ? r : b, null);
         const myBestWord = myBestThisWeek?.best_word
           ? { word: myBestThisWeek.best_word, score: myBestThisWeek.best_word_score }
           : null;
 
-        // Rank
         const rankIndex = fullRanked.findIndex(r => r.id === user.id);
         const userRank = rankIndex >= 0 ? rankIndex + 1 : null;
 
-        // Leaderboard rows
         let lbRows = top11.map((r, i) => ({ ...r, rank: i + 1, isYou: r.id === user.id }));
         if (userRank && userRank > 11) {
           lbRows.push({ rank: '···', name: '', avg: 0, best: 0, isYou: false });
           lbRows.push({ ...fullRanked[rankIndex], rank: userRank, isYou: true });
         }
 
-        // Badges
-        const myBadges = Array.isArray(profile?.badges)
-          ? profile.badges.map(id => BADGE_NAMES[id] || id)
+        // Badges — stored + dynamic streak
+        const storedBadges = Array.isArray(profile?.badges)
+          ? profile.badges.map(id => ({ id, streak: null }))
           : [];
-        const newBadges = myWeekScores.length > 0 ? myBadges : [];
+        const userStreak = profile?.current_streak || 0;
+        if (userStreak > 0) storedBadges.push({ id: 'streak', streak: userStreak });
+        const badges = myWeekScores.length > 0 ? storedBadges : [];
 
         return {
           from: FROM_EMAIL,
@@ -246,7 +252,7 @@ export default async function handler(req, res) {
             globalBestWord,
             leaderboard: lbRows,
             userRank,
-            newBadges,
+            badges,
             totalUsers: fullRanked.length,
             totalGamesPlayed,
           }),
