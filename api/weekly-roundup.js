@@ -234,13 +234,13 @@ export default async function handler(req, res) {
           lbRows.push({ ...fullRanked[rankIndex], rank: userRank, isYou: true });
         }
 
-        // Badges — stored + dynamic streak
+        // Badges — always show all, regardless of whether they played this week
         const storedBadges = Array.isArray(profile?.badges)
           ? profile.badges.map(id => ({ id, streak: null }))
           : [];
         const userStreak = profile?.current_streak || 0;
         if (userStreak > 0) storedBadges.push({ id: 'streak', streak: userStreak });
-        const badges = myWeekScores.length > 0 ? storedBadges : [];
+        const badges = storedBadges;
 
         return {
           from: FROM_EMAIL,
