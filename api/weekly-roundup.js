@@ -11,7 +11,7 @@ const CRON_SECRET = process.env.CRON_SECRET;
 const BADGE_FILENAMES = {
   streak: 'No-Streak', wordsmith: 'Wordsmith', avid: 'Avid',
   doubledown: 'Doubles', spotter: 'Spotter', purist: 'Purist',
-  linguist: 'Lingust', centurion: 'Centurion', expert: 'Expert',
+  linguist: 'Linguist', centurion: 'Centurion', expert: 'Expert',
   favourite: 'Favourite', elevensies: 'Elevensies',
 };
 
@@ -279,7 +279,7 @@ export default async function handler(req, res) {
         if (userStreak > 0) storedBadges.push({ id: 'streak', streak: userStreak });
         const avgWord = avgWordMap[user.id] || 0;
         const hasWrd = storedBadges.some(b => b.id === 'wordsmith');
-        if (avgWord > 11 && !hasWrd) storedBadges.push({ id: 'wordsmith', streak: null });
+        if (avgWord >= 11 && !hasWrd) storedBadges.push({ id: 'wordsmith', streak: null });
         const badges = storedBadges;
 
         return {
