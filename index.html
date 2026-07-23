@@ -4372,7 +4372,16 @@ function showScreen(name) {
 let welcomeLabelInterval = null;
 
 function hasPlayedTodayFullGame() {
-  return localStorage.getItem(FULL_GAME_PLAYED_KEY) === todayString();
+  if (localStorage.getItem(FULL_GAME_PLAYED_KEY) !== todayString()) return false;
+  // Before today's window opens — clear the flag so they can play when it opens
+  const now = new Date();
+  const windowStart = new Date(now);
+  windowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+  if (now < windowStart) {
+    localStorage.removeItem(FULL_GAME_PLAYED_KEY);
+    return false;
+  }
+  return true;
 }
 
 function updateFullGameLabel() {
@@ -4487,22 +4496,24 @@ async function startFullGame() {
     showPlayedTodayLobby();
     return;
   }
-  // Server check — covers second device where localStorage doesn't know
+  // Server check — only block if played/frozen in the current window
   if (sbClient && currentUser) {
-    const today = todayString();
-    const { data } = await sbClient
-      .from('game_results')
-      .select('id, played_at')
-      .eq('user_id', currentUser.id)
-      .eq('game_status', 'completed')
-      .order('played_at', { ascending: false })
-      .limit(1);
-    if (data && data.length > 0) {
-      const d = new Date(data[0].played_at);
-      const playedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      if (playedDate === today) {
-        // Sync localStorage so future checks are instant
-        localStorage.setItem(FULL_GAME_PLAYED_KEY, today);
+    const now = new Date();
+    const windowStart = new Date(now);
+    windowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+    const windowEnd = new Date(now);
+    windowEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
+    if (now >= windowStart) {
+      const { data } = await sbClient
+        .from('game_results')
+        .select('id, played_at')
+        .eq('user_id', currentUser.id)
+        .eq('game_status', 'completed')
+        .gte('played_at', windowStart.toISOString())
+        .lte('played_at', windowEnd.toISOString())
+        .limit(1);
+      if (data && data.length > 0) {
+        localStorage.setItem(FULL_GAME_PLAYED_KEY, todayString());
         showPlayedTodayLobby();
         return;
       }
@@ -6123,7 +6134,7 @@ function submitWord() {
   const valid = isValidWord(currentWord);
 
   if (!valid) {
-    showMessage(`"${currentWord}" isn't a valid word. Try again!`, 'error');
+      showMessage(`"${currentWord}" isn't a valid word. Try again!`, 'error');
     return;
   }
 
@@ -6167,7 +6178,7 @@ function submitWord() {
 
   if (turns >= MAX_TURNS) {
     phase = 'gameover';
-    if (gameMode === 'h2h') {
+      if (gameMode === 'h2h') {
       setTimeout(submitH2HScore, 800);
     } else {
       setTimeout(showGameOver, 1000);
@@ -6491,7 +6502,7 @@ async function useStreakFreeze(forDate) {
       best_word_score: 0,
       history: [],
       game_status: 'freeze',
-      played_at: new Date().toISOString(),
+      played_at: targetDate + 'T12:00:00.000Z',
       utc_offset: new Date().getTimezoneOffset() * -1,
     }),
   ]);
@@ -7485,21 +7496,25 @@ fullGameBtn.addEventListener('click', async () => {
     showPlayedTodayLobby();
     return;
   }
-  // Server check for second device — has this user already played or used a freeze today?
+  // Server check — covers second device. Only block if played/frozen in the CURRENT window.
   if (sbClient && currentUser) {
-    const today = todayString();
-    const { data } = await sbClient
-      .from('game_results')
-      .select('id, played_at, game_status')
-      .eq('user_id', currentUser.id)
-      .in('game_status', ['completed', 'freeze'])
-      .order('played_at', { ascending: false })
-      .limit(1);
-    if (data && data.length > 0) {
-      const d = new Date(data[0].played_at);
-      const playedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      if (playedDate === today) {
-        localStorage.setItem(FULL_GAME_PLAYED_KEY, today);
+    const now = new Date();
+    const windowStart = new Date(now);
+    windowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+    const windowEnd = new Date(now);
+    windowEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
+    // Only check current window if it's currently open or has passed today
+    if (now >= windowStart) {
+      const { data } = await sbClient
+        .from('game_results')
+        .select('id, played_at, game_status')
+        .eq('user_id', currentUser.id)
+        .in('game_status', ['completed', 'freeze'])
+        .gte('played_at', windowStart.toISOString())
+        .lte('played_at', windowEnd.toISOString())
+        .limit(1);
+      if (data && data.length > 0) {
+        localStorage.setItem(FULL_GAME_PLAYED_KEY, todayString());
         showPlayedTodayLobby();
         return;
       }
