@@ -6179,6 +6179,12 @@ const leaderboardList = document.getElementById('leaderboardList');
 const leaderboardCloseBtn = document.getElementById('leaderboardCloseBtn');
 const mainMenuOverlay = document.getElementById('mainMenuOverlay');
 const menuAccountBtn = document.getElementById('menuAccountBtn');
+menuAccountBtn.addEventListener('click', () => {
+  mainMenuOverlay.classList.remove('show');
+  authOverlay.classList.add('show');
+  if (currentUser) showAccountPanel();
+  else showAuthForm();
+});
 const menuCloseBtn = document.getElementById('menuCloseBtn');
 const authOverlay = document.getElementById('authOverlay');
 const authCloseBtn = document.getElementById('authCloseBtn');
