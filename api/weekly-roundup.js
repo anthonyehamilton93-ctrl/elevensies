@@ -174,15 +174,16 @@ export default async function handler(req, res) {
 
   try {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const allResults = await db('/game_results?select=user_id,total_score,best_word,best_word_score,played_at&game_status=eq.completed&order=played_at.desc');
+    const allResults = await db('/game_results?select=user_id,total_score,best_word,best_word_score,played_at,avg_points_per_word&game_status=eq.completed&order=played_at.desc');
     const weekResults = allResults.filter(r => r.played_at > oneWeekAgo);
 
     const profiles = await db('/profiles?select=id,display_name,badges,email_unsubscribed');
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.id] = p; });
 
-    // Calculate streak per user from game results
+    // Calculate streak and avg word score per user from game results
     const streakMap = {};
+    const avgWordMap = {};
     const datesByUser = {};
     for (const r of allResults) {
       if (!datesByUser[r.user_id]) datesByUser[r.user_id] = new Set();
@@ -201,6 +202,20 @@ export default async function handler(req, res) {
         else break;
       }
       streakMap[uid] = streak;
+    }
+
+    // Avg word score per user
+    const wordTotals = {};
+    const wordCounts = {};
+    for (const r of allResults) {
+      if (r.avg_points_per_word) {
+        if (!wordTotals[r.user_id]) { wordTotals[r.user_id] = 0; wordCounts[r.user_id] = 0; }
+        wordTotals[r.user_id] += r.avg_points_per_word;
+        wordCounts[r.user_id]++;
+      }
+    }
+    for (const uid of Object.keys(wordTotals)) {
+      avgWordMap[uid] = wordTotals[uid] / wordCounts[uid];
     }
 
     const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?per_page=1000`, {
@@ -262,6 +277,9 @@ export default async function handler(req, res) {
           : [];
         const userStreak = streakMap[user.id] || 0;
         if (userStreak > 0) storedBadges.push({ id: 'streak', streak: userStreak });
+        const avgWord = avgWordMap[user.id] || 0;
+        const hasWrd = storedBadges.some(b => b.id === 'wordsmith');
+        if (avgWord > 11 && !hasWrd) storedBadges.push({ id: 'wordsmith', streak: null });
         const badges = storedBadges;
 
         return {
