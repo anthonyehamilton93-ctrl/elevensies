@@ -347,16 +347,9 @@
     border: none;
     cursor: pointer;
     display: flex;
-    flex-direction: column;
-    gap: 5px;
+    align-items: center;
+    justify-content: center;
     padding: 6px;
-  }
-  .menu-btn span {
-    width: 28px;
-    height: 3px;
-    background: var(--gold);
-    border-radius: 0 !important;
-    display: block;
   }
 
   /* History drawer */
@@ -1502,7 +1495,7 @@
     <div style="display:flex;align-items:center;gap:4px;grid-column:3;justify-self:end;">
       <button id="briefingInfoBtn" style="background:none;border:none;cursor:pointer;color:var(--gold);font-family:inherit;font-size:20px;font-weight:900;padding:4px 6px;opacity:0.6;line-height:1;display:none;">ⓘ</button>
       <button class="menu-btn" id="menuBtn">
-        <span></span><span></span><span></span>
+        <img src="/icons/burger.png" style="width:24px;height:auto;display:block;">
       </button>
     </div>
   </div>
@@ -7127,6 +7120,16 @@ async function showGameOver() {
     const myBestScore = history.length ? Math.max(...history.map(h => h.score)) : 0;
     const missed = bestPossible.score > myBestScore;
     const foundIt = !missed && history.some(h => h.score >= bestPossible.score);
+    // If player found the best possible word (or matched its score), show their word
+    const displayWord = foundIt
+      ? history.reduce((best, h) => {
+          if (h.score > best.score) return h;
+          if (h.score === best.score && h.word.length > best.word.length) return h;
+          if (h.score === best.score && h.word.length === best.word.length) return h; // last played wins
+          return best;
+        }, history[0]).word
+      : bestPossible.word;
+    const displayScore = foundIt ? myBestScore : bestPossible.score;
     bestSection.style.display = 'block';
     document.getElementById('bestWordLabel').textContent = missed
       ? 'YOU MISSED THIS ONE'
@@ -7134,8 +7137,8 @@ async function showGameOver() {
         ? 'YOU GOT THE BEST POSSIBLE WORD! 🎉'
         : 'BEST POSSIBLE WORD';
     document.getElementById('bestWordLabel').className = 'best-word-label' + (missed ? ' missed' : '');
-    document.getElementById('bestWordValue').textContent = bestPossible.word;
-    document.getElementById('bestWordPts').textContent = bestPossible.score + ' PTS';
+    document.getElementById('bestWordValue').textContent = displayWord;
+    document.getElementById('bestWordPts').textContent = displayScore + ' PTS';
     // Award spotter badge if player found the best word (or better)
     if (!missed && gameMode === 'full') {
       localStorage.setItem('elevensies_spotter_just_earned', '1');
@@ -7157,10 +7160,10 @@ async function showGameOver() {
       score: totalScore,
       history: [...history],
       rating,
-      bestWord: bestPossible ? bestPossible.word : '',
-      bestWordPts: bestPossible ? bestPossible.score + ' PTS' : '',
-      bestWordLabel: bestPossible ? (bestPossible.score > (history.length ? Math.max(...history.map(h => h.score)) : 0) ? 'YOU MISSED THIS ONE' : 'BEST POSSIBLE WORD') : '',
-      bestWordMissed: bestPossible ? bestPossible.score > (history.length ? Math.max(...history.map(h => h.score)) : 0) : false
+      bestWord: bestPossible ? (foundIt ? displayWord : bestPossible.word) : '',
+      bestWordPts: bestPossible ? (foundIt ? myBestScore : bestPossible.score) + ' PTS' : '',
+      bestWordLabel: bestPossible ? (missed ? 'YOU MISSED THIS ONE' : foundIt ? 'YOU GOT THE BEST POSSIBLE WORD! 🎉' : 'BEST POSSIBLE WORD') : '',
+      bestWordMissed: missed
     }));
   }
 
