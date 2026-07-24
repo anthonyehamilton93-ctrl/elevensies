@@ -839,17 +839,20 @@
     font-weight: 900;
     letter-spacing: 0.18em;
     margin-bottom: 6px;
+    text-align: center;
   }
   .gameover-score {
     font-size: 42px;
     font-weight: 900;
     margin: 8px 0 2px;
+    text-align: center;
   }
   .gameover-label {
     font-size: 11px;
     letter-spacing: 0.15em;
     opacity: 0.6;
     margin-bottom: 12px;
+    text-align: center;
   }
   .gameover-history {
     margin-bottom: 12px;
@@ -2800,7 +2803,10 @@
       </div>
       <div class="auth-field">
         <label for="authPassword">PASSWORD</label>
-        <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
+        <div style="position:relative;">
+          <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password" style="padding-right:36px;">
+          <button type="button" id="togglePasswordBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gold);opacity:0.5;padding:0;font-size:16px;line-height:1;">👁</button>
+        </div>
       </div>
       <button class="auth-submit-btn" id="authSubmitBtn">SIGN IN</button>
       <button class="forgot-btn" id="forgotBtn">FORGOT PASSWORD?</button>
@@ -2939,7 +2945,7 @@
 
 <!-- Game over -->
 <div class="overlay" id="gameoverOverlay">
-  <div class="modal gameover-modal">
+  <div class="modal gameover-modal" style="text-align:center;">
     <div class="gameover-title" id="gameoverTitle">YOUR SCORE</div>
     <div class="gameover-score" id="finalScore">0</div>
     <div class="gameover-label">TOTAL POINTS</div>
@@ -8462,8 +8468,13 @@ document.getElementById('contactSendBtn').addEventListener('click', async () => 
 });
 authCloseBtn.addEventListener('click', () => authOverlay.classList.remove('show'));
 
-// Sign in / sign up tabs
-const forgotBtn = document.getElementById('forgotBtn');
+document.getElementById('togglePasswordBtn').addEventListener('click', () => {
+  const input = document.getElementById('authPassword');
+  const btn = document.getElementById('togglePasswordBtn');
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.style.opacity = isHidden ? '1' : '0.5';
+});
 
 signInTab.addEventListener('click', () => {
   signInTab.classList.add('active');
