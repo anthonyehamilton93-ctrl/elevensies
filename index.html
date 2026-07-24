@@ -2242,7 +2242,7 @@
     <div style="font-size:12px;letter-spacing:0.06em;text-align:center;line-height:1.7;opacity:0.75;margin-bottom:16px;">
       A free-to-play online word game that tests your vocabulary and strategy. Make 11 words at 11am from a maximum of 11 tiles.
     </div>
-    <button class="auth-submit-btn" onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');fullGameBtn.click();" style="margin-bottom:16px;">PLAY NOW</button>
+    <button class="auth-submit-btn" id="aboutPlayNowBtn" onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');fullGameBtn.click();" style="margin-bottom:16px;">PLAY NOW</button>
     <div style="border-top:1px solid rgba(240,192,32,0.2);padding-top:16px;margin-bottom:12px;">
       <div style="font-size:10px;letter-spacing:0.16em;opacity:0.45;text-align:center;margin-bottom:14px;font-weight:700;">OTHER GAMES</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
@@ -3839,6 +3839,7 @@ function clearFooterActive() {
 document.getElementById('footerGamesBtn').addEventListener('click', () => {
   setFooterActive('footerGamesBtn');
   document.getElementById('aboutHomepageOverlay').classList.add('show');
+  document.getElementById('aboutPlayNowBtn').textContent = isInWindow() ? 'PLAY NOW' : 'PLAY AT 11AM';
 });
 document.getElementById('footerStatsBtn').addEventListener('click', () => {
   setFooterActive('footerStatsBtn');
@@ -8425,6 +8426,7 @@ document.getElementById('menuIngameAccountBtn').addEventListener('click', () => 
 document.getElementById('menuAboutElevenBtn').addEventListener('click', () => {
   mainMenuOverlay.classList.remove('show');
   document.getElementById('aboutHomepageOverlay').classList.add('show');
+  document.getElementById('aboutPlayNowBtn').textContent = isInWindow() ? 'PLAY NOW' : 'PLAY AT 11AM';
 });
 document.getElementById('menuPrivacyBtn').addEventListener('click', () => {
   mainMenuOverlay.classList.remove('show');
