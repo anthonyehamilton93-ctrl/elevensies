@@ -3760,9 +3760,9 @@ async function openPlayerProfile(uid) {
     const isStreak = b.id === 'streak';
     let iconContent;
     if (isStreak) {
-      const streakVal = streak || 0;
-      iconContent = streakVal > 0
-        ? `<div style="width:100%;height:100%;background:#f0c020;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1a6b3c;line-height:1;">${streakVal}</div>`
+      // Only show number if streak is genuinely active (earned AND streak > 0)
+      iconContent = (earned && streak > 0)
+        ? `<div style="width:100%;height:100%;background:#f0c020;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1a6b3c;line-height:1;">${streak}</div>`
         : `<img src="/icons/badges/No-Streak.png" style="width:100%;height:100%;object-fit:contain;">`;
     } else {
       const fname = b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase();
@@ -3777,7 +3777,12 @@ async function openPlayerProfile(uid) {
   const sortedDefs = [...BADGE_DEFS].sort((a, b) => {
     const aEarned = earnedBadges.has(a.id) || earnedBadges.has(a.abbr) ? 0 : 1;
     const bEarned = earnedBadges.has(b.id) || earnedBadges.has(b.abbr) ? 0 : 1;
-    return aEarned - bEarned;
+    if (aEarned !== bEarned) return aEarned - bEarned;
+    // Among earned badges, streak always first
+    if (a.id === 'streak') return -1;
+    if (b.id === 'streak') return 1;
+    // Among locked badges, streak always last
+    return 0;
   });
   const top = sortedDefs.slice(0, 5).map(renderProfileBadge).join('');
   const mid = sortedDefs.slice(5, 10).map(renderProfileBadge).join('');
@@ -6799,7 +6804,12 @@ function renderBadges(stats, prefix) {
   };
 
   const sortedDefs = [...BADGE_DEFS].sort((a, b) => {
-    return (a.check(stats) ? 0 : 1) - (b.check(stats) ? 0 : 1);
+    const aEarned = a.check(stats) ? 0 : 1;
+    const bEarned = b.check(stats) ? 0 : 1;
+    if (aEarned !== bEarned) return aEarned - bEarned;
+    if (a.id === 'streak') return -1;
+    if (b.id === 'streak') return 1;
+    return 0;
   });
   const top5 = sortedDefs.slice(0, 5).map(renderBadgeItem).join('');
   const mid5 = sortedDefs.slice(5, 10).map(renderBadgeItem).join('');
