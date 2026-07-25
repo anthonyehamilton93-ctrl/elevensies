@@ -2230,6 +2230,23 @@
   </div>
 </div>
 
+<!-- About Elevensies blurb overlay -->
+<div class="overlay" id="aboutElevenOverlay" style="z-index:2000;">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">ABOUT ELEVENSIES</div>
+    <p style="font-size:13px;letter-spacing:0.05em;line-height:1.8;opacity:0.8;margin-bottom:12px;">
+      Elevensies is a daily word game designed to make you take a little time out of your busy day and enjoy a well-deserved mid-morning break.
+    </p>
+    <p style="font-size:13px;letter-spacing:0.05em;line-height:1.8;opacity:0.8;margin-bottom:12px;">
+      Play the Full Game at 11am each day and test your vocabulary skills by climbing the leaderboard, earning streaks and badges, and playing alongside friends through the mini league tables. Or try your hand at the other game modes — Practice, Anagram, Eliminator, and Head to Head.
+    </p>
+    <p style="font-size:13px;letter-spacing:0.05em;line-height:1.8;opacity:0.8;margin-bottom:20px;">
+      Elevensies is created by a solo developer and designer and made available completely free — no ads, no subscriptions, no catch. If you enjoy it, the best thing you can do is tell a friend.
+    </p>
+    <button class="cancel-btn" id="aboutElevenCloseBtn">CLOSE</button>
+  </div>
+</div>
+
 <!-- Contact form overlay -->
 <div class="overlay" id="contactOverlay" style="z-index:2000;">
   <div class="modal" style="text-align:left;">
@@ -2247,7 +2264,7 @@
 <!-- About: Homepage (platform overview) -->
 <div class="overlay" id="aboutHomepageOverlay">
   <div class="modal">
-    <div class="modal-title">ABOUT ELEVENSIES</div>
+    <div class="modal-title">GAMES</div>
     <div style="font-size:12px;letter-spacing:0.06em;text-align:center;line-height:1.7;opacity:0.75;margin-bottom:16px;">
       A free-to-play online word game that tests your vocabulary and strategy. Make 11 words at 11am from a maximum of 11 tiles.
     </div>
@@ -8501,8 +8518,10 @@ document.getElementById('menuIngameAccountBtn').addEventListener('click', () => 
 // Homepage extra links
 document.getElementById('menuAboutElevenBtn').addEventListener('click', () => {
   mainMenuOverlay.classList.remove('show');
-  document.getElementById('aboutHomepageOverlay').classList.add('show');
-  document.getElementById('aboutPlayNowBtn').textContent = isInWindow() ? 'PLAY NOW' : 'PLAY AT 11AM';
+  document.getElementById('aboutElevenOverlay').classList.add('show');
+});
+document.getElementById('aboutElevenCloseBtn').addEventListener('click', () => {
+  document.getElementById('aboutElevenOverlay').classList.remove('show');
 });
 document.getElementById('menuPrivacyBtn').addEventListener('click', () => {
   mainMenuOverlay.classList.remove('show');
