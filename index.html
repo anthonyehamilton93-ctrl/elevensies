@@ -7663,84 +7663,77 @@ async function shareAnagramResult(solved, word) {
   ctx.fillStyle = gold;
   ctx.textAlign = 'center';
   ctx.font = '900 52px Jost';
-  ctx.fillText('E L E V E N S I E S', W / 2, 120);
+  ctx.fillText('E L E V E N S I E S', W / 2, 110);
 
   // Nickname
   if (nickname) {
     ctx.font = '700 26px Jost';
     ctx.globalAlpha = 0.65;
-    ctx.fillText(nickname.toUpperCase(), W / 2, 162);
+    ctx.fillText(nickname.toUpperCase(), W / 2, 155);
     ctx.globalAlpha = 1;
   }
 
-  // Divider
-  ctx.strokeStyle = gold;
-  ctx.lineWidth = 3;
+  // Divider under header
+  ctx.strokeStyle = 'rgba(240,192,32,0.4)';
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  const divY1 = nickname ? 186 : 158;
-  ctx.moveTo(W / 2 - 200, divY1);
-  ctx.lineTo(W / 2 + 200, divY1);
+  const divY1 = nickname ? 178 : 148;
+  ctx.moveTo(W / 2 - 220, divY1);
+  ctx.lineTo(W / 2 + 220, divY1);
   ctx.stroke();
 
-  // Result
-  const resultY = divY1 + 120;
-  ctx.font = '900 68px Jost';
+  // Result — two lines
+  ctx.font = '900 96px Jost';
   ctx.fillStyle = gold;
-  ctx.fillText(solved ? 'ANAGRAM SOLVED' : 'ANAGRAM ATTEMPTED', W / 2, resultY);
+  ctx.fillText(solved ? 'ANAGRAM' : 'ANAGRAM', W / 2, resultY);
+  ctx.fillText(solved ? 'SOLVED' : 'ATTEMPTED', W / 2, resultY + 108);
 
-  ctx.font = '700 30px Jost';
+  // Date
+  ctx.font = '700 32px Jost';
   ctx.globalAlpha = 0.55;
-  ctx.fillText(date, W / 2, resultY + 52);
+  ctx.fillText(date, W / 2, resultY + 168);
   ctx.globalAlpha = 1;
 
-  // Divider
-  ctx.strokeStyle = 'rgba(240,192,32,0.3)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - 160, resultY + 90);
-  ctx.lineTo(W / 2 + 160, resultY + 90);
-  ctx.stroke();
-
-  // Stats — evenly spaced below result
+  // Stats
+  const statY = resultY + 308;
   const statItems = [
     { label: 'SOLVED', value: String(statsData.solved || 0) },
     { label: 'STREAK', value: String(statsData.streak || 0) },
     { label: 'BEST',   value: String(statsData.best || 0) },
   ];
   const colW = W / 3;
-  const statY = resultY + 190;
   statItems.forEach((s, i) => {
     const cx = colW * i + colW / 2;
-    ctx.font = '900 80px Jost';
+    ctx.font = '900 100px Jost';
     ctx.fillStyle = gold;
     ctx.fillText(s.value, cx, statY);
-    ctx.font = '700 22px Jost';
+    ctx.font = '700 26px Jost';
     ctx.globalAlpha = 0.55;
-    ctx.fillText(s.label, cx, statY + 44);
+    ctx.fillText(s.label, cx, statY + 52);
     ctx.globalAlpha = 1;
   });
 
-  // Divider
-  ctx.strokeStyle = gold;
+  // Divider below stats
+  ctx.strokeStyle = 'rgba(240,192,32,0.35)';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(W / 2 - 260, statY + 100);
-  ctx.lineTo(W / 2 + 260, statY + 100);
+  ctx.moveTo(W / 2 - 280, statY + 110);
+  ctx.lineTo(W / 2 + 280, statY + 110);
   ctx.stroke();
 
   // CTA
-  ctx.font = '700 30px Jost';
+  ctx.font = '700 34px Jost';
   ctx.fillStyle = gold;
-  ctx.globalAlpha = 0.7;
-  ctx.fillText(solved ? 'CAN YOU BEAT MY STREAK?' : 'CAN YOU SOLVE TODAY\'S ANAGRAM?', W / 2, statY + 160);
+  ctx.globalAlpha = 0.75;
+  ctx.fillText(solved ? 'CAN YOU BEAT MY STREAK?' : 'CAN YOU SOLVE TODAY\'S ANAGRAM?', W / 2, statY + 200);
   ctx.globalAlpha = 1;
 
-  // Footer
+  // Footer bar
   ctx.fillStyle = gold;
-  ctx.fillRect(0, H - 80, W, 80);
+  ctx.fillRect(0, H - 96, W, 96);
   ctx.fillStyle = greenDark;
-  ctx.font = '900 32px Jost';
-  ctx.fillText('playelevensies.com', W / 2, H - 28);
+  ctx.font = '900 38px Jost';
+  ctx.fillText('playelevensies.com', W / 2, H - 30);
 
   const blob = await new Promise(r => shareCanvas.toBlob(r, 'image/png'));
 
@@ -9235,47 +9228,44 @@ async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
 
   if (nickname) {
     ctx.font = '700 26px Jost'; ctx.globalAlpha = 0.65;
-    ctx.fillText(nickname.toUpperCase(), W/2, 150);
+    ctx.fillText(nickname.toUpperCase(), W/2, 155);
     ctx.globalAlpha = 1;
   }
 
-  ctx.strokeStyle = gold; ctx.lineWidth = 3;
-  const divY = nickname ? 175 : 155;
-  ctx.beginPath(); ctx.moveTo(W/2-200, divY); ctx.lineTo(W/2+200, divY); ctx.stroke();
+  // Divider under header
+  ctx.strokeStyle = 'rgba(240,192,32,0.4)'; ctx.lineWidth = 2;
+  const divY = nickname ? 178 : 148;
+  ctx.beginPath(); ctx.moveTo(W/2-220, divY); ctx.lineTo(W/2+220, divY); ctx.stroke();
 
-  ctx.font = '700 22px Jost'; ctx.globalAlpha = 0.5;
-  ctx.fillText('ELIMINATOR', W/2, divY + 45);
-  ctx.globalAlpha = 1;
-
-  // Score
-  ctx.font = '900 72px Jost'; ctx.fillStyle = gold;
-  ctx.fillText(perfect ? 'I SURVIVED!' : `SURVIVED ${score} / 11`, W/2, divY + 135);
-  ctx.font = '700 26px Jost'; ctx.globalAlpha = 0.55;
-  ctx.fillText(date, W/2, divY + 175);
+  // Result — large
+  const resultY = divY + 200;
+  ctx.font = '900 96px Jost'; ctx.fillStyle = gold;
+  ctx.fillText(perfect ? 'I SURVIVED!' : `SURVIVED ${score} / 11`, W/2, resultY);
+  ctx.font = '700 32px Jost'; ctx.globalAlpha = 0.55;
+  ctx.fillText(date, W/2, resultY + 60);
   ctx.globalAlpha = 1;
 
   // Words played (up to 11, two columns)
   if (elimHistory.length > 0) {
-    const wordY = divY + 220;
-    const colW = W / 2;
-    ctx.font = '700 22px Jost'; ctx.fillStyle = gold;
+    const wordY = resultY + 130;
+    ctx.font = '700 26px Jost'; ctx.fillStyle = gold;
     elimHistory.forEach((h, i) => {
       const col = i < 6 ? 0 : 1;
       const row = i < 6 ? i : i - 6;
       const x = col === 0 ? W/4 : 3*W/4;
-      const y = wordY + row * 38;
+      const y = wordY + row * 44;
       ctx.textAlign = 'left';
       ctx.globalAlpha = 1;
-      ctx.fillText(h.word, x - 80, y);
+      ctx.fillText(h.word, x - 100, y);
       ctx.globalAlpha = 0.6;
-      ctx.fillText(`${h.pts}`, x + 90, y);
+      ctx.fillText(`${h.pts}pts`, x + 80, y);
       ctx.globalAlpha = 1;
     });
     ctx.textAlign = 'center';
   }
 
   // Stats row
-  const statY = divY + 700;
+  const statY = resultY + 430;
   const statItems = [
     { label: 'TOTAL PTS', value: String(totalPoints) },
     { label: 'SECS / ROUND', value: secsPerRound + 's' },
@@ -9284,25 +9274,25 @@ async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
   const colW2 = W/3;
   statItems.forEach((s, i) => {
     const cx = colW2*i + colW2/2;
-    ctx.font = '900 48px Jost'; ctx.fillStyle = gold;
+    ctx.font = '900 72px Jost'; ctx.fillStyle = gold;
     ctx.fillText(s.value, cx, statY);
-    ctx.font = '700 18px Jost'; ctx.globalAlpha = 0.55;
-    ctx.fillText(s.label, cx, statY + 30);
+    ctx.font = '700 26px Jost'; ctx.globalAlpha = 0.55;
+    ctx.fillText(s.label, cx, statY + 50);
     ctx.globalAlpha = 1;
   });
 
   // Divider + CTA
-  ctx.strokeStyle = gold; ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(240,192,32,0.35)'; ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(W/2-260, statY + 60); ctx.lineTo(W/2+260, statY + 60); ctx.stroke();
-  ctx.font = '700 26px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 0.7;
-  ctx.fillText('CAN YOU BEAT ME? playelevensies.com', W/2, statY + 100);
+  ctx.moveTo(W/2-280, statY + 110); ctx.lineTo(W/2+280, statY + 110); ctx.stroke();
+  ctx.font = '700 34px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 0.75;
+  ctx.fillText('CAN YOU BEAT ME?', W/2, statY + 200);
   ctx.globalAlpha = 1;
 
-  // Footer
-  ctx.fillStyle = gold; ctx.fillRect(0, H-80, W, 80);
-  ctx.fillStyle = greenDark; ctx.font = '900 32px Jost';
-  ctx.fillText('playelevensies.com', W/2, H-28);
+  // Footer bar
+  ctx.fillStyle = gold; ctx.fillRect(0, H-96, W, 96);
+  ctx.fillStyle = greenDark; ctx.font = '900 38px Jost';
+  ctx.fillText('playelevensies.com', W/2, H-30);
 
   const blob = await new Promise(r => shareCanvas.toBlob(r, 'image/png'));
   const linkText = perfect
