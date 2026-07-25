@@ -434,7 +434,7 @@
     background: none;
     border: none;
     color: var(--gold);
-    font-size: 20px;
+    font-size: 28px;
     cursor: pointer;
     padding: 4px 6px;
     opacity: 0;
@@ -3465,7 +3465,7 @@ async function loadBadgesFromSupabase() {
     .eq('id', currentUser.id)
     .single();
   if (data && Array.isArray(data.badges)) {
-    earnedBadgeIds = new Set(data.badges);
+    earnedBadgeIds = new Set(data.badges.filter(b => b !== 'streak' && b !== 'STK'));
   }
 }
 
@@ -3746,8 +3746,9 @@ async function openPlayerProfile(uid) {
     <div class="account-stats-row"><span>BEST WORD</span><span>${best?.best_word ? `${best.best_word} (${best.best_word_score})` : '—'}</span></div>`;
 
   // Badges — show all 11, locked if not earned
+  // Streak is always computed live — never trust stored value
   const earnedBadges = new Set([
-    ...(profile?.badges || []),
+    ...(profile?.badges || []).filter(b => b !== 'streak' && b !== 'STK'),
     ...(streak > 0 ? ['streak'] : []),
     ...(avgWordScores.length > 0 && (avgWordScores.reduce((a,b)=>a+b,0)/avgWordScores.length) > 11 ? ['wordsmith'] : []),
   ]);
