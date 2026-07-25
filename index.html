@@ -106,7 +106,6 @@
     letter-spacing: 0.15em;
     cursor: pointer;
     font-family: inherit;
-    box-shadow: 0 3px 0 var(--gold-shadow);
   }
   .welcome-btn.secondary {
     background: transparent;
@@ -8229,7 +8228,7 @@ menuBtn.addEventListener('click', async () => {
   }
   mainMenuOverlay.classList.add('show');
 });
-menuCloseBtn.addEventListener('click', () => mainMenuOverlay.classList.remove('show'));
+menuCloseBtn.addEventListener('click', () => { mainMenuOverlay.classList.remove('show'); clearFooterActive(); });
 
 document.getElementById('menuStatsBtn').addEventListener('click', async () => {
   mainMenuOverlay.classList.remove('show');
