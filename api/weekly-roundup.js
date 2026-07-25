@@ -125,7 +125,7 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
         ${divider('YOUR BADGES')}
         <tr><td style="padding:8px 40px 16px;text-align:center;">${badgesHTML}</td></tr>` : ''}
 
-        ${divider('LEADERBOARD — TOP 10')}
+        ${divider('LEADERBOARD — TOP 11')}
         <tr><td style="padding:4px 24px 8px;">
           <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
             <tr style="border-bottom:1px solid rgba(240,192,32,0.2);">
