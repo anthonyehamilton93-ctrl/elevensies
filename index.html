@@ -2192,13 +2192,19 @@
       </button>
     </div>
 
-    <!-- In-game: 2 squares evenly spaced -->
-    <div id="menuIngameGrid" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+    <!-- In-game: 3 squares -->
+    <div id="menuIngameGrid" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
       <button id="menuHowToBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/games.png" style="height:40px;width:auto;">
         </div>
         <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;" id="menuHowToLabel">HOW TO PLAY</div>
+      </button>
+      <button id="menuIngameStatsBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/stats.png" style="height:40px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;" id="menuIngameStatsLabel">STATS</div>
       </button>
       <button id="menuIngameAccountBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
@@ -8118,18 +8124,22 @@ menuBtn.addEventListener('click', async () => {
     menuTitle.textContent = 'ELIMINATOR';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-eliminator';
+    document.getElementById('menuIngameStatsBtn').dataset.target = 'eliminator-stats';
   } else if (screen === 'anagram') {
     menuTitle.textContent = 'ANAGRAM';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-anagram';
+    document.getElementById('menuIngameStatsBtn').dataset.target = 'anagram-stats';
   } else if (screen === 'game' && mode === 'practice') {
     menuTitle.textContent = 'PRACTICE';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-practice';
+    document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
   } else {
     menuTitle.textContent = 'FULL GAME';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-fullgame';
+    document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
   }
   mainMenuOverlay.classList.add('show');
 });
@@ -8420,6 +8430,12 @@ document.getElementById('menuHowToBtn').addEventListener('click', () => {
     'about-eliminator': 'aboutEliminatorOverlay',
   };
   if (map[target]) document.getElementById(map[target])?.classList.add('show');
+});
+document.getElementById('menuIngameStatsBtn').addEventListener('click', async () => {
+  mainMenuOverlay.classList.remove('show');
+  const target = document.getElementById('menuIngameStatsBtn').dataset.target;
+  if (target === 'anagram-stats') await openAnagramStats();
+  else await openFullGameStats();
 });
 document.getElementById('menuIngameAccountBtn').addEventListener('click', () => {
   mainMenuOverlay.classList.remove('show');
