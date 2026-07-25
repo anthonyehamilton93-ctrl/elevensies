@@ -3609,11 +3609,11 @@ async function openFullGameStats() {
     const freezeDates = new Set(allRows.filter(r => r.game_status === 'freeze').map(r => localDateStr(new Date(r.played_at))));
     const yesterdayWasFrozen = freezeDates.has(yesterday);
     const playedToday = completed.some(r => localDateStr(new Date(r.played_at)) === today);
-    const playedYesterday = dates[0] === yesterday || completed.some(r => localDateStr(new Date(r.played_at)) === yesterday);
-    const windowClosed = now.getHours() >= FULL_GAME_HOUR_END;
-    // Streak alive: played today's window, OR played yesterday and today's window hasn't closed yet
-    const streakAlive = playedToday || (playedYesterday && (!windowClosed || yesterdayWasFrozen));
-    const todayPlayedInWindow = playedToday;
+    const playedYesterday = completed.some(r => localDateStr(new Date(r.played_at)) === yesterday) || freezeDates.has(yesterday);
+    const now2 = new Date();
+    const windowClosed = now2.getHours() >= FULL_GAME_HOUR_END;
+    // Streak alive only if they actually played today, OR played yesterday and today's window hasn't closed
+    const streakAlive = playedToday || (playedYesterday && !playedToday && !windowClosed);
     if (!streakAlive) return 0;
     // Count consecutive days but don't increment for freeze days — they bridge the gap without adding to count
     let s = freezeDates.has(dates[0]) ? 0 : 1;
