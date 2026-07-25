@@ -3776,9 +3776,14 @@ async function openPlayerProfile(uid) {
     </div>`;
   };
 
-  const top = BADGE_DEFS.slice(0, 5).map(renderProfileBadge).join('');
-  const mid = BADGE_DEFS.slice(5, 10).map(renderProfileBadge).join('');
-  const bot = `<div class="badges-grid-middle">${BADGE_DEFS.slice(10).map(renderProfileBadge).join('')}</div>`;
+  const sortedDefs = [...BADGE_DEFS].sort((a, b) => {
+    const aEarned = earnedBadges.has(a.id) || earnedBadges.has(a.abbr) ? 0 : 1;
+    const bEarned = earnedBadges.has(b.id) || earnedBadges.has(b.abbr) ? 0 : 1;
+    return aEarned - bEarned;
+  });
+  const top = sortedDefs.slice(0, 5).map(renderProfileBadge).join('');
+  const mid = sortedDefs.slice(5, 10).map(renderProfileBadge).join('');
+  const bot = `<div class="badges-grid-middle">${sortedDefs.slice(10).map(renderProfileBadge).join('')}</div>`;
   grid.innerHTML = top + mid + bot;
   grid.querySelectorAll('.badge-item').forEach(el => {
     el.addEventListener('click', () => {
@@ -6790,10 +6795,16 @@ function renderBadges(stats, prefix) {
     </div>`;
   };
 
-  const top5 = BADGE_DEFS.slice(0, 5).map(renderBadgeItem).join('');
-  const mid5 = BADGE_DEFS.slice(5, 10).map(renderBadgeItem).join('');
-  const bot1 = `<div class="badges-grid-middle">${BADGE_DEFS.slice(10).map(renderBadgeItem).join('')}</div>`;
+  const sortedDefs = [...BADGE_DEFS].sort((a, b) => {
+    return (a.check(stats) ? 0 : 1) - (b.check(stats) ? 0 : 1);
+  });
+  const top5 = sortedDefs.slice(0, 5).map(renderBadgeItem).join('');
+  const mid5 = sortedDefs.slice(5, 10).map(renderBadgeItem).join('');
+  const bot1 = `<div class="badges-grid-middle">${sortedDefs.slice(10).map(renderBadgeItem).join('')}</div>`;
   grid.innerHTML = top5 + mid5 + bot1;
+  // Remove any existing tooltip
+  const existingTip = document.getElementById('badgeTooltip');
+  if (existingTip) existingTip.remove();
   grid.querySelectorAll('.badge-item').forEach(el => {
     el.addEventListener('click', () => {
       let tip = document.getElementById('badgeTooltip');
