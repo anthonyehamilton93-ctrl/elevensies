@@ -1246,7 +1246,7 @@
 
   .badges-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 6px;
   }
   .badges-grid-middle {
@@ -1256,7 +1256,8 @@
     gap: 6px;
   }
   .badges-grid-middle .badge-item {
-    flex: 0 0 calc(25% - 5px);
+    width: calc(20% - 5px);
+    flex: 0 0 calc(20% - 5px);
   }
   .badge-item {
     display: flex;
@@ -1266,6 +1267,7 @@
     padding: 8px 2px;
     border: 1px solid var(--gold-dark);
     text-align: center;
+    box-sizing: border-box;
   }
   .badge-item.locked { opacity: 0.25; border-style: dashed; }
   .badge-icon {
@@ -1279,7 +1281,7 @@
     flex-shrink: 0;
   }
   .badge-item.locked .badge-icon { opacity: 0.3; filter: grayscale(1); }
-  .badge-name { font-size: 8px; letter-spacing: 0.05em; font-weight: 700; line-height: 1.3; }
+  .badge-name { font-size: 7px; letter-spacing: 0.04em; font-weight: 700; line-height: 1.3; }
   .badge-item { cursor: pointer; }
   .badge-tooltip {
     font-size: 10px;
@@ -1527,6 +1529,7 @@
   <div id="playedTodayLobby" style="display:none; flex-direction:column; align-items:center; text-align:center; width:260px; flex:1; justify-content:center; padding:60px 0 40px;">
     <div style="font-size:12px; letter-spacing:0.25em; opacity:0.7; margin-bottom:10px; font-weight:700;">TODAY'S GAME</div>
     <div style="font-size:88px; font-weight:900; letter-spacing:0.02em; line-height:1; margin-bottom:4px; color:var(--gold);" id="lobbyScore">—</div>
+    <div id="lobbyScoreLoading" style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:4px;display:none;">LOADING…</div>
     <div style="font-size:12px; letter-spacing:0.15em; opacity:0.7; margin-bottom:28px; font-weight:700;">YOUR SCORE</div>
     <button class="lobby-details-btn" id="lobbyDetailsBtn">BREAKDOWN</button>
     <div style="font-size:12px; letter-spacing:0.25em; opacity:0.7; margin-bottom:6px; margin-top:40px; font-weight:700;">NEXT GAME IN</div>
@@ -3744,52 +3747,54 @@ async function openPlayerProfile(uid) {
     <div class="account-stats-row"><span>AVG OVERALL</span><span>${avgOverall}</span></div>
     <div class="account-stats-row"><span>BEST WORD</span><span>${best?.best_word ? `${best.best_word} (${best.best_word_score})` : '—'}</span></div>`;
 
-  // Badges
+  // Badges — show all 11, locked if not earned
   const earnedBadges = new Set([
     ...(profile?.badges || []),
     ...(streak > 0 ? ['streak'] : []),
     ...(avgWordScores.length > 0 && (avgWordScores.reduce((a,b)=>a+b,0)/avgWordScores.length) > 11 ? ['wordsmith'] : []),
   ]);
-  if (earnedBadges.size > 0) {
-    const badgeSection = document.getElementById('playerProfileBadgesSection');
-    badgeSection.style.display = '';
-    const grid = document.getElementById('playerProfileBadgesGrid');
+  const badgeSection = document.getElementById('playerProfileBadgesSection');
+  badgeSection.style.display = '';
+  const grid = document.getElementById('playerProfileBadgesGrid');
 
-    // Use BADGE_DEFS for consistent rendering — show earned only
-    const earned = BADGE_DEFS.filter(b => earnedBadges.has(b.id) || earnedBadges.has(b.abbr));
-    grid.innerHTML = earned.map(b => {
-      const isStreak = b.id === 'streak';
-      let iconContent;
-      if (isStreak) {
-        const streakVal = streak || 0;
-        iconContent = streakVal > 0
-          ? `<div style="width:100%;height:100%;background:#f0c020;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1a6b3c;line-height:1;">${streakVal}</div>`
-          : `<img src="/icons/badges/No-Streak.png" style="width:100%;height:100%;object-fit:contain;">`;
-      } else {
-        const fname = b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase();
-        iconContent = `<img src="/icons/badges/${fname}.png" style="width:100%;height:100%;object-fit:contain;">`;
+  const renderProfileBadge = (b) => {
+    const earned = earnedBadges.has(b.id) || earnedBadges.has(b.abbr);
+    const isStreak = b.id === 'streak';
+    let iconContent;
+    if (isStreak) {
+      const streakVal = streak || 0;
+      iconContent = streakVal > 0
+        ? `<div style="width:100%;height:100%;background:#f0c020;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#1a6b3c;line-height:1;">${streakVal}</div>`
+        : `<img src="/icons/badges/No-Streak.png" style="width:100%;height:100%;object-fit:contain;">`;
+    } else {
+      const fname = b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase();
+      iconContent = `<img src="/icons/badges/${fname}.png" style="width:100%;height:100%;object-fit:contain;">`;
+    }
+    return `<div class="badge-item${earned ? '' : ' locked'}" data-desc="${b.desc}" data-name="${b.name}" role="button" tabindex="0">
+      <div class="badge-icon" style="overflow:hidden;padding:0;">${iconContent}</div>
+      <div class="badge-name">${b.name}</div>
+    </div>`;
+  };
+
+  const top = BADGE_DEFS.slice(0, 5).map(renderProfileBadge).join('');
+  const mid = BADGE_DEFS.slice(5, 10).map(renderProfileBadge).join('');
+  const bot = `<div class="badges-grid-middle">${BADGE_DEFS.slice(10).map(renderProfileBadge).join('')}</div>`;
+  grid.innerHTML = top + mid + bot;
+  grid.querySelectorAll('.badge-item').forEach(el => {
+    el.addEventListener('click', () => {
+      let tip = document.getElementById('badgeTooltip');
+      if (!tip) {
+        tip = document.createElement('div');
+        tip.id = 'badgeTooltip';
+        tip.className = 'badge-tooltip';
+        grid.parentNode.insertBefore(tip, grid.nextSibling);
       }
-      return `<div class="badge-item" data-desc="${b.desc}" data-name="${b.name}" role="button" tabindex="0">
-        <div class="badge-icon" style="overflow:hidden;padding:0;">${iconContent}</div>
-        <div class="badge-name">${b.name}</div>
-      </div>`;
-    }).join('');
-    grid.querySelectorAll('.badge-item').forEach(el => {
-      el.addEventListener('click', () => {
-        let tip = document.getElementById('badgeTooltip');
-        if (!tip) {
-          tip = document.createElement('div');
-          tip.id = 'badgeTooltip';
-          tip.className = 'badge-tooltip';
-          grid.parentNode.insertBefore(tip, grid.nextSibling);
-        }
-        tip.textContent = el.dataset.name + ': ' + el.dataset.desc;
-      });
+      tip.textContent = el.dataset.name + ': ' + el.dataset.desc;
     });
-    const toggle = document.getElementById('playerProfileBadgesToggle');
-    const body = document.getElementById('playerProfileBadgesBody');
-    toggle.onclick = () => { const open = body.classList.toggle('open'); toggle.classList.toggle('open', open); };
-  }
+  });
+  const toggle = document.getElementById('playerProfileBadgesToggle');
+  const body = document.getElementById('playerProfileBadgesBody');
+  toggle.onclick = () => { const open = body.classList.toggle('open'); toggle.classList.toggle('open', open); };
 
   // Best scores
   const top11 = [...completed].sort((a,b) => b.total_score - a.total_score).slice(0, 11);
@@ -4131,8 +4136,11 @@ async function openLeagueDetail(leagueId) {
         </div>` +
         ranked.map((u, i) => {
           const isYou = u.uid === currentUser.id;
-          const pips = Array.from({length:11},(_,j)=>`<span style="width:3px;height:3px;border-radius:50%;display:block;background:var(--gold);opacity:${j<u.badgeCount?'0.75':'0.12'};"></span>`).join('');
-          const pipGrid = `<span style="display:grid;grid-template-columns:repeat(6,3px);grid-template-rows:repeat(2,3px);gap:1px;justify-self:center;">${pips}</span>`;
+          const mkPip = (on) => `<span style="width:3px;height:3px;display:inline-block;background:var(--gold);opacity:${on?'0.75':'0.12'};"></span>`;
+          const row1 = Array.from({length:5},(_,j)=>mkPip(j<u.badgeCount)).join('');
+          const row2 = Array.from({length:5},(_,j)=>mkPip(j+5<u.badgeCount)).join('');
+          const row3 = `<span style="display:flex;justify-content:center;">${mkPip(10<u.badgeCount)}</span>`;
+          const pipGrid = `<span style="display:flex;flex-direction:column;gap:2px;align-items:stretch;justify-self:center;"><span style="display:flex;gap:2px;">${row1}</span><span style="display:flex;gap:2px;">${row2}</span>${row3}</span>`;
           const scoreVal = mode==='avg' ? (u.played?u.avg.toFixed(0):'—') : (u.played?u.best:'—');
           const todayVal = u.today !== undefined ? u.today : '—';
           return `<div class="lb-row" style="grid-template-columns:${GRID};cursor:pointer;" data-uid="${u.uid}">
@@ -4671,22 +4679,25 @@ function showPlayedTodayLobby() {
   const tick = () => { lobbyCountdown.textContent = formatCountdown(msUntilNextWindow()); };
   tick();
   lobbyInterval = setInterval(tick, 1000);
-  // Show today's score
+  // Show loading then fetch from Supabase
   lobbyScore.textContent = '—';
+  const lobbyScoreLoading = document.getElementById('lobbyScoreLoading');
+  if (lobbyScoreLoading) lobbyScoreLoading.style.display = '';
   if (sbClient && currentUser) {
-    const today = todayString();
+    const windowStart = new Date();
+    windowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+    const windowEnd = new Date();
+    windowEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
     sbClient.from('game_results')
-      .select('total_score, played_at')
+      .select('total_score')
       .eq('user_id', currentUser.id)
       .eq('game_status', 'completed')
-      .order('played_at', { ascending: false })
+      .gte('played_at', windowStart.toISOString())
+      .lte('played_at', windowEnd.toISOString())
       .limit(1)
       .then(({ data }) => {
-        if (data && data.length > 0) {
-          const d = new Date(data[0].played_at);
-          const playedDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-          if (playedDate === today) lobbyScore.textContent = data[0].total_score;
-        }
+        lobbyScore.textContent = (data && data.length > 0) ? data[0].total_score : '—';
+        if (lobbyScoreLoading) lobbyScoreLoading.style.display = 'none';
       });
   }
 }
@@ -6475,15 +6486,13 @@ const BADGE_DEFS = [
   { id: 'wordsmith',  name: 'WORDSMITH',   abbr: 'WRD', desc: 'Average word score over 11 points',                   check: (s) => s.avgWord > 11 },
   { id: 'avid',       name: 'AVID',        abbr: 'AVD', desc: 'Play at least once a week for 11 straight weeks',     check: (s) => s.avidEarned },
   { id: 'doubledown', name: 'DOUBLES',     abbr: 'DBL', desc: 'Complete a game with every word scoring 10+',         check: (s) => s.allDoubleDigit },
-  // Middle row — 3 badges centred
-  { id: 'expert',     name: 'EXPERT',      abbr: 'EXP', desc: 'Play an 11-letter word',                              check: (s) => s.expertEarned,     middle: true },
-  { id: 'elevensies', name: 'ELEVENSIES',  abbr: 'ELE', desc: 'Play the word ELEVENSIES',                            check: (s) => s.elevensiesEarned, middle: true },
-  { id: 'favourite',  name: 'FAVOURITE',   abbr: 'FAV', desc: 'Play the same word 11 times across all games',        check: (s) => s.favouriteEarned,  middle: true },
-  // Bottom row
+  { id: 'elevensies', name: 'ELEVENSIES',  abbr: 'ELE', desc: 'Play the word ELEVENSIES',                            check: (s) => s.elevensiesEarned },
+  { id: 'favourite',  name: 'FAVOURITE',   abbr: 'FAV', desc: 'Play the same word 11 times across all games',        check: (s) => s.favouriteEarned },
   { id: 'spotter',    name: 'SPOTTER',     abbr: 'SPT', desc: 'Play the best possible word in a game',               check: (s) => s.foundBestWord },
   { id: 'purist',     name: 'PURIST',      abbr: 'PUR', desc: 'Score over 120 without using the bonus letter',       check: (s) => s.puristEarned },
   { id: 'linguist',   name: 'LINGUIST',    abbr: 'LIN', desc: 'Score 25 or more points on a single word',            check: (s) => s.linguistEarned },
   { id: 'centurion',  name: 'CENTURION',   abbr: 'CEN', desc: 'Score 100+ in 11 consecutive games',                  check: (s) => s.centurionEarned },
+  { id: 'expert',     name: 'EXPERT',      abbr: 'EXP', desc: 'Play an 11-letter word',                              check: (s) => s.expertEarned },
 ];
 
 // ===== Milestones =====
@@ -6757,9 +6766,9 @@ function renderBadges(stats, prefix) {
   const grid = document.getElementById(gridId);
   if (!section || !grid) return;
   section.style.display = 'block';
-  const topRow = BADGE_DEFS.filter(b => !b.middle).slice(0, 4);
-  const middleRow = BADGE_DEFS.filter(b => b.middle);
-  const bottomRow = BADGE_DEFS.filter(b => !b.middle).slice(4);
+  const topRow = BADGE_DEFS.slice(0, 5);
+  const middleRow = BADGE_DEFS.slice(5, 10);
+  const bottomRow = BADGE_DEFS.slice(10);
 
   const renderBadgeItem = (b) => {
     const earned = b.check(stats);
@@ -6781,10 +6790,10 @@ function renderBadges(stats, prefix) {
     </div>`;
   };
 
-  grid.innerHTML =
-    topRow.map(renderBadgeItem).join('') +
-    `<div class="badges-grid-middle">${middleRow.map(renderBadgeItem).join('')}</div>` +
-    bottomRow.map(renderBadgeItem).join('');
+  const top5 = BADGE_DEFS.slice(0, 5).map(renderBadgeItem).join('');
+  const mid5 = BADGE_DEFS.slice(5, 10).map(renderBadgeItem).join('');
+  const bot1 = `<div class="badges-grid-middle">${BADGE_DEFS.slice(10).map(renderBadgeItem).join('')}</div>`;
+  grid.innerHTML = top5 + mid5 + bot1;
   grid.querySelectorAll('.badge-item').forEach(el => {
     el.addEventListener('click', () => {
       let tip = document.getElementById('badgeTooltip');
@@ -6840,10 +6849,11 @@ function renderLeaderboardRows(allUsers, container, mode) {
   const scoreLabel = mode === 'avg' ? 'AVG' : 'BEST';
 
   const pips = (badgeCount) => {
-    const dots = Array.from({length: 11}, (_, j) =>
-      `<span style="width:4px;height:4px;border-radius:50%;display:block;background:var(--gold);opacity:${j < badgeCount ? '0.75' : '0.12'};"></span>`
-    ).join('');
-    return `<span style="display:grid;grid-template-columns:repeat(6,4px);grid-template-rows:repeat(2,4px);gap:2px;justify-self:center;">${dots}</span>`;
+    const p = (on) => `<span style="width:4px;height:4px;display:inline-block;background:var(--gold);opacity:${on?'0.75':'0.12'};"></span>`;
+    const r1 = Array.from({length:5},(_,j)=>p(j<badgeCount)).join('');
+    const r2 = Array.from({length:5},(_,j)=>p(j+5<badgeCount)).join('');
+    const r3 = `<span style="display:flex;justify-content:center;">${p(10<badgeCount)}</span>`;
+    return `<span style="display:flex;flex-direction:column;gap:2px;align-items:stretch;justify-self:center;"><span style="display:flex;gap:2px;">${r1}</span><span style="display:flex;gap:2px;">${r2}</span>${r3}</span>`;
   };
 
   const rowHTML = (row, i) => {
