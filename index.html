@@ -1494,7 +1494,7 @@
   <div class="header" id="appHeader">
     <button class="logo-btn" id="logoHomeBtn">
       <img id="headerLogo" alt="Elevensies">
-      <img id="headerHomeLabel" src="/icons/home.png" style="display:none;width:28px;height:28px;object-fit:contain;opacity:0.7;">
+      <img id="headerHomeLabel" src="/icons/home.png" style="display:none;width:28px;height:28px;object-fit:contain;">
     </button>
     <div id="headerModeIcon" style="display:none;opacity:0.7;align-items:center;justify-content:center;"></div>
     <div style="display:flex;align-items:center;gap:4px;grid-column:3;justify-self:end;">
@@ -4574,8 +4574,8 @@ function showScreen(name) {
   document.getElementById('h2hScreen').style.display = name === 'h2h' ? 'flex' : 'none';
   document.getElementById('eliminatorScreen').style.display = name === 'eliminator' ? 'flex' : 'none';
   const onWelcome = name === 'welcome';
-  document.getElementById('logoHomeBtn').style.visibility = '';
-  document.getElementById('headerLogo').style.display = onWelcome ? '' : 'none';
+  document.getElementById('logoHomeBtn').style.visibility = onWelcome ? 'hidden' : '';
+  document.getElementById('headerLogo').style.display = 'none';
   document.getElementById('headerHomeLabel').style.display = onWelcome ? 'none' : '';
   document.getElementById('briefingInfoBtn').style.display = onWelcome ? '' : 'none';
   menuBtn.style.display = '';
