@@ -685,7 +685,7 @@
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    z-index: 200;
     padding: 20px;
   }
   .overlay.show { display: flex; }
@@ -6380,7 +6380,9 @@ function submitWord() {
 
   if (turns >= MAX_TURNS) {
     phase = 'gameover';
-      if (gameMode === 'h2h') {
+    // Capture final rack once here so showGameOver always gets the same tiles
+    rackSnapshots.push(tiles.map(t => t.letter).concat(jokerTile ? [jokerTile.letter] : []));
+    if (gameMode === 'h2h') {
       setTimeout(submitH2HScore, 800);
     } else {
       setTimeout(showGameOver, 1000);
@@ -7111,26 +7113,25 @@ async function showGameOver() {
 
   // Best possible word from all tiles seen this game
   const bestSection = document.getElementById('bestWordSection');
-  // Include the current/final rack too — even if the player never submitted
-  // a word from it (e.g. game ended via End Game or window expiry), those
-  // tiles were genuinely available to them and should count.
-  const finalRack = tiles.map(t => t.letter).concat(jokerTile ? [jokerTile.letter] : []);
-  const allSnapshots = [...rackSnapshots, finalRack];
-  const bestPossible = findBestPossibleWord(allSnapshots);
+  const bestPossible = findBestPossibleWord(rackSnapshots);
+  let missed = false;
+  let foundIt = false;
+  let displayWord = '';
+  let displayScore = 0;
+  let myBestScore = history.length ? Math.max(...history.map(h => h.score)) : 0;
+
   if (bestPossible) {
-    const myBestScore = history.length ? Math.max(...history.map(h => h.score)) : 0;
-    const missed = bestPossible.score > myBestScore;
-    const foundIt = !missed && history.some(h => h.score >= bestPossible.score);
-    // If player found the best possible word (or matched its score), show their word
-    const displayWord = foundIt
+    missed = bestPossible.score > myBestScore;
+    foundIt = !missed && history.some(h => h.score >= bestPossible.score);
+    displayWord = foundIt
       ? history.reduce((best, h) => {
           if (h.score > best.score) return h;
           if (h.score === best.score && h.word.length > best.word.length) return h;
-          if (h.score === best.score && h.word.length === best.word.length) return h; // last played wins
+          if (h.score === best.score && h.word.length === best.word.length) return h;
           return best;
         }, history[0]).word
       : bestPossible.word;
-    const displayScore = foundIt ? myBestScore : bestPossible.score;
+    displayScore = foundIt ? myBestScore : bestPossible.score;
     bestSection.style.display = 'block';
     document.getElementById('bestWordLabel').textContent = missed
       ? 'YOU MISSED THIS ONE'
@@ -8171,6 +8172,9 @@ document.getElementById('menuAboutBtn').addEventListener('click', () => {
   }
   const id = map[target] || 'aboutHomepageOverlay';
   document.getElementById(id).classList.add('show');
+  if (id === 'aboutHomepageOverlay') {
+    document.getElementById('aboutPlayNowBtn').textContent = isInWindow() ? 'PLAY NOW' : 'PLAY AT 11AM';
+  }
 });
 
 ['aboutHomepageCloseBtn'].forEach(id => {
