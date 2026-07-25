@@ -2991,8 +2991,8 @@
     <span>STATS</span>
   </button>
   <button class="footer-btn" id="footerAccountBtn">
-    <img src="/icons/profile.png" alt="Account">
-    <span>ACCOUNT</span>
+    <img src="/icons/more.png" alt="More">
+    <span>MORE</span>
   </button>
 </div>
 
@@ -3369,8 +3369,6 @@ async function handlePasswordReset() {
 function updateAccountButtonLabel() {
   const label = document.getElementById('menuAccountLabel');
   if (label) label.textContent = currentUser ? 'ACCOUNT' : 'SIGN IN';
-  const footerLabel = document.querySelector('#footerAccountBtn span');
-  if (footerLabel) footerLabel.textContent = currentUser ? 'ACCOUNT' : 'SIGN IN';
 }
 
 async function handleAuthSubmit(mode) {
@@ -3835,7 +3833,7 @@ document.getElementById('leaguesIntroCloseBtn').addEventListener('click', () => 
 const FOOTER_OVERLAYS = {
   footerGamesBtn: 'aboutHomepageOverlay',
   footerStatsBtn: 'statsModeOverlay',
-  footerAccountBtn: 'authOverlay',
+  footerAccountBtn: 'mainMenuOverlay',
 };
 
 function setFooterActive(id) {
@@ -3863,9 +3861,7 @@ document.getElementById('footerStatsBtn').addEventListener('click', () => {
 });
 document.getElementById('footerAccountBtn').addEventListener('click', () => {
   setFooterActive('footerAccountBtn');
-  authOverlay.classList.add('show');
-  if (currentUser) showAccountPanel();
-  else showAuthForm();
+  menuBtn.click();
 });
 // Clear active state when overlays close
 document.getElementById('aboutHomepageCloseBtn').addEventListener('click', clearFooterActive, true);
