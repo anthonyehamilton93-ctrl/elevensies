@@ -4627,7 +4627,6 @@ function showScreen(name) {
   document.getElementById('headerLogo').style.display = 'none';
   document.getElementById('headerHomeLabel').style.display = onWelcome ? 'none' : '';
   document.getElementById('briefingInfoBtn').style.display = onWelcome ? '' : 'none';
-  menuBtn.style.display = '';
   menuBtn.dataset.screen = name;
   menuBtn.dataset.mode = gameMode || '';
   // Update header mode icon — full game shows Elevensies logo
@@ -6003,12 +6002,23 @@ async function loadAnagramStats() {
   const isoYesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
   let current = 0;
-  if (dates.length > 0 && (dates[0] === isoToday || dates[0] === isoYesterday)) {
+  const now = new Date();
+  const afterMidnight = now.getHours() >= 0; // always true — just checks if today has started
+  const solvedToday = solvedDates.has(isoToday);
+  const solvedYesterday = solvedDates.has(isoYesterday);
+
+  // Streak is dead if: it's past midnight today and today hasn't been solved yet
+  // (i.e. they had until midnight to solve yesterday's, but today is now live)
+  const streakAlive = solvedToday || solvedYesterday;
+
+  if (dates.length > 0 && streakAlive) {
     let prev = new Date(dates[0] + 'T12:00:00');
-    current = 1;
-    for (let i = 1; i < dates.length; i++) {
+    current = solvedToday ? 1 : 0; // only count today if actually solved
+    if (!solvedToday && solvedYesterday) current = 1; // yesterday counts if today not yet done
+    for (let i = solvedToday ? 1 : 0; i < dates.length; i++) {
       const expected = new Date(prev);
-      expected.setDate(expected.getDate() - 1);
+      expected.setDate(expected.getDate() - (i === 0 ? 0 : 1));
+      if (i === 0) { prev = expected; continue; }
       if (dates[i] === expected.toISOString().slice(0, 10)) {
         current++;
         prev = expected;
