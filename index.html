@@ -3708,6 +3708,39 @@ async function openPlayerProfile(uid) {
   }
 
   const completed = games.filter(r => r.game_status === 'completed');
+  const freezeGames = games.filter(r => r.game_status === 'freeze');
+
+  // Simple streak: count consecutive days ending today or yesterday
+  // A streak is DEAD if they haven't played today and the window has closed
+  const now = new Date();
+  const todayWindow = new Date(now); todayWindow.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+  const todayWindowEnd = new Date(now); todayWindowEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
+  const playedTodaysWindow = completed.some(r => {
+    const t = new Date(r.played_at);
+    return t >= todayWindow && t < todayWindowEnd;
+  });
+  const windowHasClosed = now >= todayWindowEnd;
+  // If window closed and didn't play today, streak is 0
+  const streak = (windowHasClosed && !playedTodaysWindow) ? 0 : (() => {
+    const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const allDates = [...new Set(games.map(r => localDateStr(new Date(r.played_at))))].sort().reverse();
+    const freezeDates = new Set(freezeGames.map(r => localDateStr(new Date(r.played_at))));
+    const today = localDateStr(now);
+    const yest = new Date(now); yest.setDate(yest.getDate() - 1);
+    const yesterday = localDateStr(yest);
+    if (!allDates.length) return 0;
+    if (allDates[0] !== today && allDates[0] !== yesterday) return 0;
+    let s = freezeDates.has(allDates[0]) ? 0 : 1;
+    let prev = new Date(allDates[0] + 'T12:00:00');
+    for (let i = 1; i < allDates.length; i++) {
+      const expected = new Date(prev); expected.setDate(expected.getDate() - 1);
+      if (allDates[i] === localDateStr(expected)) {
+        if (!freezeDates.has(allDates[i])) s++;
+        prev = expected;
+      } else break;
+    }
+    return s;
+  })();
   const scores = completed.map(r => r.total_score);
   const avgWordScores = completed.map(r => r.avg_points_per_word).filter(Boolean);
   const best = completed.reduce((best, r) => {
@@ -3719,26 +3752,6 @@ async function openPlayerProfile(uid) {
     if (effectiveScore > (best?.effectiveScore ?? -1)) return { total_score: r.total_score, best_word: effectiveWord, best_word_score: effectiveScore, effectiveScore };
     return best;
   }, null);
-
-  // Streak
-  const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  const dates = [...new Set(games.map(r => localDateStr(new Date(r.played_at))))].sort().reverse();
-  const freezeDates = new Set(games.filter(r => r.game_status === 'freeze').map(r => localDateStr(new Date(r.played_at))));
-  let streak = 0;
-  if (dates.length) {
-    const today = localDateStr(new Date());
-    const yesterday = localDateStr(new Date(Date.now() - 86400000));
-    if (dates[0] === today || dates[0] === yesterday || freezeDates.has(today) || freezeDates.has(yesterday)) {
-      streak = 1;
-      for (let i = 1; i < dates.length; i++) {
-        const prev = new Date(dates[i-1] + 'T12:00:00');
-        const curr = new Date(dates[i] + 'T12:00:00');
-        const diff = Math.round((prev - curr) / 86400000);
-        if (diff === 1) streak++;
-        else break;
-      }
-    }
-  }
 
   const avgOverall = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(0) : '—';
   const avgWord = avgWordScores.length ? (avgWordScores.reduce((a,b)=>a+b,0)/avgWordScores.length).toFixed(1) : '—';
