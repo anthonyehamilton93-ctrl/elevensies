@@ -2264,6 +2264,7 @@
 <!-- About: Homepage (platform overview) -->
 <div class="overlay" id="aboutHomepageOverlay">
   <div class="modal">
+    <div style="text-align:center;margin-bottom:8px;"><img src="/icons/games.png" style="height:36px;width:auto;opacity:0.9;"></div>
     <div class="modal-title">GAMES</div>
     <div style="font-size:12px;letter-spacing:0.06em;text-align:center;line-height:1.7;opacity:0.75;margin-bottom:16px;">
       A free-to-play online word game that tests your vocabulary and strategy. Make 11 words at 11am from a maximum of 11 tiles.
@@ -2600,7 +2601,8 @@
 <!-- Stats mode picker (shown from homepage burger when logged in) -->
 <div class="overlay" id="statsModeOverlay">
   <div class="modal">
-    <div class="modal-title">YOUR STATS</div>
+    <div style="text-align:center;margin-bottom:8px;"><img src="/icons/stats.png" style="height:36px;width:auto;opacity:0.9;"></div>
+    <div class="modal-title">STATS</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
 
       <button id="statsModeFullGame" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
@@ -2811,7 +2813,8 @@
   <div class="modal auth-modal" id="authModalContent">
     <!-- Logged-out state: sign in / sign up form -->
     <div id="authForm">
-      <div class="modal-title">YOUR ACCOUNT</div>
+      <div style="text-align:center;margin-bottom:8px;"><img src="/icons/profile.png" style="height:36px;width:auto;opacity:0.9;"></div>
+      <div class="modal-title">ACCOUNT</div>
       <div class="auth-tabs">
         <button class="auth-tab active" id="signInTab">SIGN IN</button>
         <button class="auth-tab" id="signUpTab">SIGN UP</button>
@@ -2841,7 +2844,8 @@
 
     <!-- Logged-in state: account identity only (no stats/badges/milestones) -->
     <div id="accountPanel" class="account-panel" style="display:none;">
-      <div class="modal-title">YOUR ACCOUNT</div>
+      <div style="text-align:center;margin-bottom:8px;"><img src="/icons/profile.png" style="height:36px;width:auto;opacity:0.9;"></div>
+      <div class="modal-title">ACCOUNT</div>
       <div class="account-email" id="accountEmail"></div>
       <div class="username-row">
         <input class="username-input" id="usernameInput" type="text" maxlength="11" placeholder="SET A USERNAME">
@@ -3903,7 +3907,18 @@ document.getElementById('footerStatsBtn').addEventListener('click', () => {
 });
 document.getElementById('footerAccountBtn').addEventListener('click', () => {
   setFooterActive('footerAccountBtn');
-  menuBtn.click();
+  // Always show homepage burger — footer MORE is not context-sensitive
+  const menuTitle = document.getElementById('mainMenuTitle');
+  const homepageGrid = document.getElementById('menuHomepageGrid');
+  const ingameGrid = document.getElementById('menuIngameGrid');
+  const homepageExtra = document.getElementById('menuHomepageExtra');
+  menuTitle.textContent = 'ELEVENSIES';
+  homepageGrid.style.display = 'grid';
+  ingameGrid.style.display = 'none';
+  homepageExtra.style.display = '';
+  document.getElementById('menuAboutBtn').dataset.target = 'about-homepage';
+  document.getElementById('menuStatsBtn').dataset.target = 'stats-picker';
+  mainMenuOverlay.classList.add('show');
 });
 // Clear active state when overlays close
 document.getElementById('aboutHomepageCloseBtn').addEventListener('click', clearFooterActive, true);
