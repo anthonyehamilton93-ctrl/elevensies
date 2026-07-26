@@ -79,7 +79,24 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>This Week in Elevensies</title>
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;700;900&display=swap');
+    @font-face {
+      font-family: 'Jost';
+      font-weight: 400;
+      src: url('https://fonts.gstatic.com/s/jost/v18/92zPtBhPNqw79Ij1E865zBUv7myjJAVGPokMmuTl.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Jost';
+      font-weight: 700;
+      src: url('https://fonts.gstatic.com/s/jost/v18/92zPtBhPNqw79Ij1E865zBUv7myjJAVGPokMmuTl.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Jost';
+      font-weight: 900;
+      src: url('https://fonts.gstatic.com/s/jost/v18/92zPtBhPNqw79Ij1E865zBUv7myjJAVGPokMmuTl.woff2') format('woff2');
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;background-color:#1a6b3c;font-family:'Jost',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#1a6b3c;padding:40px 20px;">
