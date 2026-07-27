@@ -2116,6 +2116,18 @@
   </div>
 </div>
 
+<!-- Anagram loading overlay -->
+<div class="loader-overlay" id="anagramLoadingOverlay">
+  <div class="loader-inner">
+    <div class="loader-label">LOADING…</div>
+    <div class="loader-squares">
+      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
+      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
+      <div class="loader-row"><div class="loader-sq"></div></div>
+    </div>
+  </div>
+</div>
+
 <!-- Saving overlay -->
 <div class="loader-overlay" id="savingOverlay">
   <div class="loader-inner">
@@ -5810,18 +5822,10 @@ async function startAnagram() {
   anagramWord = getTodaysAnagramWord();
   if (!anagramWord) { showScreen('welcome'); return; }
 
-  // Show screen immediately with animated loading state
+  // Show screen immediately with animated loading overlay
   showScreen('anagram');
   const anagramLoadStart = Date.now();
-  const grid = document.getElementById('anagramTileGrid');
-  if (grid) grid.innerHTML = `<div class="loader-inner" style="padding:20px 0;">
-    <div class="loader-label">LOADING…</div>
-    <div class="loader-squares">
-      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
-      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
-      <div class="loader-row"><div class="loader-sq"></div></div>
-    </div>
-  </div>`;
+  document.getElementById('anagramLoadingOverlay').classList.add('show');
 
   anagramSolvedToday = hasSolvedAnagramToday();
   // Also check Supabase in case this is a second device
@@ -5835,7 +5839,10 @@ async function startAnagram() {
   // Already solved today or after 11pm — show reveal, skip game setup
   if (anagramSolvedToday || isAfterAnagramReveal()) {
     const elapsed = Date.now() - anagramLoadStart;
-    setTimeout(() => showAnagramReveal(), Math.max(0, 500 - elapsed));
+    setTimeout(() => {
+      document.getElementById('anagramLoadingOverlay').classList.remove('show');
+      showAnagramReveal();
+    }, Math.max(0, 500 - elapsed));
     return;
   }
 
@@ -5860,6 +5867,7 @@ async function startAnagram() {
 
   const elapsed = Date.now() - anagramLoadStart;
   setTimeout(() => {
+    document.getElementById('anagramLoadingOverlay').classList.remove('show');
     showScreen('anagram');
     renderAnagram();
   }, Math.max(0, 500 - elapsed));
