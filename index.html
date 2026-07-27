@@ -832,7 +832,7 @@
   .loader-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(10,40,20,0.92);
     display: none;
     align-items: center;
     justify-content: center;
@@ -5842,7 +5842,7 @@ async function startAnagram() {
     setTimeout(() => {
       document.getElementById('anagramLoadingOverlay').classList.remove('show');
       showAnagramReveal();
-    }, Math.max(0, 500 - elapsed));
+    }, Math.max(0, 1000 - elapsed));
     return;
   }
 
@@ -5870,7 +5870,7 @@ async function startAnagram() {
     document.getElementById('anagramLoadingOverlay').classList.remove('show');
     showScreen('anagram');
     renderAnagram();
-  }, Math.max(0, 500 - elapsed));
+  }, Math.max(0, 1000 - elapsed));
 }
 
 function renderAnagram() {
@@ -7420,7 +7420,7 @@ async function showGameOver() {
         if (newPlayed !== undefined) {
           checkAndAwardFreeze(newPlayed);
         }
-      }, Math.max(0, 500 - elapsed));
+      }, Math.max(0, 1000 - elapsed));
     });
     return;
   }
@@ -7429,7 +7429,7 @@ async function showGameOver() {
   setTimeout(() => {
     document.getElementById('savingOverlay').classList.remove('show');
     gameoverOverlay.classList.add('show');
-  }, 500);
+  }, 1000);
 }
 
 function newGame() {
