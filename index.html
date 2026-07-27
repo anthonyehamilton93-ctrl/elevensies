@@ -514,10 +514,12 @@
   }
   .how-to-pts { font-size: 8px; opacity: 0.7; margin-top: -2px; }
   .message {
-    height: 28px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    width: 100%;
     font-size: 14px;
     letter-spacing: 0.1em;
     font-weight: 700;
@@ -823,7 +825,45 @@
     box-sizing: border-box;
     margin-bottom: 8px;
   }
-  .gameover-title {
+  @keyframes sqPulse {
+    0%, 100% { opacity: 0.12; }
+    50% { opacity: 1; }
+  }
+  .loader-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+  }
+  .loader-overlay.show { display: flex; }
+  .loader-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .loader-label {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    color: rgba(240,192,32,0.6);
+  }
+  .loader-squares { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+  .loader-row { display: flex; gap: 3px; }
+  .loader-sq { width: 10px; height: 10px; background: #f0c020; display: inline-block; }
+  .loader-sq:nth-child(1)  { animation: sqPulse 1.4s ease-in-out infinite 0s; }
+  .loader-sq:nth-child(2)  { animation: sqPulse 1.4s ease-in-out infinite 0.13s; }
+  .loader-sq:nth-child(3)  { animation: sqPulse 1.4s ease-in-out infinite 0.26s; }
+  .loader-sq:nth-child(4)  { animation: sqPulse 1.4s ease-in-out infinite 0.39s; }
+  .loader-sq:nth-child(5)  { animation: sqPulse 1.4s ease-in-out infinite 0.52s; }
+  .loader-row:nth-child(2) .loader-sq:nth-child(1) { animation: sqPulse 1.4s ease-in-out infinite 0.65s; }
+  .loader-row:nth-child(2) .loader-sq:nth-child(2) { animation: sqPulse 1.4s ease-in-out infinite 0.78s; }
+  .loader-row:nth-child(2) .loader-sq:nth-child(3) { animation: sqPulse 1.4s ease-in-out infinite 0.91s; }
+  .loader-row:nth-child(2) .loader-sq:nth-child(4) { animation: sqPulse 1.4s ease-in-out infinite 1.04s; }
+  .loader-row:nth-child(2) .loader-sq:nth-child(5) { animation: sqPulse 1.4s ease-in-out infinite 1.17s; }
+  .loader-row:nth-child(3) .loader-sq:nth-child(1) { animation: sqPulse 1.4s ease-in-out infinite 1.30s; }
+
+  .loader-squares-html {
+    display: flex; flex-direction: column; gap: 3px; align-items: center;
+  }
     font-size: 28px;
     font-weight: 900;
     letter-spacing: 0.18em;
@@ -1595,7 +1635,7 @@
     <div class="turns-line" id="anagramStatusLine">FIND THE 11TH LETTER</div>
   </div>
 
-  <div class="message" id="anagramMessage"></div>
+  <div class="message" id="anagramMessage" style="width:100%;text-align:center;"></div>
 
   <div class="tile-grid" id="anagramTileGrid"></div>
 
@@ -2073,6 +2113,18 @@
     <button class="auth-submit-btn" id="practiceEntryPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
     <button class="cancel-btn" id="practiceEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
     <button class="cancel-btn" id="practiceEntryCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- Saving overlay -->
+<div class="loader-overlay" id="savingOverlay">
+  <div class="loader-inner">
+    <div class="loader-label">SAVING…</div>
+    <div class="loader-squares">
+      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
+      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
+      <div class="loader-row"><div class="loader-sq"></div></div>
+    </div>
   </div>
 </div>
 
@@ -5758,20 +5810,32 @@ async function startAnagram() {
   anagramWord = getTodaysAnagramWord();
   if (!anagramWord) { showScreen('welcome'); return; }
 
+  // Show screen immediately with animated loading state
+  showScreen('anagram');
+  const anagramLoadStart = Date.now();
+  const grid = document.getElementById('anagramTileGrid');
+  if (grid) grid.innerHTML = `<div class="loader-inner" style="padding:20px 0;">
+    <div class="loader-label">LOADING…</div>
+    <div class="loader-squares">
+      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
+      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
+      <div class="loader-row"><div class="loader-sq"></div></div>
+    </div>
+  </div>`;
+
   anagramSolvedToday = hasSolvedAnagramToday();
   // Also check Supabase in case this is a second device
   if (!anagramSolvedToday && currentUser) {
     anagramSolvedToday = await hasSolvedAnagramTodayRemote();
     if (anagramSolvedToday) {
-      // Sync to localStorage so future checks are instant
       localStorage.setItem(ANAGRAM_SOLVED_KEY, todayString());
     }
   }
 
   // Already solved today or after 11pm — show reveal, skip game setup
   if (anagramSolvedToday || isAfterAnagramReveal()) {
-    showScreen('anagram');
-    showAnagramReveal();
+    const elapsed = Date.now() - anagramLoadStart;
+    setTimeout(() => showAnagramReveal(), Math.max(0, 500 - elapsed));
     return;
   }
 
@@ -5794,8 +5858,11 @@ async function startAnagram() {
   anagramSelected = [];
   anagramTiles._missingLetter = missingLetter;
 
-  showScreen('anagram');
-  renderAnagram();
+  const elapsed = Date.now() - anagramLoadStart;
+  setTimeout(() => {
+    showScreen('anagram');
+    renderAnagram();
+  }, Math.max(0, 500 - elapsed));
 }
 
 function renderAnagram() {
@@ -6452,16 +6519,18 @@ function submitWord() {
   const jokerWasUsed = jokerTile && usedIds.includes(jokerTile.id);
   const usedRegularIds = jokerWasUsed ? usedIds.filter(id => id !== jokerTile.id) : usedIds;
 
-  const unchangedLetters = tiles.filter(t => !usedRegularIds.includes(t.id)).map(t => t.letter);
-  const replacements = drawBalancedBatch(usedRegularIds.length, unchangedLetters);
-  allTilesSeen = allTilesSeen.concat(replacements);
-
-  let replacementIdx = 0;
-  tiles = tiles.map(tile =>
-    usedRegularIds.includes(tile.id)
-      ? { ...tile, letter: replacements[replacementIdx++] }
-      : tile
-  );
+  // Only replace tiles if this isn't the final turn
+  if (turns < MAX_TURNS) {
+    const unchangedLetters = tiles.filter(t => !usedRegularIds.includes(t.id)).map(t => t.letter);
+    const replacements = drawBalancedBatch(usedRegularIds.length, unchangedLetters);
+    allTilesSeen = allTilesSeen.concat(replacements);
+    let replacementIdx = 0;
+    tiles = tiles.map(tile =>
+      usedRegularIds.includes(tile.id)
+        ? { ...tile, letter: replacements[replacementIdx++] }
+        : tile
+    );
+  }
 
   if (jokerWasUsed) {
     jokerTile = null; // consumed — button disappears, never comes back
@@ -7144,6 +7213,10 @@ function switchLbTab(mode) {
 }
 
 async function showGameOver() {
+  // Show saving overlay immediately — prevents any interaction while saving
+  if (gameMode === 'full' || gameMode === 'practice') {
+    document.getElementById('savingOverlay').classList.add('show');
+  }
   document.getElementById('gameoverTitle').textContent = 'YOUR SCORE';
   finalScore.textContent = totalScore;
   finalHistory.innerHTML = history.map(h =>
@@ -7174,7 +7247,7 @@ async function showGameOver() {
     remindRow.style.display = 'none';
   }
 
-  gameoverOverlay.classList.add('show');
+  // Game over overlay shown after save completes (or immediately for practice)
   saveStatus.textContent = '';
   saveStatus.className = 'save-status';
 
@@ -7326,18 +7399,29 @@ async function showGameOver() {
     showNewBadges(newBadges);
     localStorage.setItem('elevensies_session_badges', JSON.stringify(newBadges));
     // Check for newly earned milestone after saving
+    const saveStart = Date.now();
     saveGameResult().then(({ prevPlayed, newPlayed, isPersonalBest } = {}) => {
-      if (isPersonalBest) {
-        finalRating.textContent = '🏆 NEW PERSONAL BEST!';
-        finalRating.style.color = 'var(--gold)';
-      }
-      if (newPlayed !== undefined) {
-        checkAndAwardFreeze(newPlayed);
-      }
+      const elapsed = Date.now() - saveStart;
+      setTimeout(() => {
+        document.getElementById('savingOverlay').classList.remove('show');
+        gameoverOverlay.classList.add('show');
+        if (isPersonalBest) {
+          finalRating.textContent = '🏆 NEW PERSONAL BEST!';
+          finalRating.style.color = 'var(--gold)';
+        }
+        if (newPlayed !== undefined) {
+          checkAndAwardFreeze(newPlayed);
+        }
+      }, Math.max(0, 500 - elapsed));
     });
-    return; // saveGameResult called above
+    return;
   }
+  const saveStart2 = Date.now();
   saveGameResult();
+  setTimeout(() => {
+    document.getElementById('savingOverlay').classList.remove('show');
+    gameoverOverlay.classList.add('show');
+  }, 500);
 }
 
 function newGame() {
