@@ -6716,14 +6716,15 @@ async function renderStreakFreezes(played, prefix) {
       const dates = [...new Set(results.map(r => localDateStr(new Date(r.played_at))))].sort().reverse();
       const freezeDates = new Set(results.filter(r => r.game_status === 'freeze').map(r => localDateStr(new Date(r.played_at))));
       const playedToday = results.some(r => r.game_status === 'completed' && localDateStr(new Date(r.played_at)) === today);
-      streakAlive = playedToday || (dates[0] === yest && !windowClosed);
+      const frozeToday = freezeDates.has(today);
+      streakAlive = playedToday || frozeToday || (dates[0] === yest && !windowClosed);
       if (dates.length && (dates[0] === today || dates[0] === yest)) {
-        streak = freezeDates.has(dates[0]) ? 0 : 1;
+        streak = 1; // today or yesterday counts as 1 whether completed or frozen
         let prev = new Date(dates[0] + 'T12:00:00');
         for (let i = 1; i < dates.length; i++) {
           const exp = new Date(prev); exp.setDate(exp.getDate() - 1);
           if (dates[i] === localDateStr(exp)) {
-            if (!freezeDates.has(dates[i])) streak++;
+            streak++;
             prev = exp;
           } else break;
         }
@@ -6792,14 +6793,21 @@ async function renderStreakFreezes(played, prefix) {
     inlineBtn.addEventListener('click', async () => {
       inlineBtn.disabled = true;
       inlineBtn.textContent = 'APPLYING…';
-      // The missed window is whichever window most recently closed without a play
-      // If window has closed today and they didn't play today → today is the missed date
-      // If before today's window → yesterday is the missed date
+      const applyOverlay = document.getElementById('anagramLoadingOverlay');
+      const applyLabel = applyOverlay.querySelector('.loader-label');
+      const applyStart = Date.now();
+      if (applyLabel) applyLabel.textContent = 'APPLYING…';
+      applyOverlay.classList.add('show');
       const now = new Date();
       const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       const missedDate = now.getHours() >= FULL_GAME_HOUR_END ? localDateStr(now) : localDateStr(new Date(now - 86400000));
       await useStreakFreeze(missedDate);
-      await renderStreakFreezes(played, prefix);
+      const elapsed = Date.now() - applyStart;
+      setTimeout(async () => {
+        applyOverlay.classList.remove('show');
+        if (applyLabel) applyLabel.textContent = 'LOADING…';
+        await renderStreakFreezes(played, prefix);
+      }, Math.max(0, 1000 - elapsed));
     });
   }
 }
