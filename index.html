@@ -8790,15 +8790,10 @@ document.getElementById('contactSendBtn').addEventListener('click', async () => 
   status.textContent = 'SENDING…';
   document.getElementById('contactSendBtn').disabled = true;
   try {
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await fetch('/api/contact', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_API_KEY || ''}` },
-      body: JSON.stringify({
-        from: 'Elevensies Feedback <noreply@playelevensies.com>',
-        to: ['anthonyehamilton93@gmail.com'],
-        subject: `Elevensies Feedback${name ? ' from ' + name : ''}`,
-        text: `${name ? 'Name: ' + name + '\n' : ''}${email ? 'Email: ' + email + '\n' : ''}Message:\n${message}`,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, message }),
     });
     if (res.ok) {
       status.textContent = 'MESSAGE SENT — THANK YOU!';
