@@ -6721,31 +6721,56 @@ async function renderStreakFreezes(played, prefix) {
   const nextAward = played > 0 ? (Math.floor(played / FREEZE_AWARD_EVERY) + 1) * FREEZE_AWARD_EVERY : FREEZE_AWARD_EVERY;
   const gamesUntilNext = nextAward - played;
 
-  // Build streak bar — up to 11 segments
-  const displayStreak = Math.min(streak, 11);
-  const segments = Array.from({ length: 11 }, (_, i) => {
-    const filled = i < displayStreak;
-    const color = streakAlive ? '#f0c020' : '#cc3333';
-    return `<div style="height:6px;flex:1;background:${filled ? color : 'rgba(240,192,32,0.12)'};transition:background 0.3s;"></div>`;
-  }).join('');
+  // Build streak display — three fading squares showing last three days
+  const activeColor = streakAlive ? '#f0c020' : '#cc3333';
+  const textColor = streakAlive ? '#155c33' : '#fff';
+  const emptyBg = 'rgba(240,192,32,0.08)';
+  const emptyBorder = '1px solid rgba(240,192,32,0.12)';
+
+  const makeBox = (num, opacity, isEmpty = false) => `
+    <div style="background:${isEmpty ? emptyBg : activeColor};${isEmpty ? `border:${emptyBorder};` : ''}opacity:${opacity};padding:14px 6px;text-align:center;">
+      <div style="font-size:20px;font-weight:900;color:${isEmpty ? 'rgba(240,192,32,0.3)' : textColor};line-height:1;">${num}</div>
+    </div>`;
+
+  let box1, box2, box3;
+  if (streak === 0) {
+    box1 = makeBox('—', 0.4, true);
+    box2 = makeBox('—', 0.7, true);
+    box3 = makeBox('—', 1, true);
+  } else if (streak === 1) {
+    box1 = makeBox('—', 0.4, true);
+    box2 = makeBox('—', 0.7, true);
+    box3 = makeBox(streak, 1);
+  } else if (streak === 2) {
+    box1 = makeBox('—', 0.4, true);
+    box2 = makeBox(streak - 1, 0.7);
+    box3 = makeBox(streak, 1);
+  } else {
+    box1 = makeBox(streak - 2, 0.4);
+    box2 = makeBox(streak - 1, 0.7);
+    box3 = makeBox(streak, 1);
+  }
+
+  const statusLabel = streakAlive ? 'ACTIVE STREAK' : streak > 0 ? 'STREAK BROKEN' : 'NO ACTIVE STREAK';
 
   // Can they use a lifeline right now?
   const canUseLifeline = freezes > 0 && !streakAlive && streak > 0;
 
+  const nextAward = played > 0 ? (Math.floor(played / FREEZE_AWARD_EVERY) + 1) * FREEZE_AWARD_EVERY : FREEZE_AWARD_EVERY;
+  const gamesUntilNext = nextAward - played;
+
   list.innerHTML = `
-    <div style="margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-        <div style="font-size:9px;letter-spacing:0.12em;opacity:0.6;">CURRENT STREAK</div>
-        <div style="font-size:24px;font-weight:900;color:${streakAlive ? 'var(--gold)' : '#cc3333'};line-height:1;">${streak}</div>
+    <div style="margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+        ${box1}${box2}${box3}
       </div>
-      <div style="display:flex;gap:3px;margin-bottom:4px;">${segments}</div>
-      <div style="font-size:9px;letter-spacing:0.08em;opacity:0.5;text-align:right;">${streakAlive ? 'ACTIVE' : streak > 0 ? 'STREAK BROKEN' : 'NO ACTIVE STREAK'}</div>
+      <div style="font-size:9px;letter-spacing:0.1em;color:${activeColor};opacity:0.8;">${statusLabel}</div>
     </div>
 
     ${canUseLifeline ? `
     <div style="background:rgba(240,192,32,0.06);border:1px solid rgba(240,192,32,0.2);padding:12px;margin-bottom:12px;text-align:center;">
-      <div style="font-size:10px;letter-spacing:0.1em;opacity:0.7;margin-bottom:8px;">YOU MISSED YESTERDAY. PROTECT YOUR STREAK?</div>
-      <button id="inlineLifelineBtn" class="auth-submit-btn" style="margin:0;font-size:12px;">USE A LIFELINE (${freezes} REMAINING)</button>
+      <div style="font-size:10px;letter-spacing:0.08em;opacity:0.7;margin-bottom:8px;">MISSED YESTERDAY — PROTECT YOUR STREAK?</div>
+      <button id="inlineLifelineBtn" class="auth-submit-btn" style="margin:0;font-size:12px;">USE LIFELINE (${freezes} LEFT)</button>
     </div>` : ''}
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">
@@ -6761,12 +6786,12 @@ async function renderStreakFreezes(played, prefix) {
     <div style="font-size:10px;letter-spacing:0.06em;opacity:0.45;text-align:center;padding-top:6px;">${freezes >= FREEZE_MAX ? 'AT MAX — USE ONE FIRST' : `EARNED EVERY ${FREEZE_AWARD_EVERY} GAMES · MAX ${FREEZE_MAX}`}</div>`;
 
   // Wire inline lifeline button
-  if (canUseLifeline) {
-    document.getElementById('inlineLifelineBtn')?.addEventListener('click', async () => {
-      const btn = document.getElementById('inlineLifelineBtn');
-      btn.disabled = true;
-      btn.textContent = 'APPLYING…';
-      await applyLifeline();
+  const inlineBtn = document.getElementById('inlineLifelineBtn');
+  if (inlineBtn) {
+    inlineBtn.addEventListener('click', async () => {
+      inlineBtn.disabled = true;
+      inlineBtn.textContent = 'APPLYING…';
+      await useStreakFreeze();
       await renderStreakFreezes(played, prefix);
     });
   }
