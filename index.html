@@ -6748,8 +6748,6 @@ async function renderStreakFreezes(played, prefix) {
     box3 = makeBox(streak, 1);
   }
 
-  const statusLabel = streakAlive ? 'ACTIVE STREAK' : streak > 0 ? 'STREAK BROKEN' : 'NO ACTIVE STREAK';
-
   // Can they use a lifeline right now?
   const canUseLifeline = freezes > 0 && !streakAlive && streak > 0;
 
@@ -6761,12 +6759,11 @@ async function renderStreakFreezes(played, prefix) {
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
         ${box1}${box2}${box3}
       </div>
-      <div style="font-size:9px;letter-spacing:0.1em;color:${activeColor};opacity:0.8;">${statusLabel}</div>
     </div>
 
     ${canUseLifeline ? `
     <div style="background:rgba(240,192,32,0.06);border:1px solid rgba(240,192,32,0.2);padding:12px;margin-bottom:12px;text-align:center;">
-      <div style="font-size:10px;letter-spacing:0.08em;opacity:0.7;margin-bottom:8px;">MISSED YESTERDAY — PROTECT YOUR STREAK?</div>
+      <div style="font-size:10px;letter-spacing:0.08em;opacity:0.7;margin-bottom:8px;">${(() => { const h = new Date().getHours(); return h >= FULL_GAME_HOUR_END ? "MISSED TODAY'S GAME — PROTECT YOUR STREAK?" : h < FULL_GAME_HOUR_START ? "MISSED YESTERDAY'S GAME — PROTECT YOUR STREAK?" : "WINDOW IS OPEN — PLAY NOW!"; })()}</div>
       <button id="inlineLifelineBtn" class="auth-submit-btn" style="margin:0;font-size:12px;">USE LIFELINE (${freezes} LEFT)</button>
     </div>` : ''}
 
@@ -6788,7 +6785,13 @@ async function renderStreakFreezes(played, prefix) {
     inlineBtn.addEventListener('click', async () => {
       inlineBtn.disabled = true;
       inlineBtn.textContent = 'APPLYING…';
-      await useStreakFreeze();
+      // The missed window is whichever window most recently closed without a play
+      // If window has closed today and they didn't play today → today is the missed date
+      // If before today's window → yesterday is the missed date
+      const now = new Date();
+      const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const missedDate = now.getHours() >= FULL_GAME_HOUR_END ? localDateStr(now) : localDateStr(new Date(now - 86400000));
+      await useStreakFreeze(missedDate);
       await renderStreakFreezes(played, prefix);
     });
   }
