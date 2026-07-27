@@ -6939,14 +6939,16 @@ async function checkFreezePopups() {
 
 // Use a lifeline — apply it retroactively to yesterday
 async function useStreakFreeze(forDate) {
-  if (!sbClient || !currentUser) return;
+  console.log('[useStreakFreeze] called with forDate:', forDate);
+  if (!sbClient || !currentUser) { console.log('[useStreakFreeze] no client/user'); return; }
   const today = todayString();
 
   const { data: profile } = await sbClient.from('profiles').select('streak_freezes, freeze_used_date').eq('id', currentUser.id).single();
+  console.log('[useStreakFreeze] profile:', profile);
   const current = profile?.streak_freezes ?? 0;
-  if (current <= 0) return;
-  // Final guard — check freeze_used_date hasn't already been set today by a concurrent call
-  if (profile?.freeze_used_date === today) return;
+  if (current <= 0) { console.log('[useStreakFreeze] no freezes left'); return; }
+  // Only block if freeze_used_date is today AND we already have a freeze row for today
+  if (profile?.freeze_used_date === today && !forDate) { console.log('[useStreakFreeze] already used today:', profile.freeze_used_date); return; }
 
   let targetDate = forDate;
   if (!targetDate) {
@@ -6980,7 +6982,8 @@ async function useStreakFreeze(forDate) {
     // (any completed row for this date will be deleted by apply-freeze)
   }
 
-  await Promise.all([
+  console.log('[useStreakFreeze] applying freeze for targetDate:', targetDate);
+  const [profileRes, insertRes] = await Promise.all([
     sbClient.from('profiles').update({
       streak_freezes: current - 1,
       freeze_used_date: today,
@@ -6998,6 +7001,8 @@ async function useStreakFreeze(forDate) {
       utc_offset: new Date().getTimezoneOffset() * -1,
     }),
   ]);
+  console.log('[useStreakFreeze] profile update:', profileRes.error);
+  console.log('[useStreakFreeze] insert result:', insertRes.error);
 
   // Delete any completed game from targetDate via server (service key required for delete)
   try {
@@ -8586,11 +8591,7 @@ document.getElementById('lifelineOfferBtn').addEventListener('click', async () =
   saveStatus.textContent = 'STREAK PROTECTED ✓';
   saveStatus.className = 'save-status success';
 });
-document.getElementById('freezeDeclineBtn').addEventListener('click', async () => {
-  // Mark as declined today so we don't show again
-  if (sbClient && currentUser) {
-    await sbClient.from('profiles').update({ freeze_used_date: todayString() }).eq('id', currentUser.id);
-  }
+document.getElementById('freezeDeclineBtn').addEventListener('click', () => {
   document.getElementById('freezeAtRiskOverlay').classList.remove('show');
 });
 
