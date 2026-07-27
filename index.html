@@ -2820,7 +2820,7 @@
         </div>
       </div>
       <div class="expand-section" id="statsOverlayMilestonesSection">
-        <div class="expand-header" id="statsOverlayMilestonesToggle">LIFELINES <span class="expand-arrow">▼</span></div>
+        <div class="expand-header" id="statsOverlayMilestonesToggle">STREAKS & LIFELINES <span class="expand-arrow">▼</span></div>
         <div class="expand-body" id="statsOverlayMilestonesBody">
           <div class="milestones-list" id="statsOverlayMilestonesList"></div>
         </div>
@@ -4835,6 +4835,9 @@ async function startFullGame() {
     showPlayedTodayLobby();
     return;
   }
+  const loadStart = Date.now();
+  document.getElementById('anagramLoadingOverlay').classList.add('show');
+
   // Server check — only block if played/frozen in the current window
   if (sbClient && currentUser) {
     const now = new Date();
@@ -4853,15 +4856,25 @@ async function startFullGame() {
         .limit(1);
       if (data && data.length > 0) {
         localStorage.setItem(FULL_GAME_PLAYED_KEY, todayString());
+        document.getElementById('anagramLoadingOverlay').classList.remove('show');
         showPlayedTodayLobby();
         return;
       }
     }
   }
+
+  const hideLoader = (fn) => {
+    const elapsed = Date.now() - loadStart;
+    setTimeout(() => {
+      document.getElementById('anagramLoadingOverlay').classList.remove('show');
+      fn();
+    }, Math.max(0, 1000 - elapsed));
+  };
   // Check if another device has an active session
   if (currentUser) {
     const conflict = await checkSessionConflict();
     if (conflict) {
+      document.getElementById('anagramLoadingOverlay').classList.remove('show');
       document.getElementById('deviceConflictOverlay').classList.add('show');
       return;
     }
@@ -4893,24 +4906,25 @@ async function startFullGame() {
     allTilesSeen = tiles.map(t => t.letter); rackSnapshots = []; frozenAllSnapshots = [];
     saveFullGameState();
   }
-  showScreen('game');
-  practiceBackBtn.classList.remove('visible');
-  cancelGameWrap.style.display = 'block';
-  document.getElementById('cancelGameNote').style.display = '';
-  render();
-  window.addEventListener('pagehide', onPageHide);
-  window.addEventListener('visibilitychange', onVisibilityChange);
-  // Check every 30s — if the window has expired mid-game, end it
-  const windowExpiryCheck = setInterval(() => {
-    if (gameMode !== 'full' || phase === 'gameover') { clearInterval(windowExpiryCheck); return; }
-    if (!isInWindow()) {
-      clearInterval(windowExpiryCheck);
-      phase = 'gameover';
-      cancelGameWrap.style.display = 'none';
-      showGameOver();
-    }
-  }, 30000);
-}
+  hideLoader(() => {
+    showScreen('game');
+    practiceBackBtn.classList.remove('visible');
+    cancelGameWrap.style.display = 'block';
+    document.getElementById('cancelGameNote').style.display = '';
+    render();
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('visibilitychange', onVisibilityChange);
+    // Check every 30s — if the window has expired mid-game, end it
+    const windowExpiryCheck = setInterval(() => {
+      if (gameMode !== 'full' || phase === 'gameover') { clearInterval(windowExpiryCheck); return; }
+      if (!isInWindow()) {
+        clearInterval(windowExpiryCheck);
+        phase = 'gameover';
+        cancelGameWrap.style.display = 'none';
+        showGameOver();
+      }
+    }, 30000);
+  });
 
 // ===== Head to Head mode =====
 let h2hGameId = null;
@@ -4939,6 +4953,7 @@ async function startH2H() {
   }
   h2hGameId = null; h2hRoundId = null; h2hGameCode = null; h2hIsCreator = false;
   h2hStop();
+  hideH2HLoader();
   showScreen('h2h');
   h2hShowSection('h2hLobby');
   document.getElementById('h2hLobbyMsg').textContent = '';
@@ -5343,6 +5358,13 @@ async function openH2H() {
     showAuthForm();
     return;
   }
+  const h2hLoadStart = Date.now();
+  document.getElementById('anagramLoadingOverlay').classList.add('show');
+  // Existing H2H setup runs, then hide loader with minimum 1s
+  const hideH2HLoader = () => {
+    const elapsed = Date.now() - h2hLoadStart;
+    setTimeout(() => document.getElementById('anagramLoadingOverlay').classList.remove('show'), Math.max(0, 1000 - elapsed));
+  };
   document.getElementById('h2hCodeInput').value = '';
   document.getElementById('h2hEntryMsg').textContent = '';
   document.getElementById('headToHeadOverlay').classList.add('show');
@@ -6650,7 +6672,7 @@ const BADGE_DEFS = [
 const FREEZE_MAX = 3;
 const FREEZE_AWARD_EVERY = 11; // award one freeze every N games
 
-// Render streak freezes section in stats overlay
+// Render streak & lifelines section in stats overlay
 async function renderStreakFreezes(played, prefix) {
   const sectionId = prefix ? `${prefix}MilestonesSection` : 'milestonesSection';
   const listId = prefix ? `${prefix}MilestonesList` : 'milestonesList';
@@ -6659,22 +6681,76 @@ async function renderStreakFreezes(played, prefix) {
   if (!section || !list) return;
   section.style.display = 'block';
 
-  // Get current freeze count from Supabase
+  // Get freeze count and current streak
   let freezes = 0;
+  let streak = 0;
+  let streakAlive = false;
   if (sbClient && currentUser) {
-    const { data } = await sbClient.from('profiles').select('streak_freezes').eq('id', currentUser.id).single();
-    freezes = data?.streak_freezes ?? 0;
+    const [{ data: profile }, { data: results }] = await Promise.all([
+      sbClient.from('profiles').select('streak_freezes').eq('id', currentUser.id).single(),
+      sbClient.from('game_results').select('played_at, game_status').eq('user_id', currentUser.id).in('game_status', ['completed', 'freeze']).order('played_at', { ascending: false }).limit(60),
+    ]);
+    freezes = profile?.streak_freezes ?? 0;
+
+    // Calculate streak
+    if (results && results.length > 0) {
+      const now = new Date();
+      const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const today = localDateStr(now);
+      const yest = localDateStr(new Date(now - 86400000));
+      const windowClosed = now.getHours() >= FULL_GAME_HOUR_END;
+      const dates = [...new Set(results.map(r => localDateStr(new Date(r.played_at))))].sort().reverse();
+      const freezeDates = new Set(results.filter(r => r.game_status === 'freeze').map(r => localDateStr(new Date(r.played_at))));
+      const playedToday = results.some(r => r.game_status === 'completed' && localDateStr(new Date(r.played_at)) === today);
+      streakAlive = playedToday || (dates[0] === yest && !windowClosed);
+      if (dates.length && (dates[0] === today || dates[0] === yest)) {
+        streak = freezeDates.has(dates[0]) ? 0 : 1;
+        let prev = new Date(dates[0] + 'T12:00:00');
+        for (let i = 1; i < dates.length; i++) {
+          const exp = new Date(prev); exp.setDate(exp.getDate() - 1);
+          if (dates[i] === localDateStr(exp)) {
+            if (!freezeDates.has(dates[i])) streak++;
+            prev = exp;
+          } else break;
+        }
+      }
+    }
   }
 
-  // Calculate next freeze award milestone
   const nextAward = played > 0 ? (Math.floor(played / FREEZE_AWARD_EVERY) + 1) * FREEZE_AWARD_EVERY : FREEZE_AWARD_EVERY;
   const gamesUntilNext = nextAward - played;
 
+  // Build streak bar — up to 11 segments
+  const displayStreak = Math.min(streak, 11);
+  const segments = Array.from({ length: 11 }, (_, i) => {
+    const filled = i < displayStreak;
+    const color = streakAlive ? '#f0c020' : '#cc3333';
+    return `<div style="height:6px;flex:1;background:${filled ? color : 'rgba(240,192,32,0.12)'};transition:background 0.3s;"></div>`;
+  }).join('');
+
+  // Can they use a lifeline right now?
+  const canUseLifeline = freezes > 0 && !streakAlive && streak > 0;
+
   list.innerHTML = `
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+        <div style="font-size:9px;letter-spacing:0.12em;opacity:0.6;">CURRENT STREAK</div>
+        <div style="font-size:24px;font-weight:900;color:${streakAlive ? 'var(--gold)' : '#cc3333'};line-height:1;">${streak}</div>
+      </div>
+      <div style="display:flex;gap:3px;margin-bottom:4px;">${segments}</div>
+      <div style="font-size:9px;letter-spacing:0.08em;opacity:0.5;text-align:right;">${streakAlive ? 'ACTIVE' : streak > 0 ? 'STREAK BROKEN' : 'NO ACTIVE STREAK'}</div>
+    </div>
+
+    ${canUseLifeline ? `
+    <div style="background:rgba(240,192,32,0.06);border:1px solid rgba(240,192,32,0.2);padding:12px;margin-bottom:12px;text-align:center;">
+      <div style="font-size:10px;letter-spacing:0.1em;opacity:0.7;margin-bottom:8px;">YOU MISSED YESTERDAY. PROTECT YOUR STREAK?</div>
+      <button id="inlineLifelineBtn" class="auth-submit-btn" style="margin:0;font-size:12px;">USE A LIFELINE (${freezes} REMAINING)</button>
+    </div>` : ''}
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">
       <div style="border:1px solid var(--gold-dark);padding:12px 8px;text-align:center;">
         <div style="font-size:28px;font-weight:900;color:var(--gold);line-height:1;">${freezes}</div>
-        <div style="font-size:9px;letter-spacing:0.12em;opacity:0.6;margin-top:4px;">REMAINING</div>
+        <div style="font-size:9px;letter-spacing:0.12em;opacity:0.6;margin-top:4px;">LIFELINES LEFT</div>
       </div>
       <div style="border:1px solid var(--gold-dark);padding:12px 8px;text-align:center;${freezes >= FREEZE_MAX ? 'opacity:0.35;' : ''}">
         <div style="font-size:28px;font-weight:900;color:var(--gold);line-height:1;">+1</div>
@@ -6682,6 +6758,17 @@ async function renderStreakFreezes(played, prefix) {
       </div>
     </div>
     <div style="font-size:10px;letter-spacing:0.06em;opacity:0.45;text-align:center;padding-top:6px;">${freezes >= FREEZE_MAX ? 'AT MAX — USE ONE FIRST' : `EARNED EVERY ${FREEZE_AWARD_EVERY} GAMES · MAX ${FREEZE_MAX}`}</div>`;
+
+  // Wire inline lifeline button
+  if (canUseLifeline) {
+    document.getElementById('inlineLifelineBtn')?.addEventListener('click', async () => {
+      const btn = document.getElementById('inlineLifelineBtn');
+      btn.disabled = true;
+      btn.textContent = 'APPLYING…';
+      await applyLifeline();
+      await renderStreakFreezes(played, prefix);
+    });
+  }
 }
 
 // Award freeze after a game save if eligible
@@ -8450,6 +8537,13 @@ document.getElementById('freezeUseBtn').addEventListener('click', async () => {
   await useStreakFreeze();
   document.getElementById('freezeAtRiskOverlay').classList.remove('show');
 });
+async function applyLifeline() {
+  const yest = new Date();
+  yest.setDate(yest.getDate() - 1);
+  const targetDate = `${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,'0')}-${String(yest.getDate()).padStart(2,'0')}`;
+  await useStreakFreeze(targetDate);
+}
+
 document.getElementById('lifelineOfferBtn').addEventListener('click', async () => {
   const btn = document.getElementById('lifelineOfferBtn');
   btn.disabled = true;
@@ -9178,20 +9272,17 @@ function showEliminatorResult(score, totalTimeMs, totalPoints, perfect) {
   elimLastScore = score;
   elimLastTotalPoints = totalPoints;
 
-  // Save to Supabase
-  if (sbClient && currentUser) {
-    sbClient.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.access_token) return;
-      fetch('/api/save-eliminator', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ rounds_survived: score, total_points: totalPoints }),
-      }).catch(e => console.error('Eliminator save error:', e));
-    });
-  }
+  // Show saving overlay
+  const savingOverlay = document.getElementById('savingOverlay');
+  savingOverlay.classList.add('show');
+  const saveStart = Date.now();
 
-  const overlay = document.getElementById('eliminatorResultOverlay');
-  document.getElementById('elimResultTitle').textContent = perfect ? '🎉 PERFECT!' : 'ELIMINATED';
+  const showResult = () => {
+    const elapsed = Date.now() - saveStart;
+    setTimeout(() => {
+      savingOverlay.classList.remove('show');
+      const overlay = document.getElementById('eliminatorResultOverlay');
+      document.getElementById('elimResultTitle').textContent = perfect ? '🎉 PERFECT!' : 'ELIMINATED';
   document.getElementById('elimResultScore').textContent = `${score} / 11`;
   document.getElementById('elimResultBody').textContent = perfect
     ? 'You scored 11+ on every round!'
@@ -9231,7 +9322,23 @@ function showEliminatorResult(score, totalTimeMs, totalPoints, perfect) {
   }
 
   showScreen('eliminator');
-  overlay.classList.add('show');
+      overlay.classList.add('show');
+    }, Math.max(0, 1000 - elapsed));
+  };
+
+  // Save to Supabase then show result
+  if (sbClient && currentUser) {
+    sbClient.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.access_token) { showResult(); return; }
+      fetch('/api/save-eliminator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ rounds_survived: score, total_points: totalPoints }),
+      }).catch(e => console.error('Eliminator save error:', e)).finally(() => showResult());
+    });
+  } else {
+    showResult();
+  }
 }
 
 async function openEliminatorStats() {
