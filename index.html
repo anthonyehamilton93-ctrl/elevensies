@@ -6719,12 +6719,14 @@ async function renderStreakFreezes(played, prefix) {
       const frozeToday = freezeDates.has(today);
       streakAlive = playedToday || frozeToday || (dates[0] === yest && !windowClosed);
       if (dates.length && (dates[0] === today || dates[0] === yest)) {
-        streak = 1; // today or yesterday counts as 1 whether completed or frozen
+        // Start at 1 only if the most recent day was a completed game, not a freeze
+        streak = freezeDates.has(dates[0]) ? 0 : 1;
         let prev = new Date(dates[0] + 'T12:00:00');
         for (let i = 1; i < dates.length; i++) {
           const exp = new Date(prev); exp.setDate(exp.getDate() - 1);
           if (dates[i] === localDateStr(exp)) {
-            streak++;
+            // Only increment for completed games, not freeze rows
+            if (!freezeDates.has(dates[i])) streak++;
             prev = exp;
           } else break;
         }
