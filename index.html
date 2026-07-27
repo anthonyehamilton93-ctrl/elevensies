@@ -6718,9 +6718,6 @@ async function renderStreakFreezes(played, prefix) {
     }
   }
 
-  const nextAward = played > 0 ? (Math.floor(played / FREEZE_AWARD_EVERY) + 1) * FREEZE_AWARD_EVERY : FREEZE_AWARD_EVERY;
-  const gamesUntilNext = nextAward - played;
-
   // Build streak display — three fading squares showing last three days
   const activeColor = streakAlive ? '#f0c020' : '#cc3333';
   const textColor = streakAlive ? '#155c33' : '#fff';
