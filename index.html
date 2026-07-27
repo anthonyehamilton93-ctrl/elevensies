@@ -2890,7 +2890,9 @@
         <label for="authPassword">PASSWORD</label>
         <div style="position:relative;">
           <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password" style="padding-right:36px;">
-          <button type="button" id="togglePasswordBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gold);opacity:0.5;padding:0;font-size:16px;line-height:1;">👁</button>
+          <button type="button" id="togglePasswordBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;opacity:0.5;display:flex;align-items:center;">
+            <img id="togglePasswordIcon" src="/icons/eye.png" style="width:20px;height:20px;object-fit:contain;">
+          </button>
         </div>
       </div>
       <button class="auth-submit-btn" id="authSubmitBtn">SIGN IN</button>
