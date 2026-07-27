@@ -4806,10 +4806,13 @@ function showPlayedTodayLobby() {
   const tick = () => { lobbyCountdown.textContent = formatCountdown(msUntilNextWindow()); };
   tick();
   lobbyInterval = setInterval(tick, 1000);
-  // Show loading then fetch from Supabase
+  // Show loading overlay while score fetches
+  const loadOverlay = document.getElementById('anagramLoadingOverlay');
+  const loadStart = Date.now();
+  loadOverlay.classList.add('show');
   lobbyScore.textContent = '—';
   const lobbyScoreLoading = document.getElementById('lobbyScoreLoading');
-  if (lobbyScoreLoading) lobbyScoreLoading.style.display = '';
+  if (lobbyScoreLoading) lobbyScoreLoading.style.display = 'none';
   if (sbClient && currentUser) {
     const windowStart = new Date();
     windowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
@@ -4823,9 +4826,14 @@ function showPlayedTodayLobby() {
       .lte('played_at', windowEnd.toISOString())
       .limit(1)
       .then(({ data }) => {
-        lobbyScore.textContent = (data && data.length > 0) ? data[0].total_score : '—';
-        if (lobbyScoreLoading) lobbyScoreLoading.style.display = 'none';
+        const elapsed = Date.now() - loadStart;
+        setTimeout(() => {
+          loadOverlay.classList.remove('show');
+          lobbyScore.textContent = (data && data.length > 0) ? data[0].total_score : '—';
+        }, Math.max(0, 1000 - elapsed));
       });
+  } else {
+    setTimeout(() => loadOverlay.classList.remove('show'), 1000);
   }
 }
 
@@ -6283,10 +6291,15 @@ function startPractice() {
   allTilesSeen = tiles.map(t => t.letter); rackSnapshots = []; frozenAllSnapshots = [];
   history = [];
   phase = 'play';
+  const practiceLoadStart = Date.now();
+  document.getElementById('anagramLoadingOverlay').classList.add('show');
   showScreen('game');
   practiceBackBtn.classList.add('visible');
   cancelGameWrap.style.display = 'none';
   render();
+  setTimeout(() => {
+    document.getElementById('anagramLoadingOverlay').classList.remove('show');
+  }, Math.max(0, 1000 - (Date.now() - practiceLoadStart)));
 }
 
 function onPageHide() {
@@ -6721,31 +6734,24 @@ async function renderStreakFreezes(played, prefix) {
   // Build streak display — three fading squares showing last three days
   const activeColor = streakAlive ? '#f0c020' : '#cc3333';
   const textColor = streakAlive ? '#155c33' : '#fff';
-  const emptyBg = 'rgba(240,192,32,0.08)';
-  const emptyBorder = '1px solid rgba(240,192,32,0.12)';
 
   const makeBox = (num, opacity, isEmpty = false) => `
-    <div style="background:${isEmpty ? emptyBg : activeColor};${isEmpty ? `border:${emptyBorder};` : ''}opacity:${opacity};padding:14px 6px;text-align:center;">
-      <div style="font-size:20px;font-weight:900;color:${isEmpty ? 'rgba(240,192,32,0.3)' : textColor};line-height:1;">${num}</div>
+    <div style="background:${isEmpty ? 'rgba(240,192,32,0.12)' : activeColor};opacity:${opacity};padding:12px 4px;text-align:center;">
+      <div style="font-size:16px;font-weight:900;color:${isEmpty ? 'rgba(240,192,32,0.3)' : textColor};line-height:1;">${num}</div>
     </div>`;
 
-  let box1, box2, box3;
+  const opacities = [0.2, 0.4, 0.6, 0.8, 1.0];
+  let boxes;
   if (streak === 0) {
-    box1 = makeBox('—', 0.4, true);
-    box2 = makeBox('—', 0.7, true);
-    box3 = makeBox('—', 1, true);
-  } else if (streak === 1) {
-    box1 = makeBox('—', 0.4, true);
-    box2 = makeBox('—', 0.7, true);
-    box3 = makeBox(streak, 1);
-  } else if (streak === 2) {
-    box1 = makeBox('—', 0.4, true);
-    box2 = makeBox(streak - 1, 0.7);
-    box3 = makeBox(streak, 1);
+    boxes = opacities.map(o => makeBox('—', o, true)).join('');
+  } else if (streak < 5) {
+    const empty = 5 - streak;
+    boxes = [
+      ...Array.from({length: empty}, (_, i) => makeBox('—', opacities[i], true)),
+      ...Array.from({length: streak}, (_, i) => makeBox(i + 1, opacities[empty + i])),
+    ].join('');
   } else {
-    box1 = makeBox(streak - 2, 0.4);
-    box2 = makeBox(streak - 1, 0.7);
-    box3 = makeBox(streak, 1);
+    boxes = opacities.map((o, i) => makeBox(streak - 4 + i, o)).join('');
   }
 
   // Can they use a lifeline right now?
@@ -6756,8 +6762,9 @@ async function renderStreakFreezes(played, prefix) {
 
   list.innerHTML = `
     <div style="margin-bottom:16px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
-        ${box1}${box2}${box3}
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px;">
+        ${boxes}
+      </div>
       </div>
     </div>
 
@@ -9049,8 +9056,13 @@ async function startEliminator() {
   elimTotalPoints = 0;
   elimHistory = [];
   elimPlaying = true;
+  const elimLoadStart = Date.now();
+  document.getElementById('anagramLoadingOverlay').classList.add('show');
   showScreen('eliminator');
-  startElimRound();
+  setTimeout(() => {
+    document.getElementById('anagramLoadingOverlay').classList.remove('show');
+    startElimRound();
+  }, Math.max(0, 1000 - (Date.now() - elimLoadStart)));
 }
 
 function startElimRound() {
