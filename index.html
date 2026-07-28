@@ -3396,7 +3396,11 @@ if (sbClient) {
     currentUser = session ? session.user : null;
     updateAccountButtonLabel();
     updateFullGameLabel();
-    if (currentUser) retryPendingSave();
+    if (currentUser) {
+      retryPendingSave();
+      // Always update utc_offset on login so reminder emails use current timezone
+      sbClient.from('profiles').update({ utc_offset: new Date().getTimezoneOffset() * -1 }).eq('id', currentUser.id).then(() => {});
+    }
   });
 }
 
