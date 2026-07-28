@@ -6463,6 +6463,8 @@ function render() {
     actionRow.classList.add('joker-gone');
     jokerBtn.style.display = 'none';
     alphabetPanel.classList.remove('open');
+    const swapHint = document.getElementById('jokerSwapHint');
+    if (swapHint) swapHint.style.display = 'none';
   } else if (jokerTile) {
     actionRow.classList.remove('joker-gone');
     jokerBtn.style.display = '';
@@ -6471,12 +6473,30 @@ function render() {
     jokerBtn.classList.add('chosen');
     jokerBtn.classList.toggle('selected', isSelected);
     jokerBtn.innerHTML = `${jokerTile.letter}<span class="pts">${LETTER_VALUES[jokerTile.letter]}</span>`;
+    // Show swap hint
+    let swapHint = document.getElementById('jokerSwapHint');
+    if (!swapHint) {
+      swapHint = document.createElement('div');
+      swapHint.id = 'jokerSwapHint';
+      swapHint.style.cssText = 'font-size:10px;letter-spacing:0.1em;opacity:0.4;text-align:center;margin-top:8px;margin-bottom:4px;cursor:pointer;text-decoration:underline;';
+      swapHint.textContent = 'SWAP TILE';
+      swapHint.addEventListener('click', () => {
+        const jokerId = jokerTile ? jokerTile.id : null;
+        jokerTile = null;
+        if (jokerId !== null) selected = selected.filter(s => s.id !== jokerId);
+        render();
+      });
+      actionRow.parentNode.insertBefore(swapHint, actionRow.nextSibling);
+    }
+    swapHint.style.display = '';
   } else {
     actionRow.classList.remove('joker-gone');
     jokerBtn.style.display = '';
     jokerBtn.classList.remove('selected');
     jokerBtn.classList.remove('chosen');
     jokerBtn.textContent = alphabetPanel.classList.contains('open') ? '−' : '+';
+    const swapHint = document.getElementById('jokerSwapHint');
+    if (swapHint) swapHint.style.display = 'none';
   }
 
   // History panel
