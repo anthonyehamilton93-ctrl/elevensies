@@ -872,7 +872,50 @@
     margin-bottom: 6px;
     text-align: center;
   }
-  .gameover-title {
+  .sq-toggle {
+    display: flex;
+    gap: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .sq-toggle .sq-off,
+  .sq-toggle .sq-on {
+    width: 28px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    transition: 0.15s;
+    font-family: inherit;
+  }
+  .sq-toggle .sq-off {
+    background: rgba(240,192,32,0.1);
+    border: 1px solid rgba(240,192,32,0.2);
+    color: rgba(240,192,32,0.3);
+  }
+  .sq-toggle .sq-on {
+    background: rgba(240,192,32,0.1);
+    border: 1px solid rgba(240,192,32,0.2);
+    color: rgba(240,192,32,0.3);
+  }
+  .sq-toggle[data-on="true"] .sq-off {
+    background: rgba(240,192,32,0.1);
+    border-color: rgba(240,192,32,0.2);
+    color: rgba(240,192,32,0.3);
+  }
+  .sq-toggle[data-on="true"] .sq-on {
+    background: #f0c020;
+    border-color: #f0c020;
+    color: #155c33;
+  }
+  .sq-toggle[data-on="false"] .sq-off {
+    background: rgba(240,192,32,0.25);
+    border-color: rgba(240,192,32,0.4);
+    color: var(--gold);
+  }
     font-size: 28px;
     font-weight: 900;
     letter-spacing: 0.18em;
@@ -1556,11 +1599,9 @@
     <button class="welcome-btn" id="fullGameBtn">FULL GAME</button>
     <div class="welcome-btn-label" id="fullGameLabel">PLAY IN --:--:--</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;" id="remindBellWelcome-wrap">
-      <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
-        <input type="checkbox" id="remindBellWelcome" style="opacity:0;width:0;height:0;position:absolute;">
-        <span id="remindBellWelcome-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
-        <span id="remindBellWelcome-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
-      </label>
+      <div class="sq-toggle" id="remindBellWelcome" data-on="false" onclick="handleRemindToggle('remindBellWelcome')">
+        <span class="sq-off">OFF</span><span class="sq-on">ON</span>
+      </div>
       <span id="remindBellWelcome-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
     </div>
     <button class="welcome-btn secondary" id="moreGamesBtn">MORE GAMES</button>
@@ -1573,11 +1614,9 @@
     <div class="countdown-timer" id="countdownTimer">00:00:00</div>
     <div class="countdown-subtitle">YOUR NEXT GAME OPENS AT 11AM</div>
     <div style="display:flex;align-items:center;gap:10px;" id="remindBellCountdown-wrap">
-      <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
-        <input type="checkbox" id="remindBellCountdown" style="opacity:0;width:0;height:0;position:absolute;">
-        <span id="remindBellCountdown-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
-        <span id="remindBellCountdown-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
-      </label>
+      <div class="sq-toggle" id="remindBellCountdown" data-on="false" onclick="handleRemindToggle('remindBellCountdown')">
+        <span class="sq-off">OFF</span><span class="sq-on">ON</span>
+      </div>
       <span id="remindBellCountdown-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
     </div>
     <button class="countdown-back-btn" id="countdownBackBtn">BACK</button>
@@ -1595,12 +1634,10 @@
     <button class="lobby-details-btn" id="lobbyDetailsBtn">BREAKDOWN</button>
     <div style="font-size:12px; letter-spacing:0.25em; opacity:0.7; margin-bottom:6px; margin-top:40px; font-weight:700;">NEXT GAME IN</div>
     <div style="font-size:48px; font-weight:900; letter-spacing:0.05em; margin-bottom:28px; color:var(--gold);" id="lobbyCountdown">--:--:--</div>
-    <div style="display:flex;align-items:center;gap:10px;" id="remindBellLobby-wrap" style="margin-bottom:18px;">
-      <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
-        <input type="checkbox" id="remindBellLobby" style="opacity:0;width:0;height:0;position:absolute;">
-        <span id="remindBellLobby-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
-        <span id="remindBellLobby-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
-      </label>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;" id="remindBellLobby-wrap">
+      <div class="sq-toggle" id="remindBellLobby" data-on="false" onclick="handleRemindToggle('remindBellLobby')">
+        <span class="sq-off">OFF</span><span class="sq-on">ON</span>
+      </div>
       <span id="remindBellLobby-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
     </div>
     <button class="practice-back-btn visible" id="lobbyBackBtn">BACK</button>
@@ -1825,7 +1862,7 @@
           <img src="/icons/eliminator.png" style="height:48px;width:auto;">
         </div>
         <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">MAKE AN 11-POINT WORD<br>OR YOU'RE ELIMINATED.</div>
-        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">ELIMINATOR</div>
+        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">SURVIVAL</div>
       </button>
 
       <button id="moreGamesHeadToHeadBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;font-family:inherit;">
@@ -1845,9 +1882,9 @@
 <div class="overlay" id="eliminatorEntryOverlay">
   <div class="modal" style="text-align:center;">
     <div style="display:flex;justify-content:center;align-items:center;height:48px;margin-bottom:12px;"><img src="/icons/eliminator.png" style="height:48px;width:auto;"></div>
-    <div class="modal-title">ELIMINATOR</div>
+    <div class="modal-title">SURVIVAL</div>
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;text-align:center;">
-      11 rounds. 60 seconds each.<br>Find a word scoring 11+ or you're out.
+      Unlimited rounds. 60 seconds each.<br>Find a word scoring 11+ or you're out.
     </div>
     <button class="auth-submit-btn" id="eliminatorPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
     <button class="cancel-btn" id="eliminatorEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
@@ -1868,8 +1905,8 @@
 
         <!-- Step 0: Concept -->
         <div class="how-to-step elim-step" id="elimStep0" style="position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div style="font-size:13px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;font-weight:700;">ELIMINATOR</div>
-          <div style="font-size:24px;font-weight:900;letter-spacing:0.04em;margin-bottom:12px;line-height:1.3;">11 ROUNDS.<br>60 SECONDS.<br>SCORE 11+.</div>
+          <div style="font-size:13px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;font-weight:700;">SURVIVAL</div>
+          <div style="font-size:24px;font-weight:900;letter-spacing:0.04em;margin-bottom:12px;line-height:1.3;">UNLIMITED ROUNDS.<br>60 SECONDS.<br>SCORE 11+.</div>
           <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;">You get 11 letters each round.<br>Find any valid word scoring <strong style="color:var(--gold);">11 points or more</strong> before time runs out.</div>
         </div>
 
@@ -1897,7 +1934,7 @@
           <div style="font-size:72px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1;margin-bottom:6px;">0:42</div>
           <div style="font-size:11px;letter-spacing:0.08em;opacity:0.5;margin-bottom:16px;">SECONDS REMAINING</div>
           <div style="font-size:12px;letter-spacing:0.07em;line-height:1.8;opacity:0.8;text-align:left;padding:0 8px;">
-            Survive all 11 rounds for a perfect score.<br>
+            Survive as many rounds as you can — there's no limit.<br>
             Ranked by rounds survived, then total points.<br>
             The 11th tile is your bonus — use it or don't.
           </div>
@@ -2208,7 +2245,7 @@
       Create a private league with friends and compete on your own Top 11. Find it in STATS → LEAGUES.
     </div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:8px;opacity:0.85;">
-      <strong style="color:var(--gold);">ELIMINATOR</strong><br>
+      <strong style="color:var(--gold);">SURVIVAL</strong><br>
       A new unlimited mode — find a word scoring 11+ points before the clock runs out.
     </div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
@@ -2365,22 +2402,18 @@
           <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;">DAILY REMINDER</div>
           <div style="font-size:10px;opacity:0.5;margin-top:2px;">Email at 11am</div>
         </div>
-        <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
-          <input type="checkbox" id="toolsReminderToggle" style="opacity:0;width:0;height:0;position:absolute;">
-          <span id="toolsReminderSlider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
-          <span id="toolsReminderKnob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
-        </label>
+        <div class="sq-toggle" id="toolsReminderToggle" data-on="false" onclick="handleSqToggle('toolsReminderToggle','reminder')">
+          <span class="sq-off">OFF</span><span class="sq-on">ON</span>
+        </div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
         <div>
           <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;">WEEKLY ROUNDUP</div>
           <div style="font-size:10px;opacity:0.5;margin-top:2px;">Email every Sunday</div>
         </div>
-        <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
-          <input type="checkbox" id="toolsRoundupToggle" style="opacity:0;width:0;height:0;position:absolute;">
-          <span id="toolsRoundupSlider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
-          <span id="toolsRoundupKnob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
-        </label>
+        <div class="sq-toggle" id="toolsRoundupToggle" data-on="false" onclick="handleSqToggle('toolsRoundupToggle','roundup')">
+          <span class="sq-off">OFF</span><span class="sq-on">ON</span>
+        </div>
       </div>
     </div>
 
@@ -2402,7 +2435,7 @@
       Elevensies is a daily word game designed to make you take a little time out of your busy day and enjoy a well-deserved mid-morning break.
     </p>
     <p style="font-size:13px;letter-spacing:0.05em;line-height:1.8;opacity:0.8;margin-bottom:12px;">
-      Play the Full Game at 11am each day and test your vocabulary skills by climbing the Top 11, earning streaks and badges, and playing alongside friends through the mini league tables. Or try your hand at the other game modes — Practice, Anagram, Eliminator, and Head to Head.
+      Play the Full Game at 11am each day and test your vocabulary skills by climbing the Top 11, earning streaks and badges, and playing alongside friends through the mini league tables. Or try your hand at the other game modes — Practice, Anagram, Survival, and Head to Head.
     </p>
     <p style="font-size:13px;letter-spacing:0.05em;line-height:1.8;opacity:0.8;margin-bottom:20px;">
       Elevensies is created by a solo developer and designer and made available completely free — no ads, no subscriptions, no catch. If you enjoy it, the best thing you can do is tell a friend.
@@ -2453,7 +2486,7 @@
         <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('eliminatorEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
           <img src="/icons/eliminator.png" style="height:48px;width:auto;">
           <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">MAKE AN 11-POINT WORD<br>OR YOU'RE ELIMINATED.</div>
-          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">ELIMINATOR</div>
+          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">SURVIVAL</div>
         </button>
 
         <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('h2hEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
@@ -2787,7 +2820,7 @@
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/eliminator.png" style="height:48px;width:auto;">
         </div>
-        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">ELIMINATOR</div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">SURVIVAL</div>
       </button>
 
     </div>
@@ -8393,24 +8426,33 @@ document.getElementById('anagramResultCloseBtn').addEventListener('click', () =>
   document.getElementById('anagramResultOverlay').classList.remove('show');
 });
 
-// ===== Reminder toggles =====
-const remindBellIds = ['remindBellWelcome', 'remindBellCountdown', 'remindBellLobby'];
-
-function setToggleState(id, on) {
-  const slider = document.getElementById(`${id}-slider`);
-  const knob = document.getElementById(`${id}-knob`);
+// ===== Square toggles =====
+function setSqToggle(id, on) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.dataset.on = on ? 'true' : 'false';
   const label = document.getElementById(`${id}-label`);
-  const chk = document.getElementById(id);
-  if (!slider) return;
-  if (chk) chk.checked = on;
-  slider.style.background = on ? 'rgba(240,192,32,0.5)' : 'rgba(240,192,32,0.15)';
-  knob.style.opacity = on ? '1' : '0.4';
-  knob.style.transform = on ? 'translateX(18px)' : '';
-  if (label) label.textContent = on ? 'REMINDER SET' : 'REMIND ME AT 11AM';
-  if (label) label.style.opacity = on ? '1' : '0.6';
+  if (label) {
+    label.textContent = on ? 'REMINDER SET' : 'REMIND ME AT 11AM';
+    label.style.opacity = on ? '1' : '0.6';
+  }
+}
+
+async function handleSqToggle(id, type) {
+  if (!sbClient || !currentUser) return;
+  const el = document.getElementById(id);
+  const isOn = el?.dataset.on === 'true';
+  const newOn = !isOn;
+  setSqToggle(id, newOn);
+  if (type === 'reminder') {
+    await sbClient.from('profiles').update({ reminders_unsubscribed: !newOn }).eq('id', currentUser.id);
+  } else if (type === 'roundup') {
+    await sbClient.from('profiles').update({ email_unsubscribed: !newOn }).eq('id', currentUser.id);
+  }
 }
 
 async function updateRemindBells() {
+  const ids = ['remindBellWelcome', 'remindBellCountdown', 'remindBellLobby'];
   if (!sbClient || !currentUser) {
     const wrap = document.getElementById('remindBellWelcome-wrap');
     if (wrap) wrap.style.display = 'none';
@@ -8418,48 +8460,37 @@ async function updateRemindBells() {
   }
   const { data } = await sbClient.from('profiles').select('reminders_unsubscribed, email_unsubscribed').eq('id', currentUser.id).single();
   const opted = data && !data.reminders_unsubscribed && !data.email_unsubscribed;
-  remindBellIds.forEach(id => setToggleState(id, opted));
+  ids.forEach(id => setSqToggle(id, opted));
 }
 
 async function handleRemindToggle(id) {
   if (!sbClient || !currentUser) {
-    document.getElementById('authOverlay').classList.add('show');
+    authOverlay.classList.add('show');
     return;
   }
-  const { data } = await sbClient.from('profiles').select('reminders_unsubscribed, email_unsubscribed').eq('id', currentUser.id).single();
-  const currentlyOn = data && !data.reminders_unsubscribed && !data.email_unsubscribed;
+  const el = document.getElementById(id);
+  const isOn = el?.dataset.on === 'true';
+  const newOn = !isOn;
+  ['remindBellWelcome','remindBellCountdown','remindBellLobby'].forEach(bid => setSqToggle(bid, newOn));
   await sbClient.from('profiles').update({
-    reminders_unsubscribed: currentlyOn,
-    email_unsubscribed: currentlyOn,
+    reminders_unsubscribed: !newOn,
+    email_unsubscribed: !newOn,
   }).eq('id', currentUser.id);
-  await updateRemindBells();
-  if (!currentlyOn) showJunkNotice(id);
+  if (newOn) showJunkNotice(id);
 }
 
-function showJunkNotice(id) {
-  const existing = document.getElementById('junkNotice');
-  if (existing) existing.remove();
-  const anchor = document.getElementById(`${id}-wrap`);
-  if (!anchor) return;
-  const notice = document.createElement('div');
-  notice.id = 'junkNotice';
-  notice.className = 'badge-tooltip';
-  notice.style.cssText = 'margin-top:8px;margin-bottom:18px;text-align:center;line-height:1.6;max-width:280px;margin-left:auto;margin-right:auto;display:block;';
-  notice.textContent = 'Check your junk folder and add the Elevensies email to your contacts to get reminders reliably.';
-  anchor.parentNode.insertBefore(notice, anchor.nextSibling);
-  setTimeout(() => { if (notice.parentNode) notice.remove(); }, 6000);
+async function openToolsOverlay() {
+  document.getElementById('toolsOverlay').classList.add('show');
+  if (!sbClient || !currentUser) return;
+  const { data } = await sbClient.from('profiles').select('email_unsubscribed, reminders_unsubscribed').eq('id', currentUser.id).single();
+  if (!data) return;
+  setSqToggle('toolsReminderToggle', !data.reminders_unsubscribed);
+  setSqToggle('toolsRoundupToggle', !data.email_unsubscribed);
 }
 
-remindBellIds.forEach(id => {
-  const chk = document.getElementById(id);
-  if (chk) chk.addEventListener('change', () => handleRemindToggle(id));
-  // Also wire the wrap div click for better touch target
-  const wrap = document.getElementById(`${id}-wrap`);
-  if (wrap) wrap.addEventListener('click', (e) => {
-    if (e.target === chk) return; // let checkbox handle it
-    handleRemindToggle(id);
-  });
-});
+async function handleSqToggleWrapper(id, type) {
+  await handleSqToggle(id, type);
+}
 
 countdownBackBtn.addEventListener('click', () => {
   clearInterval(countdownInterval);
@@ -8605,7 +8636,7 @@ menuBtn.addEventListener('click', async () => {
     document.getElementById('menuAboutBtn').dataset.target = 'about-homepage';
     document.getElementById('menuStatsBtn').dataset.target = 'stats-picker';
   } else if (screen === 'eliminator') {
-    menuTitle.textContent = 'ELIMINATOR';
+    menuTitle.textContent = 'SURVIVAL';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-eliminator';
     document.getElementById('menuHowToIcon').src = '/icons/eliminator.png';
@@ -8919,32 +8950,18 @@ document.getElementById('menuIngameOverviewBtn').addEventListener('click', () =>
   showDailyBriefing();
 });
 
-async function openToolsOverlay() {
-  document.getElementById('toolsOverlay').classList.add('show');
-  if (!sbClient || !currentUser) return;
-  const { data } = await sbClient.from('profiles').select('email_unsubscribed, reminders_unsubscribed').eq('id', currentUser.id).single();
-  if (!data) return;
-
-  // Set toggle states
-  const setToggle = (chkId, sliderId, knobId, on) => {
-    document.getElementById(chkId).checked = on;
-    document.getElementById(sliderId).style.background = on ? 'rgba(240,192,32,0.5)' : 'rgba(240,192,32,0.15)';
-    document.getElementById(knobId).style.opacity = on ? '1' : '0.4';
-    document.getElementById(knobId).style.transform = on ? 'translateX(18px)' : '';
-  };
-  setToggle('toolsReminderToggle', 'toolsReminderSlider', 'toolsReminderKnob', !data.reminders_unsubscribed);
-  setToggle('toolsRoundupToggle', 'toolsRoundupSlider', 'toolsRoundupKnob', !data.email_unsubscribed);
-
-  // Wire reminder toggle
-  document.getElementById('toolsReminderToggle').onchange = async (e) => {
-    setToggle('toolsReminderToggle', 'toolsReminderSlider', 'toolsReminderKnob', e.target.checked);
-    await sbClient.from('profiles').update({ reminders_unsubscribed: !e.target.checked }).eq('id', currentUser.id);
-  };
-  // Wire roundup toggle
-  document.getElementById('toolsRoundupToggle').onchange = async (e) => {
-    setToggle('toolsRoundupToggle', 'toolsRoundupSlider', 'toolsRoundupKnob', e.target.checked);
-    await sbClient.from('profiles').update({ email_unsubscribed: !e.target.checked }).eq('id', currentUser.id);
-  };
+function showJunkNotice(id) {
+  const existing = document.getElementById('junkNotice');
+  if (existing) existing.remove();
+  const anchor = document.getElementById(`${id}-wrap`);
+  if (!anchor) return;
+  const notice = document.createElement('div');
+  notice.id = 'junkNotice';
+  notice.className = 'badge-tooltip';
+  notice.style.cssText = 'margin-top:8px;margin-bottom:18px;text-align:center;line-height:1.6;max-width:280px;margin-left:auto;margin-right:auto;display:block;';
+  notice.textContent = 'Check your junk folder and add the Elevensies email to your contacts to get reminders reliably.';
+  anchor.parentNode.insertBefore(notice, anchor.nextSibling);
+  setTimeout(() => { if (notice.parentNode) notice.remove(); }, 6000);
 }
 
 document.getElementById('toolsCloseBtn').addEventListener('click', () => {
@@ -9326,7 +9343,7 @@ function startElimRound() {
   elimSelected = [];
   elimRoundStartTime = Date.now();
 
-  document.getElementById('elimRoundNum').textContent = `${elimCurrentRound + 1} / 11`;
+  document.getElementById('elimRoundNum').textContent = `ROUND ${elimCurrentRound + 1}`;
   const bonusBtn = document.getElementById('elimBonusBtn');
   bonusBtn.innerHTML = `${bonus}<span class="pts">${LETTER_VALUES[bonus]||1}</span>`;
   bonusBtn.classList.remove('selected');
@@ -9445,21 +9462,15 @@ function submitElimWord() {
   msg.textContent = `✓ ${word} · ${pts} PTS`;
   msg.className = 'message show success';
   document.getElementById('elimTimer').style.color = '';
-  if (elimCurrentRound >= 11) setTimeout(() => onElimComplete(), 800);
-  else setTimeout(() => startElimRound(), 900);
+  // No round cap — always continue
+  setTimeout(() => startElimRound(), 900);
 }
 
 function onElimEliminated() {
   elimPlaying = false;
   clearInterval(elimTimerInterval);
   document.getElementById('elimTimer').style.color = '';
-  showEliminatorResult(elimCurrentRound, elimTotalTimeMs, elimTotalPoints, false);
-}
-
-function onElimComplete() {
-  elimPlaying = false;
-  clearInterval(elimTimerInterval);
-  showEliminatorResult(11, elimTotalTimeMs, elimTotalPoints, true);
+  showEliminatorResult(elimCurrentRound, elimTotalTimeMs, elimTotalPoints);
 }
 
 function shuffleElimTiles() {
@@ -9560,7 +9571,7 @@ document.getElementById('eliminatorBackBtn').addEventListener('click', () => {
 let elimLastScore = 0;
 let elimLastTotalPoints = 0;
 
-function showEliminatorResult(score, totalTimeMs, totalPoints, perfect) {
+function showEliminatorResult(score, totalTimeMs, totalPoints) {
   elimLastScore = score;
   elimLastTotalPoints = totalPoints;
 
@@ -9574,12 +9585,11 @@ function showEliminatorResult(score, totalTimeMs, totalPoints, perfect) {
     setTimeout(() => {
       savingOverlay.classList.remove('show');
       const overlay = document.getElementById('eliminatorResultOverlay');
-      document.getElementById('elimResultTitle').textContent = perfect ? '🎉 PERFECT!' : 'ELIMINATED';
-  document.getElementById('elimResultScore').textContent = `${score} / 11`;
-  document.getElementById('elimResultBody').textContent = perfect
-    ? 'You scored 11+ on every round!'
-    : score === 0 ? 'Eliminated on round 1. Better luck next time!'
-    : `Survived ${score} of 11. Eliminated on round ${score + 1}.`;
+      document.getElementById('elimResultTitle').textContent = 'ELIMINATED';
+  document.getElementById('elimResultScore').textContent = `${score} ROUND${score !== 1 ? 'S' : ''}`;
+  document.getElementById('elimResultBody').textContent = score === 0
+    ? 'Eliminated on round 1. Better luck next time!'
+    : `Survived ${score} round${score !== 1 ? 's' : ''}. Eliminated on round ${score + 1}.`;
 
   const secsPerRound = score > 0 ? (totalTimeMs / score / 1000).toFixed(1) + 's' : '—';
   const avgPts = score > 0 ? (totalPoints / score).toFixed(1) : '—';
@@ -9626,7 +9636,7 @@ function showEliminatorResult(score, totalTimeMs, totalPoints, perfect) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ rounds_survived: score, total_points: totalPoints }),
-      }).catch(e => console.error('Eliminator save error:', e)).finally(() => showResult());
+      }).catch(e => console.error('Survival save error:', e)).finally(() => showResult());
     });
   } else {
     showResult();
@@ -9638,7 +9648,7 @@ async function openEliminatorStats() {
     const overlay = document.getElementById('fullGameStatsOverlay');
     const loggedOut = document.getElementById('fullGameStatsLoggedOut');
 
-    resetStatsOverlay('ELIMINATOR');
+    resetStatsOverlay('SURVIVAL');
     document.getElementById('statsTabStatsContent').style.display = '';
 
     overlay.classList.add('show');
@@ -9651,7 +9661,7 @@ async function openEliminatorStats() {
     loggedOut.style.display = 'none';
 
     const rows = document.querySelectorAll('#statsOverlayStats .account-stats-row');
-    const labels = ['GAMES PLAYED', 'GAMES COMPLETED', 'AVG ROUNDS', 'AVG PTS / ROUND'];
+    const labels = ['GAMES PLAYED', 'BEST ROUNDS', 'AVG ROUNDS', 'AVG PTS / ROUND'];
     const valueIds = ['statsOverlayGames', 'statsOverlayStreak', 'statsOverlayBest', 'statsOverlayAvgWord'];
 
     rows.forEach((r, i) => r.style.display = i < 4 ? '' : 'none');
@@ -9676,23 +9686,22 @@ async function openEliminatorStats() {
     }
 
     const gamesPlayed = data.length;
-    const gamesCompleted = data.filter(r => r.rounds_survived === 11).length;
+    const bestRounds = Math.max(...data.map(r => r.rounds_survived));
     const avgRounds = (data.reduce((s, r) => s + r.rounds_survived, 0) / gamesPlayed).toFixed(1);
     const solvable = data.filter(r => r.rounds_survived > 0);
     const avgPtsPerRound = solvable.length
       ? (solvable.reduce((s, r) => s + r.total_points / r.rounds_survived, 0) / solvable.length).toFixed(1)
       : '—';
 
-    const values = [gamesPlayed, gamesCompleted, avgRounds, avgPtsPerRound];
+    const values = [gamesPlayed, bestRounds, avgRounds, avgPtsPerRound];
     valueIds.forEach((id, i) => { const el = document.getElementById(id); if (el) el.textContent = values[i]; });
 
   } catch(err) {
-    console.error('openEliminatorStats error:', err);
+    console.error('openSurvivalStats error:', err);
   }
 }
 
 async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
-  const perfect = score === 11;
   const secsPerRound = score > 0 ? (totalTimeMs / score / 1000).toFixed(1) : '—';
   const avgPts = score > 0 ? (totalPoints / score).toFixed(1) : '—';
   const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
@@ -9731,7 +9740,7 @@ async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
   // Result — large
   const resultY = divY + 200;
   ctx.font = '900 96px Jost'; ctx.fillStyle = gold;
-  ctx.fillText(perfect ? 'I SURVIVED!' : `SURVIVED ${score} / 11`, W/2, resultY);
+  ctx.fillText(`SURVIVED ${score} ROUND${score !== 1 ? 'S' : ''}`, W/2, resultY);
   ctx.font = '700 32px Jost'; ctx.globalAlpha = 0.55;
   ctx.fillText(date, W/2, resultY + 60);
   ctx.globalAlpha = 1;
@@ -9786,9 +9795,7 @@ async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
   ctx.fillText('playelevensies.com', W/2, H-30);
 
   const blob = await new Promise(r => shareCanvas.toBlob(r, 'image/png'));
-  const linkText = perfect
-    ? `I survived all 11 rounds of Elevensies Eliminator! playelevensies.com`
-    : `I survived ${score}/11 on Elevensies Eliminator! playelevensies.com`;
+  const linkText = `I survived ${score} round${score !== 1 ? 's' : ''} of Elevensies Survival! playelevensies.com`;
 
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'eliminator.png', { type: 'image/png' })] })) {
     try { await navigator.share({ files: [new File([blob], 'eliminator.png', { type: 'image/png' })], text: linkText }); return; } catch(e) {}
