@@ -801,6 +801,7 @@
   }
     text-align: center;
   }
+  #newPasswordInput::placeholder { color: #155c33; opacity: 1; }
   #contactName::placeholder, #contactEmail::placeholder, #contactMessage::placeholder {
     color: rgba(240,192,32,0.35) !important;
     opacity: 1 !important;
@@ -1557,8 +1558,8 @@
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;" id="remindBellWelcome-wrap">
       <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
         <input type="checkbox" id="remindBellWelcome" style="opacity:0;width:0;height:0;position:absolute;">
-        <span id="remindBellWelcome-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
-        <span id="remindBellWelcome-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+        <span id="remindBellWelcome-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
+        <span id="remindBellWelcome-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
       </label>
       <span id="remindBellWelcome-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
     </div>
@@ -1574,8 +1575,8 @@
     <div style="display:flex;align-items:center;gap:10px;" id="remindBellCountdown-wrap">
       <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
         <input type="checkbox" id="remindBellCountdown" style="opacity:0;width:0;height:0;position:absolute;">
-        <span id="remindBellCountdown-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
-        <span id="remindBellCountdown-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+        <span id="remindBellCountdown-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
+        <span id="remindBellCountdown-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
       </label>
       <span id="remindBellCountdown-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
     </div>
@@ -1597,8 +1598,8 @@
     <div style="display:flex;align-items:center;gap:10px;" id="remindBellLobby-wrap" style="margin-bottom:18px;">
       <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
         <input type="checkbox" id="remindBellLobby" style="opacity:0;width:0;height:0;position:absolute;">
-        <span id="remindBellLobby-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
-        <span id="remindBellLobby-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+        <span id="remindBellLobby-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
+        <span id="remindBellLobby-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
       </label>
       <span id="remindBellLobby-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
     </div>
@@ -2318,6 +2319,7 @@
 <!-- MORE footer overlay — always the same personal hub -->
 <div class="overlay" id="moreOverlay" style="z-index:200;">
   <div class="modal">
+    <div style="text-align:center;margin-bottom:8px;"><img src="/icons/more.png" style="height:36px;width:auto;opacity:0.9;"></div>
     <div class="modal-title">MORE</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
       <button id="moreAccountBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
@@ -2365,8 +2367,8 @@
         </div>
         <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
           <input type="checkbox" id="toolsReminderToggle" style="opacity:0;width:0;height:0;position:absolute;">
-          <span id="toolsReminderSlider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
-          <span id="toolsReminderKnob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+          <span id="toolsReminderSlider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
+          <span id="toolsReminderKnob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
         </label>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
@@ -2376,8 +2378,8 @@
         </div>
         <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
           <input type="checkbox" id="toolsRoundupToggle" style="opacity:0;width:0;height:0;position:absolute;">
-          <span id="toolsRoundupSlider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
-          <span id="toolsRoundupKnob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+          <span id="toolsRoundupSlider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;"></span>
+          <span id="toolsRoundupKnob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;"></span>
         </label>
       </div>
     </div>
@@ -2889,7 +2891,7 @@
     <!-- Top-level tabs -->
     <div class="lb-tabs" style="margin-bottom:16px;">
       <button class="lb-tab active" id="statsTabStats">YOUR STATS</button>
-      <button class="lb-tab" id="statsTabLb">LEADERBOARD</button>
+      <button class="lb-tab" id="statsTabLb">TOP 11</button>
       <button class="lb-tab" id="statsTabLeagues">LEAGUES</button>
     </div>
     <div id="fullGameStatsLoggedOut" style="display:none; font-size:12px; letter-spacing:0.08em; opacity:0.6; margin:12px 0; text-align:center; line-height:1.6;">
@@ -3016,6 +3018,20 @@
         <button class="username-save-btn" id="usernameSaveBtn">SAVE</button>
       </div>
       <div class="username-msg" id="usernameMsg"></div>
+
+      <!-- Change password -->
+      <div style="margin-top:12px;margin-bottom:4px;">
+        <div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;margin-bottom:8px;">CHANGE PASSWORD</div>
+        <div style="position:relative;margin-bottom:8px;">
+          <input type="password" id="newPasswordInput" placeholder="NEW PASSWORD" style="width:100%;padding:8px 36px 8px 12px;background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;outline:none;box-sizing:border-box;">
+          <button type="button" id="toggleNewPasswordBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;opacity:0.5;display:flex;align-items:center;">
+            <img src="/icons/eye.png" style="width:18px;height:18px;object-fit:contain;">
+          </button>
+        </div>
+        <button class="auth-submit-btn" id="changePasswordBtn" style="font-size:12px;margin-bottom:4px;">UPDATE PASSWORD</button>
+        <div id="changePasswordMsg" style="font-size:10px;letter-spacing:0.08em;min-height:14px;text-align:center;"></div>
+      </div>
+
       <button class="signout-btn" id="signOutBtn">SIGN OUT</button>
       <!-- delete account kept here for tools overlay to trigger -->
       <div class="delete-account-wrap" id="deleteAccountWrap" style="display:none;">
@@ -3035,7 +3051,7 @@
 <!-- Leaderboard overlay (burger menu) -->
 <div class="overlay" id="leaderboardOverlay">
   <div class="modal">
-    <div class="modal-title">LEADERBOARD</div>
+    <div class="modal-title">TOP 11</div>
     <div class="lb-tabs">
       <button class="lb-tab active" id="lbTabBest">BEST</button>
       <button class="lb-tab" id="lbTabAvg">AVERAGE <span class="lb-tab-note">11+ GAMES</span></button>
@@ -4257,7 +4273,7 @@ async function openLeagueDetail(leagueId) {
 
     const [profilesRes, scoresRes] = await Promise.all([
       sbClient.from('profiles').select('id,display_name,badges').in('id', memberIds),
-      sbClient.from('game_results').select('user_id,total_score,played_at,avg_points_per_word').in('user_id', memberIds).eq('game_status', 'completed'),
+      sbClient.from('game_results').select('user_id,total_score,played_at,avg_points_per_word,history').in('user_id', memberIds).eq('game_status', 'completed'),
     ]);
 
     const profileMap = {};
@@ -4273,6 +4289,7 @@ async function openLeagueDetail(leagueId) {
     todayWindowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
     const scoresByUser = {};
     const todayByUser = {};
+    const todayWordsByUser = {};
     const avgWordByUser = {};
     (scoresRes.data || []).forEach(r => {
       if (!scoresByUser[r.user_id]) scoresByUser[r.user_id] = [];
@@ -4286,6 +4303,7 @@ async function openLeagueDetail(leagueId) {
         if (playedMs >= todayWindowStart.getTime()) {
           if (todayByUser[r.user_id] === undefined || r.total_score > todayByUser[r.user_id]) {
             todayByUser[r.user_id] = r.total_score;
+            todayWordsByUser[r.user_id] = Array.isArray(r.history) ? r.history : [];
           }
         }
       }
@@ -4376,7 +4394,36 @@ async function openLeagueDetail(leagueId) {
         }).join('');
 
       board.querySelectorAll('[data-uid]').forEach(row => {
-        row.addEventListener('click', () => openPlayerProfile(row.dataset.uid));
+        row.addEventListener('click', () => {
+          const uid = row.dataset.uid;
+          const existingWords = row.nextElementSibling;
+          // Toggle — close if already open
+          if (existingWords && existingWords.dataset.wordsFor === uid) {
+            existingWords.remove();
+            return;
+          }
+          // Remove any other open words panel
+          board.querySelectorAll('[data-words-for]').forEach(el => el.remove());
+          const words = todayWordsByUser[uid];
+          if (!words || words.length === 0) {
+            if (todayByUser[uid] === undefined) return; // hasn't played
+          }
+          const panel = document.createElement('div');
+          panel.dataset.wordsFor = uid;
+          panel.style.cssText = 'background:#0f3d1a;padding:8px 12px;margin-bottom:4px;';
+          if (!words || words.length === 0) {
+            panel.innerHTML = '<div style="font-size:10px;opacity:0.4;text-align:center;">NO WORDS RECORDED</div>';
+          } else {
+            panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;">
+              ${words.map(w => `
+                <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(240,192,32,0.06);">
+                  <span style="font-size:11px;letter-spacing:0.06em;">${w.word}</span>
+                  <span style="font-size:11px;opacity:0.6;">${w.score}</span>
+                </div>`).join('')}
+            </div>`;
+          }
+          row.parentNode.insertBefore(panel, row.nextSibling);
+        });
       });
       document.getElementById('leagueLbAvg')?.addEventListener('click', () => { leagueLbMode.current='avg'; renderLeagueBoard('avg'); });
       document.getElementById('leagueLbBest')?.addEventListener('click', () => { leagueLbMode.current='best'; renderLeagueBoard('best'); });
@@ -9037,7 +9084,30 @@ authSubmitBtn.addEventListener('click', () => {
 });
 signOutBtn.addEventListener('click', handleSignOut);
 
-// Delete account
+// Change password in account panel
+document.getElementById('toggleNewPasswordBtn').addEventListener('click', () => {
+  const input = document.getElementById('newPasswordInput');
+  const btn = document.getElementById('toggleNewPasswordBtn');
+  input.type = input.type === 'password' ? 'text' : 'password';
+  btn.style.opacity = input.type === 'text' ? '1' : '0.5';
+});
+document.getElementById('changePasswordBtn').addEventListener('click', async () => {
+  const val = document.getElementById('newPasswordInput').value;
+  const msg = document.getElementById('changePasswordMsg');
+  if (!val || val.length < 6) { msg.textContent = 'PASSWORD MUST BE AT LEAST 6 CHARACTERS.'; msg.style.color = '#ff7c7c'; return; }
+  if (!sbClient) return;
+  msg.textContent = 'SAVING…'; msg.style.color = '';
+  document.getElementById('changePasswordBtn').disabled = true;
+  const { error } = await sbClient.auth.updateUser({ password: val });
+  document.getElementById('changePasswordBtn').disabled = false;
+  if (error) {
+    msg.textContent = 'COULD NOT UPDATE — TRY AGAIN.'; msg.style.color = '#ff7c7c';
+  } else {
+    msg.textContent = 'PASSWORD UPDATED ✓'; msg.style.color = '#a8ffb0';
+    document.getElementById('newPasswordInput').value = '';
+    setTimeout(() => { msg.textContent = ''; }, 3000);
+  }
+});
 document.getElementById('deleteAccountBtn').addEventListener('click', () => {
   document.getElementById('deleteConfirm').style.display = 'block';
   document.getElementById('deleteAccountBtn').style.display = 'none';
