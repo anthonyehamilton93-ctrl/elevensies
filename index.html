@@ -874,6 +874,7 @@
   }
   .sq-toggle {
     display: flex;
+    flex-direction: row;
     gap: 2px;
     cursor: pointer;
     flex-shrink: 0;
@@ -890,20 +891,8 @@
     letter-spacing: 0.06em;
     transition: 0.15s;
     font-family: inherit;
-  }
-  .sq-toggle .sq-off {
     background: rgba(240,192,32,0.1);
     border: 1px solid rgba(240,192,32,0.2);
-    color: rgba(240,192,32,0.3);
-  }
-  .sq-toggle .sq-on {
-    background: rgba(240,192,32,0.1);
-    border: 1px solid rgba(240,192,32,0.2);
-    color: rgba(240,192,32,0.3);
-  }
-  .sq-toggle[data-on="true"] .sq-off {
-    background: rgba(240,192,32,0.1);
-    border-color: rgba(240,192,32,0.2);
     color: rgba(240,192,32,0.3);
   }
   .sq-toggle[data-on="true"] .sq-on {
@@ -916,8 +905,7 @@
     border-color: rgba(240,192,32,0.4);
     color: var(--gold);
   }
-    font-size: 28px;
-    font-weight: 900;
+  .gameover-title {
     letter-spacing: 0.18em;
     margin-bottom: 6px;
     text-align: center;
@@ -4875,7 +4863,7 @@ function showScreen(name) {
   // Update header mode icon — full game shows Elevensies logo
   const iconEl = document.getElementById('headerModeIcon');
   if (name === 'game' && (gameMode === 'full' || !gameMode)) {
-    iconEl.innerHTML = `<img src="${LOGO_SRC}" style="height:28px;width:auto;opacity:0.85;">`;
+    iconEl.innerHTML = `<img src="/icons/games.png" style="height:28px;width:auto;opacity:0.85;">`;
     iconEl.style.display = 'flex';
   } else {
     const modeKey = name === 'game' ? (gameMode === 'practice' ? 'practice' : null) : (name === 'h2h' ? 'h2h' : name === 'anagram' ? 'anagram' : name === 'eliminator' ? 'eliminator' : null);
@@ -9740,7 +9728,8 @@ async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
   // Result — large
   const resultY = divY + 200;
   ctx.font = '900 96px Jost'; ctx.fillStyle = gold;
-  ctx.fillText(`SURVIVED ${score} ROUND${score !== 1 ? 'S' : ''}`, W/2, resultY);
+  ctx.fillText('SURVIVED', W/2, resultY);
+  ctx.fillText(`${score} ROUND${score !== 1 ? 'S' : ''}`, W/2, resultY + 108);
   ctx.font = '700 32px Jost'; ctx.globalAlpha = 0.55;
   ctx.fillText(date, W/2, resultY + 60);
   ctx.globalAlpha = 1;
