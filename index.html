@@ -1542,7 +1542,6 @@
     </button>
     <div id="headerModeIcon" style="display:none;opacity:0.7;align-items:center;justify-content:center;"></div>
     <div style="display:flex;align-items:center;gap:4px;grid-column:3;justify-self:end;">
-      <button id="briefingInfoBtn" style="background:none;border:none;cursor:pointer;color:var(--gold);font-family:inherit;font-size:20px;font-weight:900;padding:4px 6px;opacity:0.6;line-height:1;display:none;">ⓘ</button>
       <button class="menu-btn" id="menuBtn">
         <img src="/icons/burger.png" style="width:24px;height:auto;display:block;">
       </button>
@@ -1555,7 +1554,14 @@
     <div class="welcome-logo"><img id="welcomeLogo" alt="Elevensies"></div>
     <button class="welcome-btn" id="fullGameBtn">FULL GAME</button>
     <div class="welcome-btn-label" id="fullGameLabel">PLAY IN --:--:--</div>
-    <button class="remind-bell-btn" id="remindBellWelcome" style="display:none;">🔔 REMIND ME AT 11AM</button>
+    <div style="display:flex;align-items:center;gap:10px;" id="remindBellWelcome-wrap" style="display:none;">
+      <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
+        <input type="checkbox" id="remindBellWelcome" style="opacity:0;width:0;height:0;position:absolute;">
+        <span id="remindBellWelcome-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
+        <span id="remindBellWelcome-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+      </label>
+      <span id="remindBellWelcome-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
+    </div>
     <button class="welcome-btn secondary" id="moreGamesBtn">MORE GAMES</button>
     <div class="welcome-btn-label">HEAD TO HEAD · ELIMINATOR · MORE</div>
   </div>
@@ -1565,7 +1571,14 @@
     <div class="countdown-title">COME BACK FOR ELEVENSIES</div>
     <div class="countdown-timer" id="countdownTimer">00:00:00</div>
     <div class="countdown-subtitle">YOUR NEXT GAME OPENS AT 11AM</div>
-    <button class="remind-bell-btn" id="remindBellCountdown">🔔 REMIND ME AT 11AM</button>
+    <div style="display:flex;align-items:center;gap:10px;" id="remindBellCountdown-wrap">
+      <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
+        <input type="checkbox" id="remindBellCountdown" style="opacity:0;width:0;height:0;position:absolute;">
+        <span id="remindBellCountdown-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
+        <span id="remindBellCountdown-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+      </label>
+      <span id="remindBellCountdown-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
+    </div>
     <button class="countdown-back-btn" id="countdownBackBtn">BACK</button>
   </div>
 
@@ -1581,7 +1594,14 @@
     <button class="lobby-details-btn" id="lobbyDetailsBtn">BREAKDOWN</button>
     <div style="font-size:12px; letter-spacing:0.25em; opacity:0.7; margin-bottom:6px; margin-top:40px; font-weight:700;">NEXT GAME IN</div>
     <div style="font-size:48px; font-weight:900; letter-spacing:0.05em; margin-bottom:28px; color:var(--gold);" id="lobbyCountdown">--:--:--</div>
-    <button class="remind-bell-btn" id="remindBellLobby" style="margin-bottom:18px;">🔔 REMIND ME AT 11AM</button>
+    <div style="display:flex;align-items:center;gap:10px;" id="remindBellLobby-wrap" style="margin-bottom:18px;">
+      <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
+        <input type="checkbox" id="remindBellLobby" style="opacity:0;width:0;height:0;position:absolute;">
+        <span id="remindBellLobby-slider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
+        <span id="remindBellLobby-knob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+      </label>
+      <span id="remindBellLobby-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
+    </div>
     <button class="practice-back-btn visible" id="lobbyBackBtn">BACK</button>
   </div>
 
@@ -2341,7 +2361,7 @@
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(240,192,32,0.1);">
         <div>
           <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;">DAILY REMINDER</div>
-          <div style="font-size:10px;opacity:0.5;margin-top:2px;">Email at 10:50am</div>
+          <div style="font-size:10px;opacity:0.5;margin-top:2px;">Email at 11am</div>
         </div>
         <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
           <input type="checkbox" id="toolsReminderToggle" style="opacity:0;width:0;height:0;position:absolute;">
@@ -2352,7 +2372,7 @@
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
         <div>
           <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;">WEEKLY ROUNDUP</div>
-          <div style="font-size:10px;opacity:0.5;margin-top:2px;">Email every Monday</div>
+          <div style="font-size:10px;opacity:0.5;margin-top:2px;">Email every Sunday</div>
         </div>
         <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
           <input type="checkbox" id="toolsRoundupToggle" style="opacity:0;width:0;height:0;position:absolute;">
@@ -2996,21 +3016,9 @@
         <button class="username-save-btn" id="usernameSaveBtn">SAVE</button>
       </div>
       <div class="username-msg" id="usernameMsg"></div>
-      <div class="expand-section" id="emailPrefsSection">
-        <div class="expand-header" id="emailPrefsToggle">EMAIL PREFERENCES <span class="expand-arrow">▼</span></div>
-        <div class="expand-body" id="emailPrefsBody">
-          <div class="email-prefs-section">
-            <label class="email-pref-row">
-              <input type="checkbox" id="prefUpdates" checked>
-              <span>RECEIVE UPDATES</span>
-            </label>
-            <button class="email-prefs-save-btn" id="emailPrefsSaveBtn">SAVE</button>
-            <div class="email-prefs-msg" id="emailPrefsMsg"></div>
-          </div>
-        </div>
-      </div>
       <button class="signout-btn" id="signOutBtn">SIGN OUT</button>
-      <div class="delete-account-wrap" id="deleteAccountWrap">
+      <!-- delete account kept here for tools overlay to trigger -->
+      <div class="delete-account-wrap" id="deleteAccountWrap" style="display:none;">
         <button class="delete-account-btn" id="deleteAccountBtn">DELETE ACCOUNT</button>
         <div class="delete-confirm" id="deleteConfirm" style="display:none;">
           <div class="delete-confirm-text">THIS PERMANENTLY DELETES YOUR ACCOUNT AND ALL YOUR SCORES. THERE'S NO GOING BACK.</div>
@@ -4142,9 +4150,6 @@ async function showDailyBriefing() {
     } catch(e) { console.error('Briefing fetch error:', e); }
 }
 
-document.getElementById('briefingInfoBtn').addEventListener('click', () => {
-  showDailyBriefing();
-});
 document.getElementById('briefingCloseBtn').addEventListener('click', () => {
   document.getElementById('dailyBriefingOverlay').classList.remove('show');
 });
@@ -4785,7 +4790,6 @@ function showScreen(name) {
   document.getElementById('logoHomeBtn').style.visibility = onWelcome ? 'hidden' : '';
   document.getElementById('headerLogo').style.display = 'none';
   document.getElementById('headerHomeLabel').style.display = onWelcome ? 'none' : '';
-  document.getElementById('briefingInfoBtn').style.display = onWelcome ? '' : 'none';
   menuBtn.dataset.screen = name;
   menuBtn.dataset.mode = gameMode || '';
   // Update header mode icon — full game shows Elevensies logo
@@ -8342,28 +8346,35 @@ document.getElementById('anagramResultCloseBtn').addEventListener('click', () =>
   document.getElementById('anagramResultOverlay').classList.remove('show');
 });
 
-// ===== Reminder bell buttons =====
-const remindBells = ['remindBellWelcome', 'remindBellLobby', 'remindBellCountdown']
-  .map(id => document.getElementById(id)).filter(Boolean);
+// ===== Reminder toggles =====
+const remindBellIds = ['remindBellWelcome', 'remindBellCountdown', 'remindBellLobby'];
+
+function setToggleState(id, on) {
+  const slider = document.getElementById(`${id}-slider`);
+  const knob = document.getElementById(`${id}-knob`);
+  const label = document.getElementById(`${id}-label`);
+  const chk = document.getElementById(id);
+  if (!slider) return;
+  if (chk) chk.checked = on;
+  slider.style.background = on ? 'rgba(240,192,32,0.5)' : 'rgba(240,192,32,0.15)';
+  knob.style.opacity = on ? '1' : '0.4';
+  knob.style.transform = on ? 'translateX(18px)' : '';
+  if (label) label.textContent = on ? 'REMINDER SET' : 'REMIND ME AT 11AM';
+  if (label) label.style.opacity = on ? '1' : '0.6';
+}
 
 async function updateRemindBells() {
   if (!sbClient || !currentUser) {
-    // Not logged in — hide on welcome, show on others with login prompt
-    const welcomeBell = document.getElementById('remindBellWelcome');
-    if (welcomeBell) welcomeBell.style.display = 'none';
+    const wrap = document.getElementById('remindBellWelcome-wrap');
+    if (wrap) wrap.style.display = 'none';
     return;
   }
   const { data } = await sbClient.from('profiles').select('reminders_unsubscribed, email_unsubscribed').eq('id', currentUser.id).single();
   const opted = data && !data.reminders_unsubscribed && !data.email_unsubscribed;
-  remindBells.forEach(btn => {
-    if (!btn) return;
-    btn.style.display = '';
-    btn.textContent = opted ? '🔔 REMINDER SET' : '🔔 REMIND ME AT 11AM';
-    btn.classList.toggle('on', opted);
-  });
+  remindBellIds.forEach(id => setToggleState(id, opted));
 }
 
-async function handleRemindBell() {
+async function handleRemindToggle(id) {
   if (!sbClient || !currentUser) {
     document.getElementById('authOverlay').classList.add('show');
     return;
@@ -8374,21 +8385,15 @@ async function handleRemindBell() {
     reminders_unsubscribed: currentlyOn,
     email_unsubscribed: currentlyOn,
   }).eq('id', currentUser.id);
-  const prefUpdates = document.getElementById('prefUpdates');
-  if (prefUpdates) prefUpdates.checked = currentlyOn ? false : true;
   await updateRemindBells();
-  // Show junk notice when opting IN
-  if (!currentlyOn) showJunkNotice();
+  if (!currentlyOn) showJunkNotice(id);
 }
 
-function showJunkNotice() {
+function showJunkNotice(id) {
   const existing = document.getElementById('junkNotice');
   if (existing) existing.remove();
-
-  // Find the visible bell button that was just clicked
-  const anchor = remindBells.find(b => b && b.offsetParent !== null);
+  const anchor = document.getElementById(`${id}-wrap`);
   if (!anchor) return;
-
   const notice = document.createElement('div');
   notice.id = 'junkNotice';
   notice.className = 'badge-tooltip';
@@ -8398,7 +8403,16 @@ function showJunkNotice() {
   setTimeout(() => { if (notice.parentNode) notice.remove(); }, 6000);
 }
 
-remindBells.forEach(btn => btn && btn.addEventListener('click', handleRemindBell));
+remindBellIds.forEach(id => {
+  const chk = document.getElementById(id);
+  if (chk) chk.addEventListener('change', () => handleRemindToggle(id));
+  // Also wire the wrap div click for better touch target
+  const wrap = document.getElementById(`${id}-wrap`);
+  if (wrap) wrap.addEventListener('click', (e) => {
+    if (e.target === chk) return; // let checkbox handle it
+    handleRemindToggle(id);
+  });
+});
 
 countdownBackBtn.addEventListener('click', () => {
   clearInterval(countdownInterval);
@@ -8746,7 +8760,6 @@ function setupExpandToggle(headerId, bodyId) {
     header.classList.toggle('open', open);
   });
 }
-setupExpandToggle('emailPrefsToggle', 'emailPrefsBody');
 
 // Username save
 document.getElementById('usernameSaveBtn').addEventListener('click', async () => {
@@ -8892,10 +8905,12 @@ document.getElementById('toolsCloseBtn').addEventListener('click', () => {
 });
 document.getElementById('toolsDeleteBtn').addEventListener('click', () => {
   document.getElementById('toolsOverlay').classList.remove('show');
-  // Open account panel and trigger delete flow
   authOverlay.classList.add('show');
-  showAccountPanel();
-  setTimeout(() => document.getElementById('deleteAccountBtn')?.click(), 300);
+  showAccountPanel().then(() => {
+    const wrap = document.getElementById('deleteAccountWrap');
+    if (wrap) wrap.style.display = '';
+    document.getElementById('deleteAccountBtn')?.click();
+  });
 });
 document.getElementById('moreCloseBtn').addEventListener('click', () => {
   document.getElementById('moreOverlay').classList.remove('show');
@@ -9021,19 +9036,6 @@ authSubmitBtn.addEventListener('click', () => {
   }
 });
 signOutBtn.addEventListener('click', handleSignOut);
-
-document.getElementById('emailPrefsSaveBtn').addEventListener('click', async () => {
-  if (!sbClient || !currentUser) return;
-  const on = document.getElementById('prefUpdates').checked;
-  const msg = document.getElementById('emailPrefsMsg');
-  msg.textContent = 'SAVING…';
-  const { error } = await sbClient.from('profiles').update({
-    email_unsubscribed: !on,
-    reminders_unsubscribed: !on,
-  }).eq('id', currentUser.id);
-  msg.textContent = error ? 'COULD NOT SAVE — TRY AGAIN.' : 'SAVED ✓';
-  setTimeout(() => { msg.textContent = ''; }, 2500);
-});
 
 // Delete account
 document.getElementById('deleteAccountBtn').addEventListener('click', () => {
