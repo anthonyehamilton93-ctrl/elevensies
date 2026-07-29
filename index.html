@@ -873,19 +873,21 @@
     text-align: center;
   }
   .sq-toggle {
-    display: flex;
+    display: inline-flex;
     flex-direction: row;
+    flex-wrap: nowrap;
     gap: 2px;
     cursor: pointer;
     flex-shrink: 0;
   }
   .sq-toggle .sq-off,
   .sq-toggle .sq-on {
-    width: 28px;
-    height: 24px;
-    display: flex;
+    display: inline-flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
+    width: 28px;
+    height: 24px;
     font-size: 8px;
     font-weight: 900;
     letter-spacing: 0.06em;
@@ -894,6 +896,7 @@
     background: rgba(240,192,32,0.1);
     border: 1px solid rgba(240,192,32,0.2);
     color: rgba(240,192,32,0.3);
+    white-space: nowrap;
   }
   .sq-toggle[data-on="true"] .sq-on {
     background: #f0c020;
@@ -6498,7 +6501,7 @@ const tileGrid = document.getElementById('tileGrid');
 // Set all logo images from the single embedded data URL
 document.getElementById('headerLogo').src = LOGO_SRC;
 document.getElementById('welcomeLogo').src = LOGO_SRC;
-document.getElementById('statsModeFullGameLogo').src = LOGO_SRC;
+document.getElementById('statsModeFullGameLogo').src = '/icons/games.png';
 
 // Welcome & countdown DOM refs
 const welcomeScreen = document.getElementById('welcomeScreen');
@@ -8645,7 +8648,7 @@ menuBtn.addEventListener('click', async () => {
     menuTitle.textContent = 'FULL GAME';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-fullgame';
-    document.getElementById('menuHowToIcon').src = LOGO_SRC;
+    document.getElementById('menuHowToIcon').src = '/icons/games.png';
     document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
   }
   mainMenuOverlay.classList.add('show');
