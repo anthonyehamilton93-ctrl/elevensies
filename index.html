@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Elevensies — Take a Break, Make a Word.</title>
-<meta name="description" content="Elevensies — take a break, make a word. Score points, build streaks, and top the leaderboard across five word game modes at playelevensies.com">
+<meta name="description" content="Elevensies — take a break, make a word. Score points, build streaks, and reach the Top 11 across five word game modes at playelevensies.com">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://playelevensies.com">
 <meta name="theme-color" content="#1a6b3c">
@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta property="og:title" content="Elevensies — Take a Break, Make a Word.">
-<meta property="og:description" content="Take a break, make a word. Score points, build streaks, and top the leaderboard across five word game modes.">
+<meta property="og:description" content="Take a break, make a word. Score points, build streaks, and reach the Top 11 across five word game modes.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://playelevensies.com">
 <meta property="og:image" content="https://playelevensies.com/og-image.png">
@@ -23,7 +23,7 @@
 <meta property="og:locale" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Elevensies — Take a Break, Make a Word.">
-<meta name="twitter:description" content="Take a break, make a word. Score points, build streaks, and top the leaderboard.">
+<meta name="twitter:description" content="Take a break, make a word. Score points, build streaks, and reach the Top 11.">
 <meta name="twitter:image" content="https://playelevensies.com/og-image.png">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
@@ -2116,7 +2116,7 @@
     <div class="modal-title">PRACTICE</div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
       Same format as the full game — random letters, 11 turns, score as high as you can.<br><br>
-      No streaks, no leaderboard. Play as many times as you like.
+      No streaks, no Top 11. Play as many times as you like.
     </div>
     <button class="auth-submit-btn" id="practiceEntryPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
     <button class="cancel-btn" id="practiceEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
@@ -2161,12 +2161,12 @@
       <div style="font-size:11px;opacity:0.55;margin-top:4px;" id="briefingWordMeta"></div>
     </div>
 
-    <!-- How to play -->
-    <div style="margin-bottom:8px;font-size:12px;letter-spacing:0.05em;line-height:1.7;opacity:0.75;">
-      Make words from your tiles. Score as many points as possible in 11 turns.
-    </div>
-    <div style="margin-bottom:12px;">
-      <button class="auth-submit-btn" id="briefingHowToBtn" style="font-size:11px;">HOW TO PLAY</button>
+    <!-- Top 11 today -->
+    <div style="margin-bottom:14px;text-align:left;">
+      <div style="font-size:9px;letter-spacing:0.14em;opacity:0.45;margin-bottom:8px;text-align:center;" id="briefingTop11Label">TODAY'S TOP 11</div>
+      <div id="briefingTop11List" style="font-size:11px;letter-spacing:0.06em;">
+        <div style="opacity:0.4;text-align:center;">LOADING…</div>
+      </div>
     </div>
 
     <!-- What's new -->
@@ -2184,7 +2184,7 @@
     <div class="modal-title">WHAT'S NEW</div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:8px;opacity:0.85;">
       <strong style="color:var(--gold);">MINI LEAGUES</strong><br>
-      Create a private league with friends and compete on your own leaderboard. Find it in STATS → LEAGUES.
+      Create a private league with friends and compete on your own Top 11. Find it in STATS → LEAGUES.
     </div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:8px;opacity:0.85;">
       <strong style="color:var(--gold);">ELIMINATOR</strong><br>
@@ -2192,7 +2192,7 @@
     </div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
       <strong style="color:var(--gold);">PLAYER PROFILES</strong><br>
-      Tap any player on the leaderboard to see their stats and badges.
+      Tap any player on the Top 11 to see their stats and badges.
     </div>
     <button class="cancel-btn" id="whatsNewCloseBtn">CLOSE</button>
   </div>
@@ -2203,7 +2203,7 @@
   <div class="modal" style="text-align:center;">
     <div class="modal-title">NEW: MINI LEAGUES</div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
-      Create a private league with friends, share a password, and compete on your own leaderboard.<br><br>
+      Create a private league with friends, share a password, and compete on your own Top 11.<br><br>
       Find it in STATS → LEAGUES.
     </div>
     <button class="auth-submit-btn" id="leaguesIntroTryBtn" style="margin-bottom:10px;">TRY IT</button>
@@ -2230,7 +2230,7 @@
   <div class="modal">
     <div class="modal-title">CREATE A FREE ACCOUNT</div>
     <div style="font-size:13px; letter-spacing:0.05em; line-height:1.6; margin-bottom:20px; opacity:0.85;">
-      THE FULL GAME SAVES YOUR SCORES AND PUTS YOU ON THE LEADERBOARD.<br><br>
+      THE FULL GAME SAVES YOUR SCORES AND PUTS YOU IN THE TOP 11.<br><br>
       IT'S FREE AND TAKES 30 SECONDS.
     </div>
     <button class="auth-submit-btn" id="loginGateSignUpBtn" style="margin-bottom:10px;">CREATE ACCOUNT</button>
@@ -2239,12 +2239,12 @@
   </div>
 </div>
 
-<!-- Main menu — context-aware, buttons shown/hidden per screen -->
+<!-- Main menu — context-aware burger -->
 <div class="overlay" id="mainMenuOverlay">
   <div class="modal">
     <div class="modal-title" id="mainMenuTitle">ELEVENSIES</div>
 
-    <!-- Homepage: 3 squares -->
+    <!-- Homepage: GAMES · STATS · OVERVIEW -->
     <div id="menuHomepageGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
       <button id="menuAboutBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
@@ -2258,19 +2258,19 @@
         </div>
         <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">STATS</div>
       </button>
-      <button id="menuAccountBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+      <button id="menuOverviewBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
-          <img src="/icons/profile.png" style="height:40px;width:auto;">
+          <img src="/icons/overview.png" style="height:40px;width:auto;">
         </div>
-        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;" id="menuAccountLabel">ACCOUNT</div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">OVERVIEW</div>
       </button>
     </div>
 
-    <!-- In-game: 3 squares -->
+    <!-- In-game: HOW TO PLAY · STATS · OVERVIEW -->
     <div id="menuIngameGrid" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
       <button id="menuHowToBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
-          <img src="/icons/games.png" style="height:40px;width:auto;">
+          <img id="menuHowToIcon" src="/icons/games.png" style="height:40px;width:auto;">
         </div>
         <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;" id="menuHowToLabel">HOW TO PLAY</div>
       </button>
@@ -2278,26 +2278,97 @@
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/stats.png" style="height:40px;width:auto;">
         </div>
-        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;" id="menuIngameStatsLabel">STATS</div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">STATS</div>
       </button>
-      <button id="menuIngameAccountBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+      <button id="menuIngameOverviewBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/overview.png" style="height:40px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">OVERVIEW</div>
+      </button>
+    </div>
+
+    <!-- Homepage extra content hidden — links moved to MORE -->
+    <div id="menuHomepageExtra" style="display:none;"></div>
+
+    <button class="cancel-btn" id="menuCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- MORE footer overlay — always the same personal hub -->
+<div class="overlay" id="moreOverlay" style="z-index:200;">
+  <div class="modal">
+    <div class="modal-title">MORE</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+      <button id="moreAccountBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/profile.png" style="height:40px;width:auto;">
         </div>
-        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">ACCOUNT</div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;" id="moreAccountLabel">ACCOUNT</div>
+      </button>
+      <button id="moreToolsBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/tools.png" style="height:40px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">TOOLS</div>
+      </button>
+      <button id="moreOverviewBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
+        <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/overview.png" style="height:40px;width:auto;">
+        </div>
+        <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;">OVERVIEW</div>
       </button>
     </div>
-
-    <!-- Homepage extra content -->
-    <div id="menuHomepageExtra" style="border-top:1px solid rgba(240,192,32,0.15);padding-top:12px;margin-bottom:14px;">
+    <div style="border-top:1px solid rgba(240,192,32,0.15);padding-top:12px;margin-bottom:14px;">
       <div style="display:flex;flex-direction:column;gap:4px;">
-        <button id="menuAboutElevenBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">ABOUT ELEVENSIES ›</button>
-        <button id="menuPrivacyBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">PRIVACY POLICY ›</button>
-        <button id="menuContactBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">CONTACT / FEEDBACK ›</button>
+        <button id="moreAboutElevenBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">ABOUT ELEVENSIES ›</button>
+        <button id="morePrivacyBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">PRIVACY POLICY ›</button>
+        <button id="moreContactBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">CONTACT / FEEDBACK ›</button>
+      </div>
+    </div>
+    <button class="cancel-btn" id="moreCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- Tools overlay -->
+<div class="overlay" id="toolsOverlay" style="z-index:2000;">
+  <div class="modal">
+    <div class="modal-title">TOOLS</div>
+
+    <!-- Notifications section -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;margin-bottom:10px;">NOTIFICATIONS</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(240,192,32,0.1);">
+        <div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;">DAILY REMINDER</div>
+          <div style="font-size:10px;opacity:0.5;margin-top:2px;">Email at 10:50am</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
+          <input type="checkbox" id="toolsReminderToggle" style="opacity:0;width:0;height:0;position:absolute;">
+          <span id="toolsReminderSlider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
+          <span id="toolsReminderKnob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+        </label>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+        <div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:0.08em;">WEEKLY ROUNDUP</div>
+          <div style="font-size:10px;opacity:0.5;margin-top:2px;">Email every Monday</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
+          <input type="checkbox" id="toolsRoundupToggle" style="opacity:0;width:0;height:0;position:absolute;">
+          <span id="toolsRoundupSlider" style="position:absolute;inset:0;background:rgba(240,192,32,0.15);border:1px solid rgba(240,192,32,0.3);transition:0.2s;border-radius:11px;"></span>
+          <span id="toolsRoundupKnob" style="position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:#f0c020;opacity:0.4;transition:0.2s;border-radius:50%;"></span>
+        </label>
       </div>
     </div>
 
-    <button class="cancel-btn" id="menuCloseBtn">CLOSE</button>
+    <!-- Danger zone -->
+    <div style="border-top:1px solid rgba(240,192,32,0.15);padding-top:14px;margin-bottom:14px;">
+      <div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;margin-bottom:10px;">ACCOUNT</div>
+      <button id="toolsDeleteBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:#ff7c7c;opacity:0.8;padding:4px 0;text-align:left;">DELETE ACCOUNT ›</button>
+    </div>
+
+    <button class="cancel-btn" id="toolsCloseBtn">CLOSE</button>
   </div>
 </div>
 
@@ -2309,7 +2380,7 @@
       Elevensies is a daily word game designed to make you take a little time out of your busy day and enjoy a well-deserved mid-morning break.
     </p>
     <p style="font-size:13px;letter-spacing:0.05em;line-height:1.8;opacity:0.8;margin-bottom:12px;">
-      Play the Full Game at 11am each day and test your vocabulary skills by climbing the leaderboard, earning streaks and badges, and playing alongside friends through the mini league tables. Or try your hand at the other game modes — Practice, Anagram, Eliminator, and Head to Head.
+      Play the Full Game at 11am each day and test your vocabulary skills by climbing the Top 11, earning streaks and badges, and playing alongside friends through the mini league tables. Or try your hand at the other game modes — Practice, Anagram, Eliminator, and Head to Head.
     </p>
     <p style="font-size:13px;letter-spacing:0.05em;line-height:1.8;opacity:0.8;margin-bottom:20px;">
       Elevensies is created by a solo developer and designer and made available completely free — no ads, no subscriptions, no catch. If you enjoy it, the best thing you can do is tell a friend.
@@ -2397,7 +2468,7 @@
         <div class="how-to-step" id="howToStep0" style="position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:8px;">
           <div style="font-size:13px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;font-weight:700;">ELEVENSIES</div>
           <div style="font-size:28px;font-weight:900;letter-spacing:0.04em;margin-bottom:8px;line-height:1.2;">TAKE A BREAK,<br>MAKE A WORD.</div>
-          <div style="font-size:12px;letter-spacing:0.08em;opacity:0.65;line-height:1.7;">One game per day.<br>Opens 11am. Closes 2pm.<br>Your score goes on the leaderboard.</div>
+          <div style="font-size:12px;letter-spacing:0.08em;opacity:0.65;line-height:1.7;">One game per day.<br>Opens 11am. Closes 2pm.<br>Your score goes on the Top 11.</div>
           <div style="margin-top:20px;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;">
             <div class="how-to-tile how-to-tile-sel">T<span class="how-to-pts">1</span></div>
             <div class="how-to-tile how-to-tile-sel">I<span class="how-to-pts">1</span></div>
@@ -2650,7 +2721,7 @@
           <div style="font-size:12px;letter-spacing:0.07em;line-height:1.8;opacity:0.8;text-align:left;padding:0 16px;">
             Highest score wins the round.<br>
             First to win <strong style="color:var(--gold);">two rounds</strong> wins the match.<br>
-            H2H scores don't affect your leaderboard.
+            H2H scores don't affect your Top 11.
           </div>
         </div>
 
@@ -2802,7 +2873,7 @@
       <button class="lb-tab" id="statsTabLeagues">LEAGUES</button>
     </div>
     <div id="fullGameStatsLoggedOut" style="display:none; font-size:12px; letter-spacing:0.08em; opacity:0.6; margin:12px 0; text-align:center; line-height:1.6;">
-      SIGN IN TO SEE YOUR STATS AND LEADERBOARD POSITION.
+      SIGN IN TO SEE YOUR STATS AND TOP 11 POSITION.
     </div>
 
     <!-- YOUR STATS tab content -->
@@ -3465,8 +3536,10 @@ async function handlePasswordReset() {
 }
 
 function updateAccountButtonLabel() {
-  const label = document.getElementById('menuAccountLabel');
-  if (label) label.textContent = currentUser ? 'ACCOUNT' : 'SIGN IN';
+  const moreLabel = document.getElementById('moreAccountLabel');
+  if (moreLabel) moreLabel.textContent = currentUser ? 'ACCOUNT' : 'SIGN IN';
+  const footerLabel = document.querySelector('#footerAccountBtn span');
+  if (footerLabel) footerLabel.textContent = 'MORE';
 }
 
 async function handleAuthSubmit(mode) {
@@ -3956,7 +4029,7 @@ document.getElementById('leaguesIntroCloseBtn').addEventListener('click', () => 
 const FOOTER_OVERLAYS = {
   footerGamesBtn: 'aboutHomepageOverlay',
   footerStatsBtn: 'statsModeOverlay',
-  footerAccountBtn: 'mainMenuOverlay',
+  footerAccountBtn: 'moreOverlay',
 };
 
 function setFooterActive(id) {
@@ -3984,18 +4057,7 @@ document.getElementById('footerStatsBtn').addEventListener('click', () => {
 });
 document.getElementById('footerAccountBtn').addEventListener('click', () => {
   setFooterActive('footerAccountBtn');
-  // Always show homepage burger — footer MORE is not context-sensitive
-  const menuTitle = document.getElementById('mainMenuTitle');
-  const homepageGrid = document.getElementById('menuHomepageGrid');
-  const ingameGrid = document.getElementById('menuIngameGrid');
-  const homepageExtra = document.getElementById('menuHomepageExtra');
-  menuTitle.textContent = 'ELEVENSIES';
-  homepageGrid.style.display = 'grid';
-  ingameGrid.style.display = 'none';
-  homepageExtra.style.display = '';
-  document.getElementById('menuAboutBtn').dataset.target = 'about-homepage';
-  document.getElementById('menuStatsBtn').dataset.target = 'stats-picker';
-  mainMenuOverlay.classList.add('show');
+  document.getElementById('moreOverlay').classList.add('show');
 });
 // Clear active state when overlays close
 document.getElementById('aboutHomepageCloseBtn').addEventListener('click', clearFooterActive, true);
@@ -4025,7 +4087,7 @@ async function showDailyBriefing() {
 
       const { data } = await client
         .from('game_results')
-        .select('user_id, best_word, best_word_score, history')
+        .select('user_id, best_word, best_word_score, history, total_score')
         .eq('game_status', 'completed')
         .gte('played_at', windowStart.toISOString())
         .lte('played_at', windowEnd.toISOString())
@@ -4050,9 +4112,32 @@ async function showDailyBriefing() {
           document.getElementById('briefingWord').textContent = '—';
           document.getElementById('briefingWordMeta').textContent = '';
         }
+
+        // Top 11 leaderboard
+        const top11 = data
+          .sort((a, b) => b.total_score - a.total_score)
+          .slice(0, 11);
+        const userIds = [...new Set(top11.map(r => r.user_id))];
+        const { data: profiles } = await client.from('profiles').select('id, display_name').in('id', userIds);
+        const nameMap = {};
+        (profiles || []).forEach(p => { nameMap[p.id] = p.display_name; });
+        const top11Label = document.getElementById('briefingTop11Label');
+        top11Label.textContent = isBeforeWindow ? 'YESTERDAY\'S TOP 11' : 'TODAY\'S TOP 11';
+        const top11List = document.getElementById('briefingTop11List');
+        if (top11.length === 0) {
+          top11List.innerHTML = '<div style="opacity:0.4;text-align:center;">NO SCORES YET</div>';
+        } else {
+          top11List.innerHTML = top11.map((r, i) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(240,192,32,0.08);">
+              <span style="opacity:0.4;width:18px;">${i + 1}</span>
+              <span style="flex:1;${r.user_id === currentUser?.id ? 'color:var(--gold);font-weight:700;' : 'opacity:0.8;'}">${nameMap[r.user_id] || '—'}</span>
+              <span style="font-weight:700;color:var(--gold);">${r.total_score}</span>
+            </div>`).join('');
+        }
       } else {
         document.getElementById('briefingWord').textContent = '—';
         document.getElementById('briefingWordMeta').textContent = isBeforeWindow ? 'No games yesterday' : 'No games yet today';
+        document.getElementById('briefingTop11List').innerHTML = '<div style="opacity:0.4;text-align:center;">NO SCORES YET</div>';
       }
     } catch(e) { console.error('Briefing fetch error:', e); }
 }
@@ -4062,10 +4147,6 @@ document.getElementById('briefingInfoBtn').addEventListener('click', () => {
 });
 document.getElementById('briefingCloseBtn').addEventListener('click', () => {
   document.getElementById('dailyBriefingOverlay').classList.remove('show');
-});
-document.getElementById('briefingHowToBtn').addEventListener('click', () => {
-  document.getElementById('dailyBriefingOverlay').classList.remove('show');
-  openHowTo();
 });
 document.getElementById('briefingWhatsNewBtn').addEventListener('click', () => {
   document.getElementById('whatsNewOverlay').classList.add('show');
@@ -6394,13 +6475,6 @@ const leaderboardOverlay = document.getElementById('leaderboardOverlay');
 const leaderboardList = document.getElementById('leaderboardList');
 const leaderboardCloseBtn = document.getElementById('leaderboardCloseBtn');
 const mainMenuOverlay = document.getElementById('mainMenuOverlay');
-const menuAccountBtn = document.getElementById('menuAccountBtn');
-menuAccountBtn.addEventListener('click', () => {
-  mainMenuOverlay.classList.remove('show');
-  authOverlay.classList.add('show');
-  if (currentUser) showAccountPanel();
-  else showAuthForm();
-});
 const menuCloseBtn = document.getElementById('menuCloseBtn');
 const authOverlay = document.getElementById('authOverlay');
 const authCloseBtn = document.getElementById('authCloseBtn');
@@ -8473,21 +8547,25 @@ menuBtn.addEventListener('click', async () => {
     menuTitle.textContent = 'ELIMINATOR';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-eliminator';
+    document.getElementById('menuHowToIcon').src = '/icons/eliminator.png';
     document.getElementById('menuIngameStatsBtn').dataset.target = 'eliminator-stats';
   } else if (screen === 'anagram') {
     menuTitle.textContent = 'ANAGRAM';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-anagram';
+    document.getElementById('menuHowToIcon').src = '/icons/anagram.png';
     document.getElementById('menuIngameStatsBtn').dataset.target = 'anagram-stats';
   } else if (screen === 'game' && mode === 'practice') {
     menuTitle.textContent = 'PRACTICE';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-practice';
+    document.getElementById('menuHowToIcon').src = '/icons/practice.png';
     document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
   } else {
     menuTitle.textContent = 'FULL GAME';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-fullgame';
+    document.getElementById('menuHowToIcon').src = LOGO_SRC;
     document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
   }
   mainMenuOverlay.classList.add('show');
@@ -8771,7 +8849,89 @@ document.getElementById('logoHomeBtn').addEventListener('click', () => {
   startWelcomeLabelTicker();
 });
 
-// In-game menu how-to and account
+// Burger overview buttons — both homepage and in-game
+document.getElementById('menuOverviewBtn').addEventListener('click', () => {
+  mainMenuOverlay.classList.remove('show');
+  showDailyBriefing();
+});
+document.getElementById('menuIngameOverviewBtn').addEventListener('click', () => {
+  mainMenuOverlay.classList.remove('show');
+  showDailyBriefing();
+});
+
+async function openToolsOverlay() {
+  document.getElementById('toolsOverlay').classList.add('show');
+  if (!sbClient || !currentUser) return;
+  const { data } = await sbClient.from('profiles').select('email_unsubscribed, reminders_unsubscribed').eq('id', currentUser.id).single();
+  if (!data) return;
+
+  // Set toggle states
+  const setToggle = (chkId, sliderId, knobId, on) => {
+    document.getElementById(chkId).checked = on;
+    document.getElementById(sliderId).style.background = on ? 'rgba(240,192,32,0.5)' : 'rgba(240,192,32,0.15)';
+    document.getElementById(knobId).style.opacity = on ? '1' : '0.4';
+    document.getElementById(knobId).style.transform = on ? 'translateX(18px)' : '';
+  };
+  setToggle('toolsReminderToggle', 'toolsReminderSlider', 'toolsReminderKnob', !data.reminders_unsubscribed);
+  setToggle('toolsRoundupToggle', 'toolsRoundupSlider', 'toolsRoundupKnob', !data.email_unsubscribed);
+
+  // Wire reminder toggle
+  document.getElementById('toolsReminderToggle').onchange = async (e) => {
+    setToggle('toolsReminderToggle', 'toolsReminderSlider', 'toolsReminderKnob', e.target.checked);
+    await sbClient.from('profiles').update({ reminders_unsubscribed: !e.target.checked }).eq('id', currentUser.id);
+  };
+  // Wire roundup toggle
+  document.getElementById('toolsRoundupToggle').onchange = async (e) => {
+    setToggle('toolsRoundupToggle', 'toolsRoundupSlider', 'toolsRoundupKnob', e.target.checked);
+    await sbClient.from('profiles').update({ email_unsubscribed: !e.target.checked }).eq('id', currentUser.id);
+  };
+}
+
+document.getElementById('toolsCloseBtn').addEventListener('click', () => {
+  document.getElementById('toolsOverlay').classList.remove('show');
+});
+document.getElementById('toolsDeleteBtn').addEventListener('click', () => {
+  document.getElementById('toolsOverlay').classList.remove('show');
+  // Open account panel and trigger delete flow
+  authOverlay.classList.add('show');
+  showAccountPanel();
+  setTimeout(() => document.getElementById('deleteAccountBtn')?.click(), 300);
+});
+document.getElementById('moreCloseBtn').addEventListener('click', () => {
+  document.getElementById('moreOverlay').classList.remove('show');
+  clearFooterActive();
+});
+document.getElementById('moreAccountBtn').addEventListener('click', () => {
+  document.getElementById('moreOverlay').classList.remove('show');
+  authOverlay.classList.add('show');
+  if (currentUser) showAccountPanel();
+  else showAuthForm();
+});
+document.getElementById('moreToolsBtn').addEventListener('click', () => {
+  document.getElementById('moreOverlay').classList.remove('show');
+  if (!currentUser) {
+    authOverlay.classList.add('show');
+    showAuthForm();
+  } else {
+    openToolsOverlay();
+  }
+});
+document.getElementById('moreOverviewBtn').addEventListener('click', () => {
+  document.getElementById('moreOverlay').classList.remove('show');
+  showDailyBriefing();
+});
+document.getElementById('moreAboutElevenBtn').addEventListener('click', () => {
+  document.getElementById('moreOverlay').classList.remove('show');
+  document.getElementById('aboutElevenOverlay').classList.add('show');
+});
+document.getElementById('morePrivacyBtn').addEventListener('click', () => {
+  document.getElementById('moreOverlay').classList.remove('show');
+  window.open('https://ksniuexnzikitbadttxx.supabase.co/storage/v1/object/public/Privacy%20Policy/elevensies_privacy_policy.pdf', '_blank');
+});
+document.getElementById('moreContactBtn').addEventListener('click', () => {
+  document.getElementById('moreOverlay').classList.remove('show');
+  document.getElementById('contactOverlay').classList.add('show');
+});
 document.getElementById('menuHowToBtn').addEventListener('click', () => {
   mainMenuOverlay.classList.remove('show');
   const target = document.getElementById('menuHowToBtn').dataset.target;
@@ -8789,28 +8949,10 @@ document.getElementById('menuIngameStatsBtn').addEventListener('click', async ()
   if (target === 'anagram-stats') await openAnagramStats();
   else await openFullGameStats();
 });
-document.getElementById('menuIngameAccountBtn').addEventListener('click', () => {
-  mainMenuOverlay.classList.remove('show');
-  authOverlay.classList.add('show');
-  if (currentUser) showAccountPanel();
-  else showAuthForm();
-});
 
 // Homepage extra links
-document.getElementById('menuAboutElevenBtn').addEventListener('click', () => {
-  mainMenuOverlay.classList.remove('show');
-  document.getElementById('aboutElevenOverlay').classList.add('show');
-});
 document.getElementById('aboutElevenCloseBtn').addEventListener('click', () => {
   document.getElementById('aboutElevenOverlay').classList.remove('show');
-});
-document.getElementById('menuPrivacyBtn').addEventListener('click', () => {
-  mainMenuOverlay.classList.remove('show');
-  window.open('https://ksniuexnzikitbadttxx.supabase.co/storage/v1/object/public/Privacy%20Policy/elevensies_privacy_policy.pdf', '_blank');
-});
-document.getElementById('menuContactBtn').addEventListener('click', () => {
-  mainMenuOverlay.classList.remove('show');
-  document.getElementById('contactOverlay').classList.add('show');
 });
 document.getElementById('contactCloseBtn').addEventListener('click', () => {
   document.getElementById('contactOverlay').classList.remove('show');
