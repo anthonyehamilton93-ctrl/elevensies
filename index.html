@@ -3715,7 +3715,8 @@ async function showAccountPanel() {
     .eq('id', currentUser.id)
     .single();
   if (profile && profile.display_name) document.getElementById('usernameInput').value = profile.display_name;
-  document.getElementById('prefUpdates').checked = !profile?.email_unsubscribed;
+  const prefEl = document.getElementById('prefUpdates');
+  if (prefEl) prefEl.checked = !profile?.email_unsubscribed;
 }
 
 // ===== Full Game Stats overlay =====
