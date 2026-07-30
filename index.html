@@ -4324,8 +4324,9 @@ async function openLeagueDetail(leagueId) {
         avgWordByUser[r.user_id].push(r.avg_points_per_word);
       }
       if (r.played_at && windowOpen) {
-        const playedMs = new Date(r.played_at).getTime();
-        if (playedMs >= todayWindowStart.getTime()) {
+        const playedDate = new Date(r.played_at);
+        const playedLocalDate = `${playedDate.getFullYear()}-${String(playedDate.getMonth()+1).padStart(2,'0')}-${String(playedDate.getDate()).padStart(2,'0')}`;
+        if (playedLocalDate === today) {
           if (todayByUser[r.user_id] === undefined || r.total_score > todayByUser[r.user_id]) {
             todayByUser[r.user_id] = r.total_score;
             todayWordsByUser[r.user_id] = Array.isArray(r.history) ? r.history : [];
@@ -4442,7 +4443,7 @@ async function openLeagueDetail(leagueId) {
           const words = todayWordsByUser[uid];
           const panel = document.createElement('div');
           panel.dataset.wordsFor = uid;
-          panel.style.cssText = 'background:#0f3d1a;padding:8px 12px;margin-bottom:2px;';
+          panel.style.cssText = 'background:#155c33;border-top:1px solid rgba(240,192,32,0.1);padding:8px 12px;margin-bottom:2px;';
           if (!words || words.length === 0) {
             panel.innerHTML = '<div style="font-size:10px;opacity:0.4;text-align:center;">NO WORDS RECORDED</div>';
           } else {
@@ -7427,15 +7428,19 @@ async function loadLeaderboard(targetEl, mode) {
       if (!map[row.user_id].allDoubleDigit && Array.isArray(row.history) && row.history.length > 0) {
         if (row.history.every(h => h.score >= 10)) map[row.user_id].allDoubleDigit = true;
       }
-      // TODAY: show if played since today's 11am local — once window opens, all today's scores visible
+      // TODAY: show any score played on today's local date, but only after 11am opens
       if (row.played_at) {
         const now = new Date();
         const todayWindowStart = new Date(now);
         todayWindowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
-        const playedMs = new Date(row.played_at).getTime();
-        if (now >= todayWindowStart && playedMs >= todayWindowStart.getTime()) {
-          if (map[row.user_id].today_score === null || row.total_score > map[row.user_id].today_score) {
-            map[row.user_id].today_score = row.total_score;
+        if (now >= todayWindowStart) {
+          const playedDate = new Date(row.played_at);
+          const playedLocalDate = `${playedDate.getFullYear()}-${String(playedDate.getMonth()+1).padStart(2,'0')}-${String(playedDate.getDate()).padStart(2,'0')}`;
+          const todayLocal = todayString();
+          if (playedLocalDate === todayLocal) {
+            if (map[row.user_id].today_score === null || row.total_score > map[row.user_id].today_score) {
+              map[row.user_id].today_score = row.total_score;
+            }
           }
         }
       }
