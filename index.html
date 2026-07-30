@@ -1782,19 +1782,37 @@
 <div class="overlay" id="playerProfileOverlay" style="z-index:3000;">
   <div class="modal">
     <div class="modal-title" id="playerProfileName">—</div>
-    <div class="account-stats" id="playerProfileStats" style="margin-bottom:12px;"></div>
-    <div class="expand-section" id="playerProfileBadgesSection" style="display:none;">
-      <div class="expand-header" id="playerProfileBadgesToggle">BADGES <span class="expand-arrow">▼</span></div>
-      <div class="expand-body" id="playerProfileBadgesBody">
-        <div class="badges-grid" id="playerProfileBadgesGrid"></div>
+
+    <!-- Toggle: STATS | TODAY'S WORDS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:14px;" id="playerProfileToggle">
+      <button id="playerProfileStatsTab" onclick="switchProfileTab('stats')" style="background:#f0c020;color:#155c33;border:none;font-family:inherit;font-size:10px;font-weight:900;letter-spacing:0.1em;padding:8px 0;cursor:pointer;">STATS</button>
+      <button id="playerProfileWordsTab" onclick="switchProfileTab('words')" style="background:rgba(240,192,32,0.12);color:rgba(240,192,32,0.4);border:none;font-family:inherit;font-size:10px;font-weight:900;letter-spacing:0.1em;padding:8px 0;cursor:pointer;">TODAY'S WORDS</button>
+    </div>
+
+    <!-- Stats panel -->
+    <div id="playerProfileStatsPanel">
+      <div class="account-stats" id="playerProfileStats" style="margin-bottom:12px;"></div>
+      <div class="expand-section" id="playerProfileBadgesSection" style="display:none;">
+        <div class="expand-header" id="playerProfileBadgesToggle">BADGES <span class="expand-arrow">▼</span></div>
+        <div class="expand-body" id="playerProfileBadgesBody">
+          <div class="badges-grid" id="playerProfileBadgesGrid"></div>
+        </div>
+      </div>
+      <div class="expand-section" id="playerProfileBestSection" style="display:none;margin-top:8px;">
+        <div class="expand-header" id="playerProfileBestToggle">BEST SCORES <span class="expand-arrow">▼</span></div>
+        <div class="expand-body" id="playerProfileBestBody">
+          <div id="playerProfileBestList"></div>
+        </div>
       </div>
     </div>
-    <div class="expand-section" id="playerProfileBestSection" style="display:none;margin-top:8px;">
-      <div class="expand-header" id="playerProfileBestToggle">BEST SCORES <span class="expand-arrow">▼</span></div>
-      <div class="expand-body" id="playerProfileBestBody">
-        <div id="playerProfileBestList"></div>
+
+    <!-- Today's words panel -->
+    <div id="playerProfileWordsPanel" style="display:none;">
+      <div id="playerProfileWordsList" style="font-size:11px;letter-spacing:0.06em;">
+        <div style="opacity:0.4;text-align:center;padding:16px 0;">NO WORDS TODAY</div>
       </div>
     </div>
+
     <button class="cancel-btn" id="playerProfileCloseBtn" style="margin-top:16px;">CLOSE</button>
   </div>
 </div>
@@ -3897,6 +3915,28 @@ async function openFullGameStats() {
   }
 }
 
+function switchProfileTab(tab) {
+  const statsPanel = document.getElementById('playerProfileStatsPanel');
+  const wordsPanel = document.getElementById('playerProfileWordsPanel');
+  const statsTab = document.getElementById('playerProfileStatsTab');
+  const wordsTab = document.getElementById('playerProfileWordsTab');
+  if (tab === 'stats') {
+    statsPanel.style.display = '';
+    wordsPanel.style.display = 'none';
+    statsTab.style.background = '#f0c020';
+    statsTab.style.color = '#155c33';
+    wordsTab.style.background = 'rgba(240,192,32,0.12)';
+    wordsTab.style.color = 'rgba(240,192,32,0.4)';
+  } else {
+    statsPanel.style.display = 'none';
+    wordsPanel.style.display = '';
+    wordsTab.style.background = '#f0c020';
+    wordsTab.style.color = '#155c33';
+    statsTab.style.background = 'rgba(240,192,32,0.12)';
+    statsTab.style.color = 'rgba(240,192,32,0.4)';
+  }
+}
+
 async function openPlayerProfile(uid) {
   const overlay = document.getElementById('playerProfileOverlay');
   document.getElementById('playerProfileName').textContent = '…';
@@ -3907,6 +3947,8 @@ async function openPlayerProfile(uid) {
   document.getElementById('playerProfileBestBody').classList.remove('open');
   document.getElementById('playerProfileBadgesToggle').classList.remove('open');
   document.getElementById('playerProfileBestToggle').classList.remove('open');
+  document.getElementById('playerProfileWordsList').innerHTML = '<div style="opacity:0.4;text-align:center;padding:16px 0;">LOADING…</div>';
+  switchProfileTab('stats');
   overlay.classList.add('show');
 
   // Fetch profile
@@ -4060,6 +4102,33 @@ async function openPlayerProfile(uid) {
     const toggle = document.getElementById('playerProfileBestToggle');
     const body = document.getElementById('playerProfileBestBody');
     toggle.onclick = () => { const open = body.classList.toggle('open'); toggle.classList.toggle('open', open); };
+  }
+
+  // Today's words
+  const nowP = new Date();
+  const todayStart = new Date(nowP); todayStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+  const windowOpenP = nowP >= todayStart;
+  const todayStr = `${nowP.getFullYear()}-${String(nowP.getMonth()+1).padStart(2,'0')}-${String(nowP.getDate()).padStart(2,'0')}`;
+  const todayGame = windowOpenP ? completed.find(r => {
+    const d = new Date(r.played_at);
+    const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return ds === todayStr;
+  }) : null;
+  const wordsList = document.getElementById('playerProfileWordsList');
+  if (!todayGame) {
+    wordsList.innerHTML = `<div style="opacity:0.4;text-align:center;padding:16px 0;">${windowOpenP ? "HASN'T PLAYED TODAY" : 'WINDOW NOT OPEN YET'}</div>`;
+  } else {
+    const words = Array.isArray(todayGame.history) ? todayGame.history : [];
+    if (words.length === 0) {
+      wordsList.innerHTML = '<div style="opacity:0.4;text-align:center;padding:16px 0;">NO WORDS RECORDED</div>';
+    } else {
+      wordsList.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">${
+        words.map(w => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(240,192,32,0.08);">
+          <span style="font-size:11px;letter-spacing:0.06em;">${w.word}</span>
+          <span style="font-size:11px;opacity:0.6;">${w.score}</span>
+        </div>`).join('')
+      }</div>`;
+    }
   }
 }
 
@@ -4420,45 +4489,13 @@ async function openLeagueDetail(leagueId) {
             <span class="lb-games" style="text-align:center;">${u.streak||'—'}</span>
             <span class="lb-games" style="${u.today!==undefined?'color:var(--gold);':'opacity:0.3;'}">${todayVal}</span>
             <span class="lb-score">${scoreVal}</span>
-          </div>${hasWords ? `<div style="text-align:right;padding:2px 0 6px;border-bottom:1px solid rgba(240,192,32,0.08);">
-            <button data-words-btn="${u.uid}" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:9px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.5;padding:2px 4px;">WORDS ›</button>
-          </div>` : ''}`;
+          </div>`;
         }).join('');
 
       board.querySelectorAll('[data-uid]').forEach(row => {
-        row.addEventListener('click', (e) => {
-          // If clicking the words button, don't open profile
-          if (e.target.closest('[data-words-btn]')) return;
-          openPlayerProfile(row.dataset.uid);
-        });
+        row.addEventListener('click', () => openPlayerProfile(row.dataset.uid));
       });
 
-      // Wire words expand buttons
-      board.querySelectorAll('[data-words-btn]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const uid = btn.dataset.wordsBtn;
-          const existingPanel = board.querySelector(`[data-words-for="${uid}"]`);
-          // Toggle
-          if (existingPanel) { existingPanel.remove(); btn.textContent = 'WORDS ›'; return; }
-          board.querySelectorAll('[data-words-for]').forEach(el => el.remove());
-          board.querySelectorAll('[data-words-btn]').forEach(b => { b.textContent = 'WORDS ›'; });
-          const words = todayWordsByUser[uid];
-          const panel = document.createElement('div');
-          panel.dataset.wordsFor = uid;
-          panel.style.cssText = 'background:#155c33;border-top:1px solid rgba(240,192,32,0.1);padding:8px 12px;margin-bottom:2px;';
-          if (!words || words.length === 0) {
-            panel.innerHTML = '<div style="font-size:10px;opacity:0.4;text-align:center;">NO WORDS RECORDED</div>';
-          } else {
-            panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">${
-              words.map(w => `<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(240,192,32,0.06);"><span style="font-size:10px;letter-spacing:0.04em;">${w.word}</span><span style="font-size:10px;opacity:0.6;">${w.score}</span></div>`).join('')
-            }</div>`;
-          }
-          const row = board.querySelector(`[data-uid="${uid}"]`);
-          if (row) row.parentNode.insertBefore(panel, row.nextSibling);
-          btn.textContent = 'HIDE ↑';
-        });
-      });
       document.getElementById('leagueLbAvg')?.addEventListener('click', () => { leagueLbMode.current='avg'; renderLeagueBoard('avg'); });
       document.getElementById('leagueLbBest')?.addEventListener('click', () => { leagueLbMode.current='best'; renderLeagueBoard('best'); });
     }
