@@ -801,7 +801,7 @@
   }
     text-align: center;
   }
-  #newPasswordInput::placeholder { color: #155c33; opacity: 1; }
+  #newPasswordInput::placeholder { color: rgba(240,192,32,0.35); opacity: 1; }
   #contactName::placeholder, #contactEmail::placeholder, #contactMessage::placeholder {
     color: rgba(240,192,32,0.35) !important;
     opacity: 1 !important;
@@ -1596,7 +1596,7 @@
       <span id="remindBellWelcome-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
     </div>
     <button class="welcome-btn secondary" id="moreGamesBtn">MORE GAMES</button>
-    <div class="welcome-btn-label">HEAD TO HEAD · ELIMINATOR · MORE</div>
+    <div class="welcome-btn-label">HEAD TO HEAD · SURVIVAL · MORE</div>
   </div>
 
   <!-- Countdown screen (shown when full game chosen outside window) -->
@@ -1617,7 +1617,7 @@
   <div class="game-board" id="gameBoard">
 
   <!-- Played-today lobby (shown instead of the game when already played today) -->
-  <div id="playedTodayLobby" style="display:none; flex-direction:column; align-items:center; text-align:center; width:260px; flex:1; justify-content:center; padding:60px 0 40px;">
+  <div id="playedTodayLobby" style="display:none; flex-direction:column; align-items:center; text-align:center; width:260px; flex:1; padding:80px 0 40px;">
     <div style="font-size:12px; letter-spacing:0.25em; opacity:0.7; margin-bottom:10px; font-weight:700;">TODAY'S GAME</div>
     <div style="font-size:88px; font-weight:900; letter-spacing:0.02em; line-height:1; margin-bottom:4px; color:var(--gold);" id="lobbyScore">—</div>
     <div id="lobbyScoreLoading" style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:4px;display:none;">LOADING…</div>
@@ -1625,13 +1625,13 @@
     <button class="lobby-details-btn" id="lobbyDetailsBtn">BREAKDOWN</button>
     <div style="font-size:12px; letter-spacing:0.25em; opacity:0.7; margin-bottom:6px; margin-top:40px; font-weight:700;">NEXT GAME IN</div>
     <div style="font-size:48px; font-weight:900; letter-spacing:0.05em; margin-bottom:28px; color:var(--gold);" id="lobbyCountdown">--:--:--</div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;" id="remindBellLobby-wrap">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:0;" id="remindBellLobby-wrap">
       <div class="sq-toggle" id="remindBellLobby" data-on="false" onclick="handleRemindToggle('remindBellLobby')">
         <span class="sq-off">OFF</span><span class="sq-on">ON</span>
       </div>
       <span id="remindBellLobby-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
     </div>
-    <button class="practice-back-btn visible" id="lobbyBackBtn">BACK</button>
+    <button class="practice-back-btn visible" id="lobbyBackBtn" style="margin-top:48px;">BACK</button>
   </div>
 
   <!-- H2H in-game scorebar (shown only during H2H rounds) -->
@@ -1852,7 +1852,7 @@
         <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/eliminator.png" style="height:48px;width:auto;">
         </div>
-        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">MAKE AN 11-POINT WORD<br>OR YOU'RE ELIMINATED.</div>
+        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">MAKE AN 11-POINT WORD<br>OR YOU'RE OUT.</div>
         <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">SURVIVAL</div>
       </button>
 
@@ -4176,10 +4176,10 @@ async function showDailyBriefing() {
           top11List.innerHTML = '<div style="opacity:0.4;text-align:center;">NO SCORES YET</div>';
         } else {
           top11List.innerHTML = top11.map((r, i) => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(240,192,32,0.08);">
-              <span style="opacity:0.4;width:18px;">${i + 1}</span>
-              <span style="flex:1;${r.user_id === currentUser?.id ? 'color:var(--gold);font-weight:700;' : 'opacity:0.8;'}">${nameMap[r.user_id] || '—'}</span>
-              <span style="font-weight:700;color:var(--gold);">${r.total_score}</span>
+            <div style="display:flex;align-items:center;padding:3px 0;border-bottom:1px solid rgba(240,192,32,0.08);">
+              <span style="opacity:0.4;font-size:10px;width:16px;flex-shrink:0;">${i + 1}</span>
+              <span style="flex:1;font-size:11px;letter-spacing:0.04em;${r.user_id === currentUser?.id ? 'color:var(--gold);font-weight:700;' : 'opacity:0.8;'}overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nameMap[r.user_id] || '—'}</span>
+              <span style="font-size:11px;font-weight:700;color:var(--gold);margin-left:8px;">${r.total_score}</span>
             </div>`).join('');
         }
       } else {
@@ -4404,8 +4404,7 @@ async function openLeagueDetail(leagueId) {
           const row2 = Array.from({length:5},(_,j)=>mkPip(j+5<u.badgeCount)).join('');
           const row3 = `<span style="display:flex;justify-content:center;">${mkPip(10<u.badgeCount)}</span>`;
           const pipGrid = `<span style="display:flex;flex-direction:column;gap:2px;align-items:stretch;justify-self:center;"><span style="display:flex;gap:2px;">${row1}</span><span style="display:flex;gap:2px;">${row2}</span>${row3}</span>`;
-          const scoreVal = mode==='avg' ? (u.played?u.avg.toFixed(0):'—') : (u.played?u.best:'—');
-          const todayVal = u.today !== undefined ? u.today : '—';
+          const hasWords = todayWordsByUser[u.uid] && todayWordsByUser[u.uid].length > 0;
           return `<div class="lb-row" style="grid-template-columns:${GRID};cursor:pointer;" data-uid="${u.uid}">
             <span class="lb-rank">${i+1}</span>
             <span class="lb-name"><span class="lb-name-text">${u.name}${isYou?' ★':''}</span></span>
@@ -4414,39 +4413,43 @@ async function openLeagueDetail(leagueId) {
             <span class="lb-games" style="text-align:center;">${u.streak||'—'}</span>
             <span class="lb-games" style="${u.today!==undefined?'color:var(--gold);':'opacity:0.3;'}">${todayVal}</span>
             <span class="lb-score">${scoreVal}</span>
-          </div>`;
+          </div>${hasWords ? `<div style="text-align:right;padding:2px 0 6px;border-bottom:1px solid rgba(240,192,32,0.08);">
+            <button data-words-btn="${u.uid}" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:9px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.5;padding:2px 4px;">WORDS ›</button>
+          </div>` : ''}`;
         }).join('');
 
       board.querySelectorAll('[data-uid]').forEach(row => {
-        row.addEventListener('click', () => {
-          const uid = row.dataset.uid;
-          const existingWords = row.nextElementSibling;
-          // Toggle — close if already open
-          if (existingWords && existingWords.dataset.wordsFor === uid) {
-            existingWords.remove();
-            return;
-          }
-          // Remove any other open words panel
+        row.addEventListener('click', (e) => {
+          // If clicking the words button, don't open profile
+          if (e.target.closest('[data-words-btn]')) return;
+          openPlayerProfile(row.dataset.uid);
+        });
+      });
+
+      // Wire words expand buttons
+      board.querySelectorAll('[data-words-btn]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const uid = btn.dataset.wordsBtn;
+          const existingPanel = board.querySelector(`[data-words-for="${uid}"]`);
+          // Toggle
+          if (existingPanel) { existingPanel.remove(); btn.textContent = 'WORDS ›'; return; }
           board.querySelectorAll('[data-words-for]').forEach(el => el.remove());
+          board.querySelectorAll('[data-words-btn]').forEach(b => { b.textContent = 'WORDS ›'; });
           const words = todayWordsByUser[uid];
-          if (!words || words.length === 0) {
-            if (todayByUser[uid] === undefined) return; // hasn't played
-          }
           const panel = document.createElement('div');
           panel.dataset.wordsFor = uid;
-          panel.style.cssText = 'background:#0f3d1a;padding:8px 12px;margin-bottom:4px;';
+          panel.style.cssText = 'background:#0f3d1a;padding:8px 12px;margin-bottom:2px;';
           if (!words || words.length === 0) {
             panel.innerHTML = '<div style="font-size:10px;opacity:0.4;text-align:center;">NO WORDS RECORDED</div>';
           } else {
-            panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;">
-              ${words.map(w => `
-                <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(240,192,32,0.06);">
-                  <span style="font-size:11px;letter-spacing:0.06em;">${w.word}</span>
-                  <span style="font-size:11px;opacity:0.6;">${w.score}</span>
-                </div>`).join('')}
-            </div>`;
+            panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">${
+              words.map(w => `<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(240,192,32,0.06);"><span style="font-size:10px;letter-spacing:0.04em;">${w.word}</span><span style="font-size:10px;opacity:0.6;">${w.score}</span></div>`).join('')
+            }</div>`;
           }
-          row.parentNode.insertBefore(panel, row.nextSibling);
+          const row = board.querySelector(`[data-uid="${uid}"]`);
+          if (row) row.parentNode.insertBefore(panel, row.nextSibling);
+          btn.textContent = 'HIDE ↑';
         });
       });
       document.getElementById('leagueLbAvg')?.addEventListener('click', () => { leagueLbMode.current='avg'; renderLeagueBoard('avg'); });
@@ -9740,8 +9743,10 @@ async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
   // Words played (up to 11, two columns)
   if (elimHistory.length > 0) {
     const wordY = resultY + 130;
+    // Sort by score descending, take best 11
+    const best11 = [...elimHistory].sort((a, b) => b.pts - a.pts).slice(0, 11);
     ctx.font = '700 26px Jost'; ctx.fillStyle = gold;
-    elimHistory.forEach((h, i) => {
+    best11.forEach((h, i) => {
       const col = i < 6 ? 0 : 1;
       const row = i < 6 ? i : i - 6;
       const x = col === 0 ? W/4 : 3*W/4;
