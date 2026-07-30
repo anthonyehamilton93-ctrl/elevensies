@@ -4311,6 +4311,7 @@ async function openLeagueDetail(leagueId) {
     const now = new Date();
     const todayWindowStart = new Date(now);
     todayWindowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+    const windowOpen = now >= todayWindowStart;
     const scoresByUser = {};
     const todayByUser = {};
     const todayWordsByUser = {};
@@ -4322,7 +4323,7 @@ async function openLeagueDetail(leagueId) {
         if (!avgWordByUser[r.user_id]) avgWordByUser[r.user_id] = [];
         avgWordByUser[r.user_id].push(r.avg_points_per_word);
       }
-      if (r.played_at) {
+      if (r.played_at && windowOpen) {
         const playedMs = new Date(r.played_at).getTime();
         if (playedMs >= todayWindowStart.getTime()) {
           if (todayByUser[r.user_id] === undefined || r.total_score > todayByUser[r.user_id]) {
@@ -4404,6 +4405,8 @@ async function openLeagueDetail(leagueId) {
           const row2 = Array.from({length:5},(_,j)=>mkPip(j+5<u.badgeCount)).join('');
           const row3 = `<span style="display:flex;justify-content:center;">${mkPip(10<u.badgeCount)}</span>`;
           const pipGrid = `<span style="display:flex;flex-direction:column;gap:2px;align-items:stretch;justify-self:center;"><span style="display:flex;gap:2px;">${row1}</span><span style="display:flex;gap:2px;">${row2}</span>${row3}</span>`;
+          const scoreVal = mode==='avg' ? (u.played?u.avg.toFixed(0):'—') : (u.played?u.best:'—');
+          const todayVal = u.today !== undefined ? u.today : '—';
           const hasWords = todayWordsByUser[u.uid] && todayWordsByUser[u.uid].length > 0;
           return `<div class="lb-row" style="grid-template-columns:${GRID};cursor:pointer;" data-uid="${u.uid}">
             <span class="lb-rank">${i+1}</span>
@@ -7424,16 +7427,13 @@ async function loadLeaderboard(targetEl, mode) {
       if (!map[row.user_id].allDoubleDigit && Array.isArray(row.history) && row.history.length > 0) {
         if (row.history.every(h => h.score >= 10)) map[row.user_id].allDoubleDigit = true;
       }
-      // TODAY: only show if played in today's local game window (11am-2pm local)
+      // TODAY: show if played since today's 11am local — once window opens, all today's scores visible
       if (row.played_at) {
         const now = new Date();
         const todayWindowStart = new Date(now);
         todayWindowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
-        const todayWindowEnd = new Date(now);
-        todayWindowEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
         const playedMs = new Date(row.played_at).getTime();
-        // Score counts if played after today's window opened
-        if (playedMs >= todayWindowStart.getTime()) {
+        if (now >= todayWindowStart && playedMs >= todayWindowStart.getTime()) {
           if (map[row.user_id].today_score === null || row.total_score > map[row.user_id].today_score) {
             map[row.user_id].today_score = row.total_score;
           }
