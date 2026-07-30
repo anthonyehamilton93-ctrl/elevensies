@@ -4127,11 +4127,14 @@ async function showDailyBriefing() {
   const client = sbClient;
   if (!client) return;
   try {
-      const windowStart = new Date(now);
-      if (isBeforeWindow) windowStart.setDate(windowStart.getDate() - 1);
-      windowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
-      const windowEnd = new Date(windowStart);
-      windowEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
+
+      // Fetch all of today's (or yesterday's) results by date, not strict window
+      const targetDate = new Date(now);
+      if (isBeforeWindow) targetDate.setDate(targetDate.getDate() - 1);
+      const dateStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`;
+      // Fetch a broad window (midnight to midnight UTC) then filter by local date
+      const windowStart = new Date(dateStr + 'T00:00:00.000Z');
+      const windowEnd = new Date(dateStr + 'T23:59:59.999Z');
 
       const { data } = await client
         .from('game_results')
