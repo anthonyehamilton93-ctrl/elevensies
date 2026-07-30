@@ -3864,7 +3864,7 @@ async function openFullGameStats() {
 
   // Elevensies: played the word ELEVENSIES
   const elevensiesEarned = hasBadge('elevensies') || completed.some(r =>
-    Array.isArray(r.history) && r.history.some(h => h.word && h.word.toUpperCase() === 'ELEVENSIES'));
+    Array.isArray(r.history) && r.history.some(h => h.word && h.word.toUpperCase() === 'ELEVEN'));
 
   // Favourite: same word played 11 times across all games
   const wordCounts = {};
@@ -6867,7 +6867,7 @@ const BADGE_DEFS = [
   { id: 'wordsmith',  name: 'WORDSMITH',   abbr: 'WRD', desc: 'Average word score over 11 points',                   check: (s) => s.avgWord > 11 },
   { id: 'avid',       name: 'AVID',        abbr: 'AVD', desc: 'Play at least once a week for 11 straight weeks',     check: (s) => s.avidEarned },
   { id: 'doubledown', name: 'DOUBLES',     abbr: 'DBL', desc: 'Complete a game with every word scoring 10+',         check: (s) => s.allDoubleDigit },
-  { id: 'elevensies', name: 'ELEVENSIES',  abbr: 'ELE', desc: 'Play the word ELEVENSIES',                            check: (s) => s.elevensiesEarned },
+  { id: 'elevensies', name: 'ELEVENSIES',  abbr: 'ELE', desc: 'Play the word ELEVEN',                                check: (s) => s.elevensiesEarned },
   { id: 'favourite',  name: 'FAVOURITE',   abbr: 'FAV', desc: 'Play the same word 11 times across all games',        check: (s) => s.favouriteEarned },
   { id: 'spotter',    name: 'SPOTTER',     abbr: 'SPT', desc: 'Play the best possible word in a game',               check: (s) => s.foundBestWord },
   { id: 'purist',     name: 'PURIST',      abbr: 'PUR', desc: 'Score over 120 without using the bonus letter',       check: (s) => s.puristEarned },
@@ -7724,7 +7724,7 @@ async function showGameOver() {
       { id: 'spotter',    abbr: 'SPT', name: 'SPOTTER',     condition: !!localStorage.getItem('elevensies_spotter_just_earned') },
       { id: 'centurion',  abbr: 'CEN', name: 'CENTURION',   condition: !!localStorage.getItem('elevensies_centurion_just_earned') },
       { id: 'expert',     abbr: 'EXP', name: 'EXPERT',      condition: history.some(h => h.word && h.word.length === 11) },
-      { id: 'elevensies', abbr: 'ELE', name: 'ELEVENSIES',  condition: history.some(h => h.word && h.word.toUpperCase() === 'ELEVENSIES') },
+      { id: 'elevensies', abbr: 'ELE', name: 'ELEVENSIES',  condition: history.some(h => h.word && h.word.toUpperCase() === 'ELEVEN') },
     ];
     for (const b of badgeChecks) {
       if (b.condition) {
