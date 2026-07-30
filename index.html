@@ -1571,7 +1571,7 @@
   <!-- Header — always visible so burger menu is accessible on all screens -->
   <div class="header" id="appHeader">
     <button class="logo-btn" id="logoHomeBtn">
-      <img id="headerLogo" alt="Elevensies">
+      <div id="headerLogo" style="display:none;font-size:18px;font-weight:900;letter-spacing:0.2em;color:var(--gold);font-family:'Jost',sans-serif;">ELEVENSIES</div>
       <img id="headerHomeLabel" src="/icons/home.png" style="display:none;width:28px;height:28px;object-fit:contain;">
     </button>
     <div id="headerModeIcon" style="display:none;opacity:0.7;align-items:center;justify-content:center;"></div>
@@ -1585,7 +1585,7 @@
   <!-- Welcome screen -->
   <div class="welcome-screen" id="welcomeScreen">
     <div class="welcome-title">WELCOME TO</div>
-    <div class="welcome-logo"><img id="welcomeLogo" alt="Elevensies"></div>
+    <div class="welcome-logo"><div id="welcomeLogo" style="font-size:32px;font-weight:900;letter-spacing:0.2em;color:var(--gold);font-family:'Jost',sans-serif;">ELEVENSIES</div></div>
     <button class="welcome-btn" id="fullGameBtn">FULL GAME</button>
     <div class="welcome-btn-label" id="fullGameLabel">PLAY IN --:--:--</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;" id="remindBellWelcome-wrap">
@@ -3239,7 +3239,7 @@ window.addEventListener('error', function(e) {
   document.body.appendChild(box);
 });
 
-const LOGO_SRC = "/icon-192.png";
+const LOGO_SRC = null; // replaced by CSS wordmark
 
 
 // Scrabble letter values
@@ -6547,8 +6547,7 @@ let messageTimer = null;
 // ===== DOM refs =====
 const tileGrid = document.getElementById('tileGrid');
 // Set all logo images from the single embedded data URL
-document.getElementById('headerLogo').src = LOGO_SRC;
-document.getElementById('welcomeLogo').src = LOGO_SRC;
+// Logo is CSS text — no src to set
 document.getElementById('statsModeFullGameLogo').src = '/icons/games.png';
 
 // Welcome & countdown DOM refs
