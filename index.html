@@ -4853,6 +4853,9 @@ const MODE_ICONS = {
 };
 
 function showScreen(name) {
+  // Always dismiss loading overlay when switching screens
+  document.getElementById('anagramLoadingOverlay')?.classList.remove('show');
+  document.getElementById('savingOverlay')?.classList.remove('show');
   // name: 'welcome' | 'countdown' | 'game' | 'anagram' | 'h2h' | 'eliminator'
   welcomeScreen.style.display = name === 'welcome' ? '' : 'none';
   countdownScreen.style.display = name === 'countdown' ? 'flex' : 'none';
