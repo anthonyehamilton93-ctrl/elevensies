@@ -5545,14 +5545,11 @@ async function openH2H() {
   }
   const h2hLoadStart = Date.now();
   document.getElementById('anagramLoadingOverlay').classList.add('show');
-  // Existing H2H setup runs, then hide loader with minimum 1s
-  const hideH2HLoader = () => {
-    const elapsed = Date.now() - h2hLoadStart;
-    setTimeout(() => document.getElementById('anagramLoadingOverlay').classList.remove('show'), Math.max(0, 1000 - elapsed));
-  };
   document.getElementById('h2hCodeInput').value = '';
   document.getElementById('h2hEntryMsg').textContent = '';
   document.getElementById('headToHeadOverlay').classList.add('show');
+  const elapsed = Date.now() - h2hLoadStart;
+  setTimeout(() => document.getElementById('anagramLoadingOverlay').classList.remove('show'), Math.max(0, 1000 - elapsed));
 }
 
 async function getDisplayName() {
