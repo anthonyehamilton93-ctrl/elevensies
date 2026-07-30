@@ -2004,11 +2004,11 @@
   <div class="modal">
     <div class="modal-title">HEAD TO HEAD</div>
     <div id="h2hEntryPanel">
-      <button class="auth-submit-btn" id="h2hCreateBtn" style="margin-bottom:10px;">CREATE GAME</button>
+      <button class="auth-submit-btn" id="h2hEntryCreateBtn" style="margin-bottom:10px;">CREATE GAME</button>
       <div style="font-size:10px;letter-spacing:0.12em;opacity:0.5;margin-bottom:10px;text-align:center;">OR</div>
       <div style="display:flex;gap:8px;align-items:stretch;">
-        <input class="username-input" id="h2hCodeInput" type="text" maxlength="11" placeholder="GAME WORD" style="flex:1;text-transform:uppercase;letter-spacing:0.1em;">
-        <button class="auth-submit-btn" id="h2hJoinBtn" style="margin:0;padding:12px 16px;flex:0 0 56px;">JOIN</button>
+        <input class="username-input" id="h2hEntryCodeInput" type="text" maxlength="11" placeholder="GAME WORD" style="flex:1;text-transform:uppercase;letter-spacing:0.1em;">
+        <button class="auth-submit-btn" id="h2hEntryJoinBtn" style="margin:0;padding:12px 16px;flex:0 0 56px;">JOIN</button>
       </div>
       <div class="auth-message" id="h2hEntryMsg" style="margin-top:10px;"></div>
     </div>
@@ -5142,7 +5142,7 @@ async function startH2H() {
   showScreen('h2h');
   h2hShowSection('h2hLobby');
   document.getElementById('h2hLobbyMsg').textContent = '';
-  document.getElementById('h2hCodeInput').value = '';
+  document.getElementById('h2hJoinCodeInput').value = '';
 }
 
 async function h2hCreate() {
@@ -5170,7 +5170,7 @@ async function h2hCreate() {
 }
 
 async function h2hJoin() {
-  const code = document.getElementById('h2hCodeInput').value.trim().toUpperCase();
+  const code = document.getElementById('h2hJoinCodeInput').value.trim().toUpperCase();
   if (!code || code.length !== 6) {
     document.getElementById('h2hLobbyMsg').textContent = 'ENTER A 6-CHARACTER CODE.';
     return;
@@ -5545,8 +5545,8 @@ async function openH2H() {
   }
   const h2hLoadStart = Date.now();
   document.getElementById('anagramLoadingOverlay').classList.add('show');
-  document.getElementById('h2hCodeInput').value = '';
-  document.getElementById('h2hEntryMsg').textContent = '';
+  document.getElementById('h2hJoinCodeInput').value = '';
+  document.getElementById('h2hLobbyMsg').textContent = '';
   document.getElementById('headToHeadOverlay').classList.add('show');
   const elapsed = Date.now() - h2hLoadStart;
   setTimeout(() => document.getElementById('anagramLoadingOverlay').classList.remove('show'), Math.max(0, 1000 - elapsed));
@@ -5569,7 +5569,7 @@ async function createH2HGame() {
     current_round: 0,
   }).select().single();
   if (error) {
-    document.getElementById('h2hEntryMsg').textContent = 'Could not create game. Try again.';
+    document.getElementById('h2hLobbyMsg').textContent = 'Could not create game. Try again.';
     return;
   }
   // Join as first player
@@ -5587,23 +5587,24 @@ async function createH2HGame() {
 async function joinH2HGame() {
   const code = document.getElementById('h2hJoinCodeInput').value.toUpperCase().trim();
   if (code.length !== 11) {
-    document.getElementById('h2hEntryMsg').textContent = 'Enter the 11-character game code.';
+    document.getElementById('h2hLobbyMsg').textContent = 'Enter the 11-character game code.';
     return;
   }
+  document.getElementById('h2hLobbyMsg').textContent = 'JOINING…';
   const { data: game, error } = await sbClient
     .from('h2h_games').select('*').eq('code', code).single();
   if (error || !game) {
-    document.getElementById('h2hEntryMsg').textContent = 'Game not found. Check the code.';
+    document.getElementById('h2hLobbyMsg').textContent = 'Game not found. Check the code.';
     return;
   }
   if (game.status !== 'waiting') {
-    document.getElementById('h2hEntryMsg').textContent = 'That game has already started.';
+    document.getElementById('h2hLobbyMsg').textContent = 'That game has already started.';
     return;
   }
   const { data: players } = await sbClient
     .from('h2h_players').select('user_id').eq('game_id', game.id);
   if (players.length >= game.max_players) {
-    document.getElementById('h2hEntryMsg').textContent = 'That game is full.';
+    document.getElementById('h2hLobbyMsg').textContent = 'That game is full.';
     return;
   }
   const alreadyJoined = players.some(p => p.user_id === currentUser.id);
@@ -8292,6 +8293,21 @@ document.getElementById('playConfirmCancelBtn').addEventListener('click', () => 
 const moreGamesOverlay = document.getElementById('moreGamesOverlay');
 document.getElementById('moreGamesBtn').addEventListener('click', () => moreGamesOverlay.classList.add('show'));
 document.getElementById('moreGamesCloseBtn').addEventListener('click', () => moreGamesOverlay.classList.remove('show'));
+document.getElementById('h2hEntryCreateBtn')?.addEventListener('click', () => {
+  document.getElementById('h2hEntryOverlay').classList.remove('show');
+  openH2H();
+  setTimeout(() => createH2HGame(), 1100);
+});
+document.getElementById('h2hEntryJoinBtn')?.addEventListener('click', () => {
+  const code = document.getElementById('h2hEntryCodeInput').value.trim().toUpperCase();
+  if (!code) return;
+  document.getElementById('h2hEntryOverlay').classList.remove('show');
+  openH2H();
+  setTimeout(() => {
+    document.getElementById('h2hJoinCodeInput').value = code;
+    joinH2HGame();
+  }, 1100);
+});
 document.getElementById('h2hEntryPlayBtn').addEventListener('click', () => {
   if (!currentUser) {
     document.getElementById('h2hEntryOverlay').classList.remove('show');
