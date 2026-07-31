@@ -1560,7 +1560,7 @@
 </style>
   <script>
     // VAPID public key — replace with your generated key
-    const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+    const VAPID_PUBLIC_KEY = 'BISZS-JEGySPglqtJPKNc5e5-w-YToxf_x_0dpYvYKhxn2N9dy2T6Uou5tgJZVDgEIptocAksRKJsiCCO9SKaiI';
 
     // Register service worker
     if ('serviceWorker' in navigator) {
@@ -8600,18 +8600,27 @@ async function handlePushToggle() {
     return;
   }
   if (!currentUser) { authOverlay.classList.add('show'); showAuthForm(); return; }
+  if (!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY === 'YOUR_VAPID_PUBLIC_KEY_HERE') {
+    alert('Push notifications are not configured yet. Please contact the admin.');
+    return;
+  }
   const el = document.getElementById('toolsPushToggle');
   const isOn = el?.dataset.on === 'true';
-  if (!isOn) {
-    const sub = await subscribeToPush();
-    if (sub) { await savePushSubscription(sub); setSqToggle('toolsPushToggle', true); }
-    else {
+  try {
+    if (!isOn) {
+      const sub = await subscribeToPush();
+      if (sub) { await savePushSubscription(sub); setSqToggle('toolsPushToggle', true); }
+      else {
+        setSqToggle('toolsPushToggle', false);
+        if (Notification.permission === 'denied') alert('Notifications are blocked. Please enable them in your browser or app settings.');
+      }
+    } else {
+      await deletePushSubscription();
       setSqToggle('toolsPushToggle', false);
-      if (Notification.permission === 'denied') alert('Notifications are blocked. Please enable them in your browser settings.');
     }
-  } else {
-    await deletePushSubscription();
-    setSqToggle('toolsPushToggle', false);
+  } catch (err) {
+    console.error('Push toggle error:', err);
+    alert('Something went wrong: ' + err.message);
   }
 }
 
