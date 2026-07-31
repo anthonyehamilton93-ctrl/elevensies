@@ -8630,9 +8630,12 @@ async function handlePushToggle() {
   }
   const el = document.getElementById('toolsPushToggle');
   const isOn = el?.dataset.on === 'true';
+  const loadingOverlay = document.getElementById('anagramLoadingOverlay');
+  const loadingLabel = loadingOverlay?.querySelector('.loader-label');
+  if (loadingLabel) loadingLabel.textContent = isOn ? 'TURNING OFF…' : 'TURNING ON…';
+  if (loadingOverlay) loadingOverlay.classList.add('show');
   try {
     if (!isOn) {
-      // Always clear any stale Supabase record first
       await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
       const sub = await subscribeToPush();
       if (sub) {
@@ -8650,6 +8653,8 @@ async function handlePushToggle() {
     }
   } catch (err) {
     console.error('Push toggle error:', err);
+  } finally {
+    if (loadingOverlay) loadingOverlay.classList.remove('show');
   }
 }
 
