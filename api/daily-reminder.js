@@ -1,6 +1,8 @@
 // api/daily-reminder.js
-// Runs every hour via Supabase pg_cron.
 // Sends reminder emails AND push notifications at each player's local 11am.
+// Uses web-push npm package for VAPID push.
+
+import webpush from 'web-push';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -10,69 +12,6 @@ const GAME_URL = 'https://playelevensies.com';
 const CRON_SECRET = process.env.CRON_SECRET;
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
-const VAPID_SUBJECT = 'mailto:noreply@playelevensies.com';
-
-// ---- Web Push (VAPID) ----
-// Minimal VAPID implementation using the Web Crypto API (available in Vercel Edge/Node 18+)
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = Buffer.from(base64, 'base64');
-  return new Uint8Array(raw);
-}
-
-async function sendPushNotification(subscription, payload) {
-  // Use the web-push compatible approach via fetch to a push service
-  // We build a minimal VAPID JWT manually
-  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
-
-  const endpoint = subscription.endpoint;
-  const audience = new URL(endpoint).origin;
-  const now = Math.floor(Date.now() / 1000);
-
-  const header = Buffer.from(JSON.stringify({ typ: 'JWT', alg: 'ES256' })).toString('base64url');
-  const claims = Buffer.from(JSON.stringify({
-    aud: audience,
-    exp: now + 43200,
-    sub: VAPID_SUBJECT,
-  })).toString('base64url');
-
-  const signingInput = `${header}.${claims}`;
-
-  // Import private key
-  const privateKeyBytes = urlBase64ToUint8Array(VAPID_PRIVATE_KEY);
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw', privateKeyBytes,
-    { name: 'ECDSA', namedCurve: 'P-256' },
-    false, ['sign']
-  );
-
-  const signature = await crypto.subtle.sign(
-    { name: 'ECDSA', hash: 'SHA-256' },
-    cryptoKey,
-    Buffer.from(signingInput)
-  );
-
-  const jwt = `${signingInput}.${Buffer.from(signature).toString('base64url')}`;
-
-  const headers = {
-    Authorization: `vapid t=${jwt},k=${VAPID_PUBLIC_KEY}`,
-    'Content-Type': 'application/json',
-    TTL: '86400',
-  };
-
-  const body = JSON.stringify(payload);
-
-  const res = await fetch(endpoint, { method: 'POST', headers, body });
-  if (!res.ok && res.status !== 201) {
-    const text = await res.text();
-    console.error('Push error:', res.status, text);
-    // 404/410 means subscription expired — caller should delete it
-    if (res.status === 404 || res.status === 410) return 'expired';
-  }
-  return 'ok';
-}
 
 async function db(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
@@ -101,16 +40,15 @@ function reminderHTML(name, streak, yesterdayScore, userId) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Time for Elevensies!</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;700;900&display=swap');
     @font-face { font-family: 'Jost'; font-weight: 400; src: url('https://fonts.gstatic.com/s/jost/v18/92zPtBhPNqw79Ij1E865zBUv7myjJAVGPokMmuTl.woff2') format('woff2'); }
     @font-face { font-family: 'Jost'; font-weight: 700; src: url('https://fonts.gstatic.com/s/jost/v18/92zPtBhPNqw79Ij1E865zBUv7myjJAVGPokMmuTl.woff2') format('woff2'); }
     @font-face { font-family: 'Jost'; font-weight: 900; src: url('https://fonts.gstatic.com/s/jost/v18/92zPtBhPNqw79Ij1E865zBUv7myjJAVGPokMmuTl.woff2') format('woff2'); }
   </style>
 </head>
-<body style="margin:0;padding:0;background-color:#1a6b3c;font-family:'Jost',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:#1a6b3c;font-family:'Jost',-apple-system,sans-serif;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#1a6b3c;padding:40px 20px;">
     <tr><td align="center">
-      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:440px;background-color:#155c33;border-radius:16px;overflow:hidden;box-shadow:0 10px 15px -3px rgba(0,0,0,0.3);">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:440px;background-color:#155c33;border-radius:16px;overflow:hidden;">
         <tr><td align="center" style="padding:44px 40px 20px 40px;">
           <h1 style="font-family:'Jost',sans-serif;font-size:32px;font-weight:800;color:#f0c020;margin:0;letter-spacing:0.1em;">ELEVENSIES</h1>
         </td></tr>
@@ -164,11 +102,32 @@ export default async function handler(req, res) {
   const secret = req.headers['x-cron-secret'];
   if (CRON_SECRET && secret !== CRON_SECRET) return res.status(401).json({ error: 'Unauthorized' });
 
+  // Configure web-push VAPID
+  if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails('mailto:noreply@playelevensies.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  }
+
+  // Test push — send to a single user: ?test=USER_ID
+  const testUid = req.query?.test;
+  if (testUid) {
+    const subs = await db(`/push_subscriptions?select=subscription&user_id=eq.${testUid}`);
+    if (!subs?.length) return res.status(404).json({ error: 'No push subscription found for that user ID' });
+    try {
+      await webpush.sendNotification(subs[0].subscription, JSON.stringify({
+        title: 'Time for Elevensies!',
+        body: 'Test notification — push is working! 🟨',
+        url: GAME_URL,
+      }));
+      return res.status(200).json({ ok: true, message: 'Test push sent' });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
   try {
     const now = new Date();
     const targetOffset = (11 - now.getUTCHours()) * 60;
     const isUK = targetOffset === 60 || targetOffset === 0;
-
     const offsetFilter = isUK
       ? `utc_offset=in.(0,60)&utc_offset=not.is.null`
       : `utc_offset=eq.${targetOffset}`;
@@ -182,15 +141,16 @@ export default async function handler(req, res) {
       allProfiles = [...eligibleProfiles, ...(nullOffsets || [])];
     }
 
-    const eligibleIds = allProfiles.filter(p => !p.reminders_unsubscribed).map(p => p.id);
-    if (!eligibleIds.length) return res.status(200).json({ message: 'No eligible players' });
+    const allEligibleIds = allProfiles.map(p => p.id);
+    const emailEligibleIds = allProfiles.filter(p => !p.reminders_unsubscribed).map(p => p.id);
 
     const yesterday = new Date(now); yesterday.setUTCDate(yesterday.getUTCDate() - 1);
     const twoDaysAgo = new Date(yesterday); twoDaysAgo.setUTCDate(twoDaysAgo.getUTCDate() - 1);
     const todayStart = new Date(now); todayStart.setUTCHours(0, 0, 0, 0);
 
+    // Get recent games for all eligible players (emails + push may differ)
     const recentGames = await db(
-      `/game_results?select=user_id,played_at,total_score&game_status=eq.completed&user_id=in.(${eligibleIds.join(',')})&played_at=gte.${twoDaysAgo.toISOString()}&played_at=lt.${now.toISOString()}`
+      `/game_results?select=user_id,played_at,total_score&game_status=eq.completed&user_id=in.(${allEligibleIds.join(',')})&played_at=gte.${twoDaysAgo.toISOString()}&played_at=lt.${now.toISOString()}`
     );
 
     const yesterdayByUser = {};
@@ -225,58 +185,62 @@ export default async function handler(req, res) {
       datesByUser[g.user_id].push(g.played_at.slice(0, 10));
     }
 
-    // ---- Send emails ----
-    const emails = playedYesterdayIds.filter(uid => emailMap[uid]).map(uid => {
-      const profile = profileMap[uid];
-      const streak = calcStreak(datesByUser[uid] || []);
-      const yesterdayScore = yesterdayByUser[uid]?.total_score ?? null;
-      return {
-        from: FROM_EMAIL,
-        to: emailMap[uid],
-        subject: 'Time for Elevensies! 🟨',
-        html: reminderHTML(profile?.display_name || null, streak, yesterdayScore, uid),
-      };
-    });
+    // ---- Send emails (only to email-opted-in players who played yesterday) ----
+    const emails = playedYesterdayIds
+      .filter(uid => emailEligibleIds.includes(uid) && emailMap[uid])
+      .map(uid => {
+        const profile = profileMap[uid];
+        const streak = calcStreak(datesByUser[uid] || []);
+        const yesterdayScore = yesterdayByUser[uid]?.total_score ?? null;
+        return {
+          from: FROM_EMAIL,
+          to: emailMap[uid],
+          subject: 'Time for Elevensies! 🟨',
+          html: reminderHTML(profile?.display_name || null, streak, yesterdayScore, uid),
+        };
+      });
 
     let emailsSent = 0;
-    if (emails.length) {
-      for (let i = 0; i < emails.length; i += 100) {
-        await fetch('https://api.resend.com/emails/batch', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(emails.slice(i, i + 100)),
-        });
-        emailsSent += Math.min(100, emails.length - i);
-      }
+    for (let i = 0; i < emails.length; i += 100) {
+      await fetch('https://api.resend.com/emails/batch', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(emails.slice(i, i + 100)),
+      });
+      emailsSent += Math.min(100, emails.length - i);
     }
 
-    // ---- Send push notifications ----
+    // ---- Send push notifications (all players with a subscription who played yesterday) ----
     let pushSent = 0;
-    if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-      // Fetch push subscriptions for eligible players who played yesterday
+    if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && playedYesterdayIds.length) {
       const pushSubs = await db(
         `/push_subscriptions?select=id,user_id,subscription&user_id=in.(${playedYesterdayIds.join(',')})`
       );
 
       const expiredIds = [];
       for (const sub of pushSubs || []) {
-        const profile = profileMap[sub.user_id];
         const streak = calcStreak(datesByUser[sub.user_id] || []);
         const body = streak >= 2
-          ? `You're on a ${streak}-day streak — don't break it now! 🟨`
-          : "It's 11am — time to play! 🟨";
+          ? `${streak}-day streak — don't break it now! 🟨`
+          : "Today's game is open. Time to play! 🟨";
 
-        const result = await sendPushNotification(sub.subscription, {
-          title: 'Time for Elevensies!',
-          body,
-          url: GAME_URL,
-        });
-
-        if (result === 'expired') expiredIds.push(sub.id);
-        else pushSent++;
+        try {
+          await webpush.sendNotification(sub.subscription, JSON.stringify({
+            title: 'Time for Elevensies!',
+            body,
+            url: GAME_URL,
+          }));
+          pushSent++;
+        } catch (err) {
+          if (err.statusCode === 404 || err.statusCode === 410) {
+            expiredIds.push(sub.id);
+          } else {
+            console.error('Push error for', sub.user_id, err.message);
+          }
+        }
       }
 
-      // Clean up expired subscriptions
+      // Delete expired subscriptions
       for (const id of expiredIds) {
         await db(`/push_subscriptions?id=eq.${id}`, { method: 'DELETE' });
       }
