@@ -5308,10 +5308,10 @@ function h2hShowSection(id) {
   ['h2hMatchMeLobby','h2hLobby','h2hWaiting','h2hWaitingForOthers','h2hRoundResults','h2hFinalResults'].forEach(s => {
     const el = document.getElementById(s);
     if (!el) return;
+    el.style.display = s === id ? 'flex' : 'none';
     if (s === id) {
-      el.style.display = (s === 'h2hMatchMeLobby') ? 'flex' : '';
-    } else {
-      el.style.display = 'none';
+      el.style.flexDirection = 'column';
+      el.style.alignItems = 'center';
     }
   });
   document.getElementById('h2hRoundHeader').style.display = 'none';
@@ -8525,7 +8525,6 @@ document.getElementById('h2hEntryPlayBtn')?.addEventListener('click', () => {
   openH2H();
 });
 document.getElementById('h2hEntryHowToBtn').addEventListener('click', () => {
-  document.getElementById('h2hEntryOverlay').classList.remove('show');
   document.getElementById('aboutH2HOverlay').classList.add('show');
 });
 document.getElementById('h2hEntryCloseBtn').addEventListener('click', () => {
@@ -8536,7 +8535,6 @@ document.getElementById('practiceEntryPlayBtn').addEventListener('click', () => 
   startPractice();
 });
 document.getElementById('practiceEntryHowToBtn').addEventListener('click', () => {
-  document.getElementById('practiceEntryOverlay').classList.remove('show');
   document.getElementById('aboutPracticeOverlay').classList.add('show');
 });
 document.getElementById('practiceEntryCloseBtn').addEventListener('click', () => {
