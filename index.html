@@ -1560,7 +1560,7 @@
 </style>
   <script>
     // VAPID public key — replace with your generated key
-    const VAPID_PUBLIC_KEY = 'BISZS-JEGySPglqtJPKNc5e5-w-YToxf_x_0dpYvYKhxn2N9dy2T6Uou5tgJZVDgEIptocAksRKJsiCCO9SKaiI';
+    const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
 
     // Register service worker
     if ('serviceWorker' in navigator) {
@@ -1792,14 +1792,14 @@
   <div class="modal">
     <div class="modal-title" id="playerProfileName">—</div>
 
-    <!-- Toggle: STATS | TODAY'S WORDS -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:14px;" id="playerProfileToggle">
-      <button id="playerProfileStatsTab" onclick="switchProfileTab('stats')" style="background:#f0c020;color:#155c33;border:none;font-family:inherit;font-size:10px;font-weight:900;letter-spacing:0.1em;padding:8px 0;cursor:pointer;">STATS</button>
-      <button id="playerProfileWordsTab" onclick="switchProfileTab('words')" style="background:rgba(240,192,32,0.12);color:rgba(240,192,32,0.4);border:none;font-family:inherit;font-size:10px;font-weight:900;letter-spacing:0.1em;padding:8px 0;cursor:pointer;">TODAY'S WORDS</button>
+    <!-- Tab toggle -->
+    <div class="lb-tabs" style="margin-bottom:0;">
+      <button class="lb-tab active" id="playerProfileStatsTab" onclick="switchProfileTab('stats')">STATS</button>
+      <button class="lb-tab" id="playerProfileWordsTab" onclick="switchProfileTab('words')">TODAY'S WORDS</button>
     </div>
 
     <!-- Stats panel -->
-    <div id="playerProfileStatsPanel">
+    <div id="playerProfileStatsPanel" style="background:#155c33;padding:14px;margin-top:2px;">
       <div class="account-stats" id="playerProfileStats" style="margin-bottom:12px;"></div>
       <div class="expand-section" id="playerProfileBadgesSection" style="display:none;">
         <div class="expand-header" id="playerProfileBadgesToggle">BADGES <span class="expand-arrow">▼</span></div>
@@ -1816,8 +1816,8 @@
     </div>
 
     <!-- Today's words panel -->
-    <div id="playerProfileWordsPanel" style="display:none;">
-      <div id="playerProfileWordsList" style="font-size:11px;letter-spacing:0.06em;">
+    <div id="playerProfileWordsPanel" style="display:none;background:#155c33;padding:14px;margin-top:2px;">
+      <div id="playerProfileWordsList">
         <div style="opacity:0.4;text-align:center;padding:16px 0;">NO WORDS TODAY</div>
       </div>
     </div>
@@ -3941,17 +3941,13 @@ function switchProfileTab(tab) {
   if (tab === 'stats') {
     statsPanel.style.display = '';
     wordsPanel.style.display = 'none';
-    statsTab.style.background = '#f0c020';
-    statsTab.style.color = '#155c33';
-    wordsTab.style.background = 'rgba(240,192,32,0.12)';
-    wordsTab.style.color = 'rgba(240,192,32,0.4)';
+    statsTab.classList.add('active');
+    wordsTab.classList.remove('active');
   } else {
     statsPanel.style.display = 'none';
     wordsPanel.style.display = '';
-    wordsTab.style.background = '#f0c020';
-    wordsTab.style.color = '#155c33';
-    statsTab.style.background = 'rgba(240,192,32,0.12)';
-    statsTab.style.color = 'rgba(240,192,32,0.4)';
+    wordsTab.classList.add('active');
+    statsTab.classList.remove('active');
   }
 }
 
