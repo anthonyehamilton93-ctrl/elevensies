@@ -8589,8 +8589,8 @@ async function savePushSubscription(sub) {
 
 async function deletePushSubscription() {
   if (!sbClient || !currentUser) return;
-  const sub = await getPushSubscription();
-  if (sub) await sub.unsubscribe();
+  // Don't call sub.unsubscribe() — that revokes browser permission and breaks re-enabling
+  // Just remove from Supabase so no push is sent
   await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
 }
 
