@@ -1600,7 +1600,7 @@
     <button class="welcome-btn" id="fullGameBtn">FULL GAME</button>
     <div class="welcome-btn-label" id="fullGameLabel">PLAY IN --:--:--</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;" id="remindBellWelcome-wrap">
-      <div class="sq-toggle" id="remindBellWelcome" data-on="false" onclick="handleRemindToggle('remindBellWelcome')">
+      <div class="sq-toggle" id="remindBellWelcome" data-on="false" onclick="handleSmartRemindToggle('remindBellWelcome')">
         <span class="sq-off">OFF</span><span class="sq-on">ON</span>
       </div>
       <span id="remindBellWelcome-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
@@ -1615,7 +1615,7 @@
     <div class="countdown-timer" id="countdownTimer">00:00:00</div>
     <div class="countdown-subtitle">YOUR NEXT GAME OPENS AT 11AM</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:40px;" id="remindBellCountdown-wrap">
-      <div class="sq-toggle" id="remindBellCountdown" data-on="false" onclick="handleRemindToggle('remindBellCountdown')">
+      <div class="sq-toggle" id="remindBellCountdown" data-on="false" onclick="handleSmartRemindToggle('remindBellCountdown')">
         <span class="sq-off">OFF</span><span class="sq-on">ON</span>
       </div>
       <span id="remindBellCountdown-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
@@ -1636,7 +1636,7 @@
     <div style="font-size:12px; letter-spacing:0.25em; opacity:0.7; margin-bottom:6px; margin-top:40px; font-weight:700;">NEXT GAME IN</div>
     <div style="font-size:48px; font-weight:900; letter-spacing:0.05em; margin-bottom:28px; color:var(--gold);" id="lobbyCountdown">--:--:--</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:0;" id="remindBellLobby-wrap">
-      <div class="sq-toggle" id="remindBellLobby" data-on="false" onclick="handleRemindToggle('remindBellLobby')">
+      <div class="sq-toggle" id="remindBellLobby" data-on="false" onclick="handleSmartRemindToggle('remindBellLobby')">
         <span class="sq-off">OFF</span><span class="sq-on">ON</span>
       </div>
       <span id="remindBellLobby-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
@@ -2455,6 +2455,16 @@
     </div>
 
     <button class="cancel-btn" id="toolsCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- New user reminder prompt -->
+<div class="overlay" id="reminderPromptOverlay" style="z-index:4000;">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title" id="reminderPromptTitle">GET REMINDED AT 11AM?</div>
+    <p style="font-size:12px;letter-spacing:0.06em;line-height:1.8;opacity:0.7;margin-bottom:20px;" id="reminderPromptBody">We'll send you a daily reminder when today's game opens. Never miss a streak.</p>
+    <button class="auth-submit-btn" id="reminderPromptYes" style="margin-bottom:10px;width:100%;">YES PLEASE</button>
+    <button class="cancel-btn" id="reminderPromptNo">NOT NOW</button>
   </div>
 </div>
 
@@ -3567,6 +3577,7 @@ if (sbClient) {
       // Always update utc_offset on login so reminder emails use current timezone
       sbClient.from('profiles').update({ utc_offset: new Date().getTimezoneOffset() * -1 }).eq('id', currentUser.id).then(() => {});
     }
+    initReminderState();
   });
 }
 
@@ -3665,6 +3676,8 @@ async function handleAuthSubmit(mode) {
       }
       authMessage.textContent = 'Account created! Check your email to confirm — and check your junk folder!';
       authMessage.className = 'auth-message success';
+      // Show reminder prompt for new users after a short delay
+      setTimeout(() => showNewUserReminderPrompt(), 2000);
     } else {
       const { error } = await sbClient.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -8557,7 +8570,181 @@ async function handleRemindToggle(id) {
   if (newOn) showJunkNotice(id);
 }
 
-// ===== Push Notifications =====
+// ===== Smart Reminder System =====
+
+// Global push capability flag — set on page load
+let pushCapable = false;
+let reminderOptedIn = false; // true if user has either push or email reminder active
+
+async function initReminderState() {
+  // Detect push capability
+  pushCapable = ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
+
+  if (!sbClient || !currentUser) {
+    // Not logged in — show email toggle on all reminder bells
+    updateReminderBellVisibility(false);
+    updateReminderBellLabels();
+    return;
+  }
+
+  // Check if opted in
+  const { data: profile } = await sbClient.from('profiles').select('reminders_unsubscribed').eq('id', currentUser.id).single();
+  const emailOptedIn = profile && !profile.reminders_unsubscribed;
+
+  let pushOptedIn = false;
+  if (pushCapable) {
+    const { data: pushData } = await sbClient.from('push_subscriptions').select('id').eq('user_id', currentUser.id).maybeSingle();
+    pushOptedIn = !!pushData;
+  }
+
+  reminderOptedIn = emailOptedIn || pushOptedIn;
+
+  // Hide reminder bells if already opted in — they live in TOOLS
+  updateReminderBellVisibility(reminderOptedIn);
+  updateReminderBellLabels();
+
+  // Set toggle state
+  const isOn = pushCapable ? pushOptedIn : emailOptedIn;
+  ['remindBellWelcome', 'remindBellCountdown', 'remindBellLobby'].forEach(id => setSqToggle(id, isOn));
+}
+
+function updateReminderBellVisibility(optedIn) {
+  ['remindBellWelcome-wrap', 'remindBellCountdown-wrap', 'remindBellLobby-wrap'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = optedIn ? 'none' : 'flex';
+  });
+}
+
+function updateReminderBellLabels() {
+  const label = pushCapable
+    ? (currentUser ? 'GET A PUSH REMINDER' : 'SIGN IN FOR REMINDERS')
+    : 'GET AN EMAIL REMINDER';
+  const onLabel = pushCapable ? 'PUSH REMINDER SET ✓' : 'EMAIL REMINDER SET ✓';
+  ['remindBellWelcome', 'remindBellCountdown', 'remindBellLobby'].forEach(id => {
+    const el = document.getElementById(id);
+    const labelEl = document.getElementById(`${id}-label`);
+    if (labelEl) labelEl.textContent = el?.dataset.on === 'true' ? onLabel : label;
+  });
+}
+
+async function handleSmartRemindToggle(id) {
+  if (!sbClient || !currentUser) {
+    authOverlay.classList.add('show');
+    showAuthForm();
+    return;
+  }
+
+  const el = document.getElementById(id);
+  const isOn = el?.dataset.on === 'true';
+
+  if (pushCapable) {
+    // Push flow
+    if (!isOn) {
+      const loadingOverlay = document.getElementById('anagramLoadingOverlay');
+      const loadingLabel = loadingOverlay?.querySelector('.loader-label');
+      if (loadingLabel) loadingLabel.textContent = 'TURNING ON…';
+      if (loadingOverlay) loadingOverlay.classList.add('show');
+      try {
+        await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
+        const sub = await subscribeToPush();
+        if (sub) {
+          await savePushSubscription(sub);
+          reminderOptedIn = true;
+          // Hide all bells — it's now in TOOLS
+          updateReminderBellVisibility(true);
+          setSqToggle('toolsPushToggle', true);
+          showJunkNotice(id, true); // push-specific confirmation
+        } else {
+          if (Notification.permission === 'denied') {
+            alert('Notifications are blocked. Enable them in your device settings.');
+          }
+        }
+      } catch(e) { console.error(e); }
+      finally { if (loadingOverlay) loadingOverlay.classList.remove('show'); }
+    } else {
+      await deletePushSubscription();
+      reminderOptedIn = false;
+      updateReminderBellVisibility(false);
+      ['remindBellWelcome', 'remindBellCountdown', 'remindBellLobby'].forEach(bid => setSqToggle(bid, false));
+      updateReminderBellLabels();
+    }
+  } else {
+    // Email flow
+    await handleRemindToggle(id);
+    // Check if now opted in and hide bells
+    if (!isOn) {
+      reminderOptedIn = true;
+      updateReminderBellVisibility(true);
+    } else {
+      reminderOptedIn = false;
+      updateReminderBellVisibility(false);
+    }
+  }
+}
+
+// New user reminder prompt
+async function showNewUserReminderPrompt() {
+  const overlay = document.getElementById('reminderPromptOverlay');
+  const title = document.getElementById('reminderPromptTitle');
+  const body = document.getElementById('reminderPromptBody');
+  if (!overlay) return;
+
+  if (pushCapable) {
+    title.textContent = 'GET A PUSH REMINDER AT 11AM?';
+    body.textContent = "We'll send a notification to this device when today's game opens. Never miss a streak.";
+  } else {
+    title.textContent = 'GET AN EMAIL REMINDER AT 11AM?';
+    body.textContent = "We'll email you when today's game opens. Never miss a streak.";
+  }
+  overlay.classList.add('show');
+}
+
+document.getElementById('reminderPromptYes')?.addEventListener('click', async () => {
+  document.getElementById('reminderPromptOverlay').classList.remove('show');
+  if (!sbClient || !currentUser) return;
+  if (pushCapable) {
+    const loadingOverlay = document.getElementById('anagramLoadingOverlay');
+    const loadingLabel = loadingOverlay?.querySelector('.loader-label');
+    if (loadingLabel) loadingLabel.textContent = 'SETTING UP…';
+    if (loadingOverlay) loadingOverlay.classList.add('show');
+    try {
+      const sub = await subscribeToPush();
+      if (sub) {
+        await savePushSubscription(sub);
+        reminderOptedIn = true;
+        updateReminderBellVisibility(true);
+        setSqToggle('toolsPushToggle', true);
+      }
+    } catch(e) { console.error(e); }
+    finally { if (loadingOverlay) loadingOverlay.classList.remove('show'); }
+  } else {
+    await sbClient.from('profiles').update({ reminders_unsubscribed: false, email_unsubscribed: false }).eq('id', currentUser.id);
+    reminderOptedIn = true;
+    updateReminderBellVisibility(true);
+    setSqToggle('toolsReminderToggle', true);
+  }
+});
+
+document.getElementById('reminderPromptNo')?.addEventListener('click', () => {
+  document.getElementById('reminderPromptOverlay').classList.remove('show');
+});
+
+// Override showJunkNotice to handle push confirmation differently  
+const _origShowJunkNotice = showJunkNotice;
+function showJunkNotice(id, isPush) {
+  if (isPush) {
+    const anchor = document.getElementById(`${id}-wrap`);
+    if (!anchor) return;
+    const notice = document.createElement('div');
+    notice.className = 'badge-tooltip';
+    notice.style.cssText = 'margin-top:8px;text-align:center;line-height:1.6;';
+    notice.textContent = 'Push reminder set! You\'ll be notified at 11am.';
+    anchor.parentNode.insertBefore(notice, anchor.nextSibling);
+    setTimeout(() => { if (notice.parentNode) notice.remove(); }, 4000);
+    return;
+  }
+  _origShowJunkNotice(id);
+}
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -10167,6 +10354,7 @@ dictReady.then(() => {
     showScreen('welcome');
     startWelcomeLabelTicker();
     showDailyBriefing();
+    initReminderState();
   } catch (err) {
     console.error('Startup failed:', err);
     showScreen('welcome');
