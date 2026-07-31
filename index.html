@@ -8623,9 +8623,9 @@ async function openToolsOverlay() {
     setSqToggle('toolsReminderToggle', !data.reminders_unsubscribed);
     setSqToggle('toolsRoundupToggle', !data.email_unsubscribed);
   }
-  // Check push subscription state
-  const pushSub = await getPushSubscription();
-  setSqToggle('toolsPushToggle', !!pushSub);
+  // Check push state from Supabase (not browser) so toggle reflects actual preference
+  const { data: pushData } = await sbClient.from('push_subscriptions').select('id').eq('user_id', currentUser.id).maybeSingle();
+  setSqToggle('toolsPushToggle', !!pushData);
 }
 
 async function handleSqToggleWrapper(id, type) {
