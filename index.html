@@ -2039,12 +2039,12 @@
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-        <button id="h2hPrivateBtn" class="auth-submit-btn" style="width:100%;margin:0;">PRIVATE GAME</button>
-        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Create a game &<br>invite friends</div>
+        <button id="h2hPrivateBtn" class="auth-submit-btn" style="width:100%;margin:0;">PRIVATE</button>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Create a private game<br>&amp; invite friends</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-        <button id="h2hMatchMeBtn" class="auth-submit-btn" style="width:100%;margin:0;">MATCH ME</button>
-        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Play against<br>a stranger</div>
+        <button id="h2hMatchMeBtn" class="auth-submit-btn" style="width:100%;margin:0;">MATCH</button>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Get matched with<br>another player</div>
       </div>
     </div>
     <button class="cancel-btn" id="h2hEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
@@ -2161,9 +2161,9 @@
   </div>
 
   <!-- Match Me lobby -->
-  <div id="h2hMatchMeLobby" style="display:none;width:260px;padding:40px 0;text-align:center;flex-direction:column;align-items:center;justify-content:center;flex:1;">
-    <div class="welcome-title">MATCH</div>
-    <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:24px;">ME</div>
+  <div id="h2hMatchMeLobby" style="display:none;width:260px;padding:40px 0;text-align:center;">
+    <div class="welcome-title" id="h2hMatchMeTitle">MATCH</div>
+    <div id="h2hMatchMeName" style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:24px;">—</div>
     <div id="h2hMatchMeStatus" style="font-size:11px;letter-spacing:0.15em;opacity:0.7;margin-bottom:8px;">FINDING OPPONENT…</div>
     <div id="h2hMatchMeWait" style="font-size:9px;letter-spacing:0.1em;opacity:0.4;margin-bottom:32px;">Hang tight — this could take a moment</div>
     <div class="loader-squares" style="display:flex;justify-content:center;margin-bottom:32px;">
@@ -10245,6 +10245,12 @@ async function startMatchMe() {
   if (!sbClient || !currentUser) return;
   showScreen('h2h');
   h2hShowSection('h2hMatchMeLobby');
+  // Show display name
+  const name = document.getElementById('h2hMatchMeName');
+  if (name) {
+    const { data: prof } = await sbClient.from('profiles').select('display_name').eq('id', currentUser.id).single();
+    name.textContent = (prof?.display_name || 'YOU').toUpperCase();
+  }
 
   // Clean up any stale entry for this user
   await sbClient.from('h2h_matchmaking').delete().eq('user_id', currentUser.id);
