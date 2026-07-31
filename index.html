@@ -1773,6 +1773,86 @@
       <button class="auth-submit-btn" id="anagramResultCloseBtn" style="margin-bottom:10px;">DONE</button>
     </div>
   </div>
+
+<div class="h2h-screen" id="h2hScreen" style="display:none; flex-direction:column; align-items:center; justify-content:center; width:100%; flex:1;">
+
+  <!-- Lobby: create or join -->
+  <div id="h2hLobby" style="display:none;width:260px; padding:40px 0; text-align:center;">
+    <div class="welcome-title">HEAD TO</div>
+    <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:32px;">HEAD</div>
+    <button class="auth-submit-btn" id="h2hCreateBtn" style="margin-bottom:12px;">CREATE GAME</button>
+    <div style="font-size:10px;letter-spacing:0.1em;opacity:0.4;margin-bottom:12px;">OR</div>
+    <div style="display:flex;gap:8px;margin-bottom:32px;">
+      <input id="h2hJoinCodeInput" type="text" maxlength="11" placeholder="ENTER CODE"
+        style="flex:1;background:rgba(240,192,32,0.08);border:1px solid var(--gold-dark);color:var(--gold);
+        font-family:inherit;font-size:14px;font-weight:700;letter-spacing:0.15em;padding:12px;text-transform:uppercase;
+        text-align:center;">
+      <button class="auth-submit-btn" id="h2hJoinBtn" style="margin:0;padding:12px 16px;flex:0 0 56px;">JOIN</button>
+    </div>
+    <button class="practice-back-btn visible" id="h2hBackBtn">BACK</button>
+    <div class="auth-message" id="h2hLobbyMsg" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- Match Me lobby -->
+  <div id="h2hMatchMeLobby" style="display:none;width:260px;padding:40px 0;text-align:center;">
+    <div class="welcome-title">MATCH</div>
+    <div id="h2hMatchMeName" style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:24px;">YOU</div>
+    <div id="h2hMatchMeStatus" style="font-size:11px;letter-spacing:0.15em;opacity:0.7;margin-bottom:8px;">FINDING OPPONENT…</div>
+    <div style="font-size:9px;letter-spacing:0.1em;opacity:0.4;margin-bottom:32px;">Hang tight — this could take a moment</div>
+    <div class="loader-squares" style="display:flex;justify-content:center;margin-bottom:32px;">
+      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
+    </div>
+    <button class="cancel-btn" id="h2hMatchMeCancelBtn">CANCEL</button>
+  </div>
+
+  <!-- Waiting room: after creating/joining -->
+  <div id="h2hWaiting" style="display:none;width:260px;padding:40px 0;text-align:center;">
+    <div style="font-size:10px;letter-spacing:0.2em;opacity:0.5;margin-bottom:8px;">GAME CODE</div>
+    <div style="font-size:36px;font-weight:900;letter-spacing:0.2em;color:var(--gold);margin-bottom:4px;" id="h2hCodeDisplay"></div>
+    <div style="font-size:10px;letter-spacing:0.1em;opacity:0.4;margin-bottom:28px;">SHARE THIS WITH YOUR FRIENDS</div>
+    <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:10px;">PLAYERS</div>
+    <div id="h2hPlayerList" style="margin-bottom:28px;"></div>
+    <button class="auth-submit-btn" id="h2hStartBtn" style="display:none;margin-bottom:12px;">START GAME</button>
+    <div style="font-size:11px;letter-spacing:0.08em;opacity:0.5;" id="h2hWaitingStatus">WAITING FOR PLAYERS…</div>
+    <button class="cancel-btn" id="h2hLeaveBtn" style="margin-top:20px;">LEAVE</button>
+  </div>
+
+  <!-- Active round: the game board is reused, this just tracks round state -->
+  <div id="h2hRoundHeader" style="display:none;width:100%;text-align:center;padding:8px 0;background:rgba(240,192,32,0.06);border-bottom:1px solid rgba(240,192,32,0.15);">
+    <span style="font-size:10px;letter-spacing:0.15em;opacity:0.7;" id="h2hRoundLabel">ROUND 1 OF 3</span>
+  </div>
+
+  <!-- Waiting for others after submitting -->
+  <div id="h2hWaitingForOthers" style="display:none;width:260px;padding:60px 0;text-align:center;">
+    <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:12px;" id="h2hMyRoundScore">—</div>
+    <div style="font-size:11px;letter-spacing:0.12em;opacity:0.6;margin-bottom:32px;">YOUR SCORE</div>
+    <div style="font-size:11px;letter-spacing:0.1em;opacity:0.5;margin-bottom:16px;">WAITING FOR OTHERS…</div>
+    <div id="h2hSubmittedList" style="margin-bottom:28px;"></div>
+  </div>
+
+  <!-- Round results -->
+  <div id="h2hRoundResults" style="display:none;width:260px;padding:40px 0;text-align:center;">
+    <div style="font-size:10px;letter-spacing:0.2em;opacity:0.5;margin-bottom:6px;" id="h2hResultRoundLabel">ROUND 1</div>
+    <div style="font-size:24px;font-weight:900;color:var(--gold);margin-bottom:24px;" id="h2hRoundWinner"></div>
+    <div id="h2hRoundTable" style="width:100%;margin-bottom:20px;"></div>
+    <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:8px;">SERIES</div>
+    <div id="h2hSeriesTable" style="width:100%;margin-bottom:28px;"></div>
+    <button class="auth-submit-btn" id="h2hNextRoundBtn" style="display:none;margin-bottom:12px;">PLAY NEXT ROUND</button>
+    <div style="font-size:11px;letter-spacing:0.08em;opacity:0.5;" id="h2hNextStatus"></div>
+    <button class="cancel-btn" id="h2hQuitBtn" style="margin-top:16px;">QUIT GAME</button>
+  </div>
+
+  <!-- Final results -->
+  <div id="h2hFinalResults" style="display:none;width:260px;padding:40px 0;text-align:center;">
+    <div style="font-size:10px;letter-spacing:0.2em;opacity:0.5;margin-bottom:8px;">WINNER</div>
+    <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:24px;" id="h2hFinalWinner"></div>
+    <div id="h2hFinalTable" style="width:100%;margin-bottom:32px;"></div>
+    <button class="auth-submit-btn" id="h2hPlayAgainBtn" style="margin-bottom:12px;">PLAY AGAIN</button>
+    <button class="cancel-btn" id="h2hFinalBackBtn">BACK TO HOME</button>
+  </div>
+
+</div>
+
 </div><!-- end .app -->
 
 <!-- Milestone popup -->
@@ -2141,84 +2221,7 @@
 </div>
 
 <!-- Head to Head screen -->
-<div class="h2h-screen" id="h2hScreen" style="display:none; flex-direction:column; align-items:center; justify-content:center; width:100%; flex:1;">
 
-  <!-- Lobby: create or join -->
-  <div id="h2hLobby" style="display:none;width:260px; padding:40px 0; text-align:center;">
-    <div class="welcome-title">HEAD TO</div>
-    <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:32px;">HEAD</div>
-    <button class="auth-submit-btn" id="h2hCreateBtn" style="margin-bottom:12px;">CREATE GAME</button>
-    <div style="font-size:10px;letter-spacing:0.1em;opacity:0.4;margin-bottom:12px;">OR</div>
-    <div style="display:flex;gap:8px;margin-bottom:32px;">
-      <input id="h2hJoinCodeInput" type="text" maxlength="11" placeholder="ENTER CODE"
-        style="flex:1;background:rgba(240,192,32,0.08);border:1px solid var(--gold-dark);color:var(--gold);
-        font-family:inherit;font-size:14px;font-weight:700;letter-spacing:0.15em;padding:12px;text-transform:uppercase;
-        text-align:center;">
-      <button class="auth-submit-btn" id="h2hJoinBtn" style="margin:0;padding:12px 16px;flex:0 0 56px;">JOIN</button>
-    </div>
-    <button class="practice-back-btn visible" id="h2hBackBtn">BACK</button>
-    <div class="auth-message" id="h2hLobbyMsg" style="margin-top:12px;"></div>
-  </div>
-
-  <!-- Match Me lobby -->
-  <div id="h2hMatchMeLobby" style="display:none;width:260px;padding:40px 0;text-align:center;">
-    <div class="welcome-title">MATCH</div>
-    <div id="h2hMatchMeName" style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:24px;">YOU</div>
-    <div id="h2hMatchMeStatus" style="font-size:11px;letter-spacing:0.15em;opacity:0.7;margin-bottom:8px;">FINDING OPPONENT…</div>
-    <div style="font-size:9px;letter-spacing:0.1em;opacity:0.4;margin-bottom:32px;">Hang tight — this could take a moment</div>
-    <div class="loader-squares" style="display:flex;justify-content:center;margin-bottom:32px;">
-      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
-    </div>
-    <button class="cancel-btn" id="h2hMatchMeCancelBtn">CANCEL</button>
-  </div>
-
-  <!-- Waiting room: after creating/joining -->
-  <div id="h2hWaiting" style="display:none;width:260px;padding:40px 0;text-align:center;">
-    <div style="font-size:10px;letter-spacing:0.2em;opacity:0.5;margin-bottom:8px;">GAME CODE</div>
-    <div style="font-size:36px;font-weight:900;letter-spacing:0.2em;color:var(--gold);margin-bottom:4px;" id="h2hCodeDisplay"></div>
-    <div style="font-size:10px;letter-spacing:0.1em;opacity:0.4;margin-bottom:28px;">SHARE THIS WITH YOUR FRIENDS</div>
-    <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:10px;">PLAYERS</div>
-    <div id="h2hPlayerList" style="margin-bottom:28px;"></div>
-    <button class="auth-submit-btn" id="h2hStartBtn" style="display:none;margin-bottom:12px;">START GAME</button>
-    <div style="font-size:11px;letter-spacing:0.08em;opacity:0.5;" id="h2hWaitingStatus">WAITING FOR PLAYERS…</div>
-    <button class="cancel-btn" id="h2hLeaveBtn" style="margin-top:20px;">LEAVE</button>
-  </div>
-
-  <!-- Active round: the game board is reused, this just tracks round state -->
-  <div id="h2hRoundHeader" style="display:none;width:100%;text-align:center;padding:8px 0;background:rgba(240,192,32,0.06);border-bottom:1px solid rgba(240,192,32,0.15);">
-    <span style="font-size:10px;letter-spacing:0.15em;opacity:0.7;" id="h2hRoundLabel">ROUND 1 OF 3</span>
-  </div>
-
-  <!-- Waiting for others after submitting -->
-  <div id="h2hWaitingForOthers" style="display:none;width:260px;padding:60px 0;text-align:center;">
-    <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:12px;" id="h2hMyRoundScore">—</div>
-    <div style="font-size:11px;letter-spacing:0.12em;opacity:0.6;margin-bottom:32px;">YOUR SCORE</div>
-    <div style="font-size:11px;letter-spacing:0.1em;opacity:0.5;margin-bottom:16px;">WAITING FOR OTHERS…</div>
-    <div id="h2hSubmittedList" style="margin-bottom:28px;"></div>
-  </div>
-
-  <!-- Round results -->
-  <div id="h2hRoundResults" style="display:none;width:260px;padding:40px 0;text-align:center;">
-    <div style="font-size:10px;letter-spacing:0.2em;opacity:0.5;margin-bottom:6px;" id="h2hResultRoundLabel">ROUND 1</div>
-    <div style="font-size:24px;font-weight:900;color:var(--gold);margin-bottom:24px;" id="h2hRoundWinner"></div>
-    <div id="h2hRoundTable" style="width:100%;margin-bottom:20px;"></div>
-    <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:8px;">SERIES</div>
-    <div id="h2hSeriesTable" style="width:100%;margin-bottom:28px;"></div>
-    <button class="auth-submit-btn" id="h2hNextRoundBtn" style="display:none;margin-bottom:12px;">PLAY NEXT ROUND</button>
-    <div style="font-size:11px;letter-spacing:0.08em;opacity:0.5;" id="h2hNextStatus"></div>
-    <button class="cancel-btn" id="h2hQuitBtn" style="margin-top:16px;">QUIT GAME</button>
-  </div>
-
-  <!-- Final results -->
-  <div id="h2hFinalResults" style="display:none;width:260px;padding:40px 0;text-align:center;">
-    <div style="font-size:10px;letter-spacing:0.2em;opacity:0.5;margin-bottom:8px;">WINNER</div>
-    <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:24px;" id="h2hFinalWinner"></div>
-    <div id="h2hFinalTable" style="width:100%;margin-bottom:32px;"></div>
-    <button class="auth-submit-btn" id="h2hPlayAgainBtn" style="margin-bottom:12px;">PLAY AGAIN</button>
-    <button class="cancel-btn" id="h2hFinalBackBtn">BACK TO HOME</button>
-  </div>
-
-</div>
 
 <!-- Practice entry overlay -->
 <div class="overlay" id="practiceEntryOverlay">
