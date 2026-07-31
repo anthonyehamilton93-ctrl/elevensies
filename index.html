@@ -1909,13 +1909,13 @@
       60 seconds. Find a word scoring 11+.<br>Or you're out.
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-      <button id="elimPlayTo11Btn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
-        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:var(--gold);">PLAY TO 11</div>
-        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;">Survive 11 rounds<br>for a perfect score</div>
+      <button id="elimPlayTo11Btn" style="background:#f0c020;border:2px solid #f0c020;padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#155c33;">PLAY TO 11</div>
+        <div style="font-size:9px;letter-spacing:0.06em;color:#155c33;opacity:0.7;line-height:1.6;">Survive 11 rounds<br>for a perfect score</div>
       </button>
-      <button id="elimUnlimitedBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
-        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:var(--gold);">UNLIMITED</div>
-        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;">Go as far as<br>you can</div>
+      <button id="elimUnlimitedBtn" style="background:#f0c020;border:2px solid #f0c020;padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#155c33;">UNLIMITED</div>
+        <div style="font-size:9px;letter-spacing:0.06em;color:#155c33;opacity:0.7;line-height:1.6;">Go as far as<br>you can</div>
       </button>
     </div>
     <button class="cancel-btn" id="eliminatorEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
@@ -2038,13 +2038,13 @@
       Same letters every turn. Best of 3 rounds.
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-      <button id="h2hPrivateBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
-        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:var(--gold);">PRIVATE GAME</div>
-        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;">Create a game &<br>invite friends</div>
+      <button id="h2hPrivateBtn" style="background:#f0c020;border:2px solid #f0c020;padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#155c33;">PRIVATE GAME</div>
+        <div style="font-size:9px;letter-spacing:0.06em;color:#155c33;opacity:0.7;line-height:1.6;">Create a game &<br>invite friends</div>
       </button>
-      <button id="h2hMatchMeBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
-        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:var(--gold);">MATCH ME</div>
-        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;">Play against<br>a stranger</div>
+      <button id="h2hMatchMeBtn" style="background:#f0c020;border:2px solid #f0c020;padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#155c33;">MATCH ME</div>
+        <div style="font-size:9px;letter-spacing:0.06em;color:#155c33;opacity:0.7;line-height:1.6;">Play against<br>a stranger</div>
       </button>
     </div>
     <button class="cancel-btn" id="h2hEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
@@ -2144,7 +2144,7 @@
 <div class="h2h-screen" id="h2hScreen" style="display:none; flex-direction:column; align-items:center; width:100%; flex:1;">
 
   <!-- Match Me lobby -->
-  <div id="h2hMatchMeLobby" style="display:none;width:260px;padding:40px 0;text-align:center;">
+  <div id="h2hMatchMeLobby" style="display:none;width:260px;flex:1;text-align:center;justify-content:center;flex-direction:column;align-items:center;">
     <div class="welcome-title">MATCH</div>
     <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:24px;">ME</div>
     <div id="h2hMatchMeStatus" style="font-size:11px;letter-spacing:0.15em;opacity:0.7;margin-bottom:8px;">FINDING OPPONENT…</div>
@@ -2958,11 +2958,6 @@
 
     </div>
 
-    <!-- Survival mode sub-picker -->
-    <div id="statsSurvivalPicker" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
-      <button id="statsSurvivalUnlimited" class="lb-tab active" onclick="openEliminatorStats('unlimited')">UNLIMITED</button>
-      <button id="statsSurvivalPlay11" class="lb-tab" onclick="openEliminatorStats('play_to_11')">PLAY TO 11</button>
-    </div>
     <button class="cancel-btn" id="statsModeClose">CLOSE</button>
   </div>
 </div>
@@ -3060,6 +3055,11 @@
 <div class="overlay" id="fullGameStatsOverlay">
   <div class="modal">
     <div class="modal-title" id="fullGameStatsTitle">FULL GAME</div>
+    <!-- Survival mode sub-picker — only shown for survival stats -->
+    <div id="statsSurvivalPicker" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <button id="statsSurvivalUnlimited" class="lb-tab active" onclick="openEliminatorStats('unlimited')">UNLIMITED</button>
+      <button id="statsSurvivalPlay11" class="lb-tab" onclick="openEliminatorStats('play_to_11')">PLAY TO 11</button>
+    </div>
     <!-- Top-level tabs -->
     <div class="lb-tabs" style="margin-bottom:16px;">
       <button class="lb-tab active" id="statsTabStats">YOUR STATS</button>
@@ -4314,7 +4314,11 @@ document.getElementById('footerAccountBtn').addEventListener('click', () => {
 // Clear active state when overlays close
 document.getElementById('aboutHomepageCloseBtn').addEventListener('click', clearFooterActive, true);
 document.getElementById('statsModeClose').addEventListener('click', clearFooterActive, true);
-document.getElementById('fullGameStatsCloseBtn').addEventListener('click', clearFooterActive, true);
+document.getElementById('fullGameStatsCloseBtn').addEventListener('click', () => {
+  clearFooterActive();
+  // Hide survival sub-picker when closing stats
+  document.getElementById('statsSurvivalPicker').style.display = 'none';
+}, true);
 // ===== END FOOTER =====
 async function showDailyBriefing() {
   const overlay = document.getElementById('dailyBriefingOverlay');
@@ -5301,7 +5305,12 @@ let h2hMaxPlayers = 2;
 function h2hShowSection(id) {
   ['h2hMatchMeLobby','h2hLobby','h2hWaiting','h2hWaitingForOthers','h2hRoundResults','h2hFinalResults'].forEach(s => {
     const el = document.getElementById(s);
-    if (el) el.style.display = s === id ? '' : 'none';
+    if (!el) return;
+    if (s === id) {
+      el.style.display = (s === 'h2hMatchMeLobby') ? 'flex' : '';
+    } else {
+      el.style.display = 'none';
+    }
   });
   document.getElementById('h2hRoundHeader').style.display = 'none';
 }
@@ -9386,6 +9395,7 @@ document.getElementById('statsModeClose').addEventListener('click', () => {
 });
 document.getElementById('statsModeFullGame').addEventListener('click', async () => {
   document.getElementById('statsModeOverlay').classList.remove('show');
+  document.getElementById('statsSurvivalPicker').style.display = 'none';
   await openFullGameStats();
 });
 document.getElementById('statsModeEliminator').addEventListener('click', async () => {
@@ -9395,6 +9405,7 @@ document.getElementById('statsModeEliminator').addEventListener('click', async (
 });
 document.getElementById('statsModeAnagram').addEventListener('click', async () => {
   document.getElementById('statsModeOverlay').classList.remove('show');
+  document.getElementById('statsSurvivalPicker').style.display = 'none';
   await openAnagramStats();
 });
 document.getElementById('leagueDetailCloseBtn').addEventListener('click', () => {
