@@ -1906,9 +1906,18 @@
     <div style="display:flex;justify-content:center;align-items:center;height:48px;margin-bottom:12px;"><img src="/icons/eliminator.png" style="height:48px;width:auto;"></div>
     <div class="modal-title">SURVIVAL</div>
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;text-align:center;">
-      Unlimited rounds. 60 seconds each.<br>Find a word scoring 11+ or you're out.
+      60 seconds. Find a word scoring 11+.<br>Or you're out.
     </div>
-    <button class="auth-submit-btn" id="eliminatorPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <button id="elimPlayTo11Btn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:var(--gold);">PLAY TO 11</div>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;">Survive 11 rounds<br>for a perfect score</div>
+      </button>
+      <button id="elimUnlimitedBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:var(--gold);">UNLIMITED</div>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;">Go as far as<br>you can</div>
+      </button>
+    </div>
     <button class="cancel-btn" id="eliminatorEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
     <button class="cancel-btn" id="eliminatorEntryCloseBtn">CLOSE</button>
   </div>
@@ -1928,8 +1937,8 @@
         <!-- Step 0: Concept -->
         <div class="how-to-step elim-step" id="elimStep0" style="position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
           <div style="font-size:13px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;font-weight:700;">SURVIVAL</div>
-          <div style="font-size:24px;font-weight:900;letter-spacing:0.04em;margin-bottom:12px;line-height:1.3;">UNLIMITED ROUNDS.<br>60 SECONDS.<br>SCORE 11+.</div>
-          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;">You get 11 letters each round.<br>Find any valid word scoring <strong style="color:var(--gold);">11 points or more</strong> before time runs out.</div>
+          <div style="font-size:24px;font-weight:900;letter-spacing:0.04em;margin-bottom:12px;line-height:1.3;">60 SECONDS.<br>SCORE 11+.<br>OR YOU'RE OUT.</div>
+          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.8;">You get 11 letters each round.<br>Find a word scoring <strong style="color:var(--gold);">11 points or more</strong>.<br><strong style="color:var(--gold);">PLAY TO 11</strong> — survive all 11 rounds for a perfect score.<br><strong style="color:var(--gold);">UNLIMITED</strong> — go as far as you can.</div>
         </div>
 
         <!-- Step 1: The threshold -->
@@ -1946,19 +1955,22 @@
           <div style="font-size:12px;letter-spacing:0.07em;line-height:1.8;opacity:0.8;text-align:left;padding:0 8px;">
             Score at least <strong style="color:var(--gold);">11 points</strong> to survive the round.<br>
             Run out of time — <strong style="color:var(--gold);">eliminated.</strong><br>
-            Play as many times as you like.
+            The 11th letter is a bonus tile — use it or don't.
           </div>
         </div>
 
-        <!-- Step 2: Timer -->
+        <!-- Step 2: Modes -->
         <div class="how-to-step elim-step" id="elimStep2" style="position:absolute;inset:0;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;">
-          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:12px;">THE CLOCK</div>
-          <div style="font-size:72px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1;margin-bottom:6px;">0:42</div>
-          <div style="font-size:11px;letter-spacing:0.08em;opacity:0.5;margin-bottom:16px;">SECONDS REMAINING</div>
-          <div style="font-size:12px;letter-spacing:0.07em;line-height:1.8;opacity:0.8;text-align:left;padding:0 8px;">
-            Survive as many rounds as you can — there's no limit.<br>
-            Ranked by rounds survived, then total points.<br>
-            The 11th tile is your bonus — use it or don't.
+          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:16px;">TWO MODES</div>
+          <div style="text-align:left;padding:0 8px;width:100%;">
+            <div style="margin-bottom:16px;">
+              <div style="font-size:13px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px;">PLAY TO 11</div>
+              <div style="font-size:12px;letter-spacing:0.06em;line-height:1.8;opacity:0.8;">Survive all 11 rounds for a perfect score. Fail any round and it's over. The goal is completion.</div>
+            </div>
+            <div style="border-top:1px solid rgba(240,192,32,0.15);padding-top:16px;">
+              <div style="font-size:13px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px;">UNLIMITED</div>
+              <div style="font-size:12px;letter-spacing:0.06em;line-height:1.8;opacity:0.8;">No cap — go as far as you can. Ranked by rounds survived, then total points.</div>
+            </div>
           </div>
         </div>
 
@@ -2023,9 +2035,18 @@
     <div style="display:flex;justify-content:center;align-items:center;height:48px;margin-bottom:12px;"><img src="/icons/h2h.png" style="height:48px;width:auto;"></div>
     <div class="modal-title">HEAD TO HEAD</div>
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">
-      Challenge a friend. Same letters every turn. Best of 3 rounds.
+      Same letters every turn. Best of 3 rounds.
     </div>
-    <button class="auth-submit-btn" id="h2hEntryPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <button id="h2hPrivateBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:var(--gold);">PRIVATE GAME</div>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;">Create a game &<br>invite friends</div>
+      </button>
+      <button id="h2hMatchMeBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:var(--gold);">MATCH ME</div>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;">Play against<br>a stranger</div>
+      </button>
+    </div>
     <button class="cancel-btn" id="h2hEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
     <button class="cancel-btn" id="h2hEntryCloseBtn">CLOSE</button>
   </div>
@@ -2121,6 +2142,19 @@
 
 <!-- Head to Head screen -->
 <div class="h2h-screen" id="h2hScreen" style="display:none; flex-direction:column; align-items:center; width:100%; flex:1;">
+
+  <!-- Match Me lobby -->
+  <div id="h2hMatchMeLobby" style="display:none;width:260px;padding:40px 0;text-align:center;">
+    <div class="welcome-title">MATCH</div>
+    <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:24px;">ME</div>
+    <div id="h2hMatchMeStatus" style="font-size:11px;letter-spacing:0.15em;opacity:0.7;margin-bottom:8px;">FINDING OPPONENT…</div>
+    <div id="h2hMatchMeWait" style="font-size:9px;letter-spacing:0.1em;opacity:0.4;margin-bottom:32px;">Hang tight — this could take a moment</div>
+    <!-- Pulsing squares animation reused from loader -->
+    <div class="loader-squares" style="display:flex;justify-content:center;margin-bottom:32px;">
+      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
+    </div>
+    <button class="cancel-btn" id="h2hMatchMeCancelBtn">CANCEL</button>
+  </div>
 
   <!-- Lobby: create or join -->
   <div id="h2hLobby" style="width:260px; padding:40px 0; text-align:center;">
@@ -2922,6 +2956,12 @@
         <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">SURVIVAL</div>
       </button>
 
+    </div>
+
+    <!-- Survival mode sub-picker -->
+    <div id="statsSurvivalPicker" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+      <button id="statsSurvivalUnlimited" class="lb-tab active" onclick="openEliminatorStats('unlimited')">UNLIMITED</button>
+      <button id="statsSurvivalPlay11" class="lb-tab" onclick="openEliminatorStats('play_to_11')">PLAY TO 11</button>
     </div>
     <button class="cancel-btn" id="statsModeClose">CLOSE</button>
   </div>
@@ -5259,8 +5299,9 @@ let h2hPollInterval = null;
 let h2hMaxPlayers = 2;
 
 function h2hShowSection(id) {
-  ['h2hLobby','h2hWaiting','h2hWaitingForOthers','h2hRoundResults','h2hFinalResults'].forEach(s => {
-    document.getElementById(s).style.display = s === id ? '' : 'none';
+  ['h2hMatchMeLobby','h2hLobby','h2hWaiting','h2hWaitingForOthers','h2hRoundResults','h2hFinalResults'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = s === id ? '' : 'none';
   });
   document.getElementById('h2hRoundHeader').style.display = 'none';
 }
@@ -5800,6 +5841,18 @@ async function refreshH2HLobby() {
     document.getElementById('h2hLobbyOverlay').classList.remove('show');
     startH2HRound();
   }
+}
+
+async function startH2HGameFromCode(code, seed) {
+  // Set up h2hGame state from the matched game
+  const { data: game } = await sbClient.from('h2h_games').select('*').eq('code', code).single();
+  if (!game) { showScreen('welcome'); return; }
+  h2hGame = game;
+  h2hGame.seed = seed || game.seed || game.code;
+  h2hCurrentRound = 1;
+  h2hMyScore = 0;
+  h2hOpponentScore = 0;
+  startH2HRound();
 }
 
 async function startH2HGameFromLobby() {
@@ -8447,7 +8500,7 @@ document.getElementById('h2hEntryJoinBtn')?.addEventListener('click', () => {
     joinH2HGame();
   }, 1100);
 });
-document.getElementById('h2hEntryPlayBtn').addEventListener('click', () => {
+document.getElementById('h2hEntryPlayBtn')?.addEventListener('click', () => {
   if (!currentUser) {
     document.getElementById('h2hEntryOverlay').classList.remove('show');
     authOverlay.classList.add('show');
@@ -9337,7 +9390,8 @@ document.getElementById('statsModeFullGame').addEventListener('click', async () 
 });
 document.getElementById('statsModeEliminator').addEventListener('click', async () => {
   document.getElementById('statsModeOverlay').classList.remove('show');
-  await openEliminatorStats();
+  document.getElementById('statsSurvivalPicker').style.display = 'grid';
+  await openEliminatorStats('unlimited');
 });
 document.getElementById('statsModeAnagram').addEventListener('click', async () => {
   document.getElementById('statsModeOverlay').classList.remove('show');
@@ -9917,8 +9971,9 @@ let elimRoundStartTime = null;
 let elimPlaying = false;
 let elimCurrentRack = null;
 let elimHistory = []; // { word, pts } per round
+let elimMode = 'unlimited'; // 'unlimited' | 'play_to_11'
 
-async function startEliminator() {
+async function startEliminator(mode = 'unlimited') {
   if (!sbClient || !currentUser) {
     authOverlay.classList.add('show');
     showAuthForm();
@@ -9927,6 +9982,7 @@ async function startEliminator() {
     }, 500);
     return;
   }
+  elimMode = mode;
   elimCurrentRound = 0;
   elimTotalTimeMs = 0;
   elimTotalPoints = 0;
@@ -10067,8 +10123,18 @@ function submitElimWord() {
   msg.textContent = `✓ ${word} · ${pts} PTS`;
   msg.className = 'message show success';
   document.getElementById('elimTimer').style.color = '';
-  // No round cap — always continue
-  setTimeout(() => startElimRound(), 900);
+  // Play to 11: end at round 11 with perfect result
+  if (elimMode === 'play_to_11' && elimCurrentRound >= 11) {
+    setTimeout(() => onElimPerfect(), 900);
+  } else {
+    setTimeout(() => startElimRound(), 900);
+  }
+}
+
+function onElimPerfect() {
+  elimPlaying = false;
+  clearInterval(elimTimerInterval);
+  showEliminatorResult(11, elimTotalTimeMs, elimTotalPoints, true);
 }
 
 function onElimEliminated() {
@@ -10133,13 +10199,142 @@ document.querySelectorAll('.elim-dot').forEach(dot => {
 });
 
 // Entry overlay wiring
+// Survival mode entry buttons
+document.getElementById('elimPlayTo11Btn')?.addEventListener('click', () => {
+  document.getElementById('eliminatorEntryOverlay').classList.remove('show');
+  startEliminator('play_to_11');
+});
+document.getElementById('elimUnlimitedBtn')?.addEventListener('click', () => {
+  document.getElementById('eliminatorEntryOverlay').classList.remove('show');
+  startEliminator('unlimited');
+});
+
+// H2H mode entry buttons
+document.getElementById('h2hPrivateBtn')?.addEventListener('click', () => {
+  if (!currentUser) { authOverlay.classList.add('show'); showAuthForm(); return; }
+  document.getElementById('h2hEntryOverlay').classList.remove('show');
+  openH2H();
+});
+document.getElementById('h2hMatchMeBtn')?.addEventListener('click', () => {
+  if (!currentUser) { authOverlay.classList.add('show'); showAuthForm(); return; }
+  document.getElementById('h2hEntryOverlay').classList.remove('show');
+  startMatchMe();
+});
+
+// ===== Match Me Matchmaking =====
+let matchMePollingInterval = null;
+let matchMeEntryId = null;
+
+async function startMatchMe() {
+  if (!sbClient || !currentUser) return;
+  showScreen('h2h');
+  h2hShowSection('h2hMatchMeLobby');
+
+  // Clean up any stale entry for this user
+  await sbClient.from('h2h_matchmaking').delete().eq('user_id', currentUser.id);
+
+  // Look for a waiting opponent first
+  const { data: waiting } = await sbClient
+    .from('h2h_matchmaking')
+    .select('id, user_id')
+    .eq('status', 'waiting')
+    .neq('user_id', currentUser.id)
+    .order('created_at', { ascending: true })
+    .limit(1);
+
+  if (waiting && waiting.length > 0) {
+    // Found one — create game and match both
+    await matchWithOpponent(waiting[0]);
+  } else {
+    // Nobody waiting — add self to queue and poll
+    const { data: entry } = await sbClient
+      .from('h2h_matchmaking')
+      .insert({ user_id: currentUser.id, status: 'waiting' })
+      .select()
+      .single();
+
+    if (entry) {
+      matchMeEntryId = entry.id;
+      matchMePollingInterval = setInterval(pollMatchMe, 2000);
+    }
+  }
+}
+
+async function pollMatchMe() {
+  if (!matchMeEntryId || !currentUser) return;
+  const { data } = await sbClient
+    .from('h2h_matchmaking')
+    .select('status, game_id')
+    .eq('id', matchMeEntryId)
+    .single();
+
+  if (data?.status === 'matched' && data.game_id) {
+    clearInterval(matchMePollingInterval);
+    matchMePollingInterval = null;
+    matchMeEntryId = null;
+    // Join the matched game
+    const { data: game } = await sbClient.from('h2h_games').select('*').eq('id', data.game_id).single();
+    if (game) {
+      await joinMatchedGame(game);
+    }
+  }
+}
+
+async function matchWithOpponent(opponentEntry) {
+  // Create the game
+  const code = generateGameCode();
+  const seed = generateGameCode() + generateGameCode();
+  const { data: game, error } = await sbClient.from('h2h_games').insert({
+    code, created_by: currentUser.id, seed, status: 'waiting', max_players: 2
+  }).select().single();
+
+  if (error || !game) { cancelMatchMe(); return; }
+
+  // Join game as creator
+  await sbClient.from('h2h_players').insert({ game_id: game.id, user_id: currentUser.id });
+
+  // Mark opponent as matched with this game
+  await sbClient.from('h2h_matchmaking').update({ status: 'matched', game_id: game.id }).eq('id', opponentEntry.id);
+
+  // Start game
+  await joinMatchedGame(game);
+}
+
+async function joinMatchedGame(game) {
+  // Add self as player if not already
+  const { data: existing } = await sbClient.from('h2h_players').select('id').eq('game_id', game.id).eq('user_id', currentUser.id);
+  if (!existing?.length) {
+    await sbClient.from('h2h_players').insert({ game_id: game.id, user_id: currentUser.id });
+  }
+  // Update game status to active
+  await sbClient.from('h2h_games').update({ status: 'active' }).eq('id', game.id);
+  // Start the H2H game directly
+  h2hGameId = game.id;
+  h2hGameCode = game.code;
+  h2hIsCreator = game.created_by === currentUser.id;
+  document.getElementById('h2hMatchMeLobby').style.display = 'none';
+  await startH2HGameFromCode(game.code, game.seed);
+}
+
+async function cancelMatchMe() {
+  clearInterval(matchMePollingInterval);
+  matchMePollingInterval = null;
+  if (matchMeEntryId && sbClient && currentUser) {
+    await sbClient.from('h2h_matchmaking').delete().eq('id', matchMeEntryId);
+    matchMeEntryId = null;
+  }
+  showScreen('welcome');
+}
+
+document.getElementById('h2hMatchMeCancelBtn')?.addEventListener('click', cancelMatchMe);
+
 document.getElementById('moreGamesEliminatorBtn').addEventListener('click', () => {
   moreGamesOverlay.classList.remove('show');
   document.getElementById('eliminatorEntryOverlay').classList.add('show');
 });
-document.getElementById('eliminatorPlayBtn').addEventListener('click', () => {
+document.getElementById('eliminatorPlayBtn')?.addEventListener('click', () => {
   document.getElementById('eliminatorEntryOverlay').classList.remove('show');
-  startEliminator();
+  startEliminator('unlimited');
 });
 document.getElementById('eliminatorEntryHowToBtn').addEventListener('click', () => {
   showElimHowToStep(0);
@@ -10176,7 +10371,7 @@ document.getElementById('eliminatorBackBtn').addEventListener('click', () => {
 let elimLastScore = 0;
 let elimLastTotalPoints = 0;
 
-function showEliminatorResult(score, totalTimeMs, totalPoints) {
+function showEliminatorResult(score, totalTimeMs, totalPoints, perfect = false) {
   elimLastScore = score;
   elimLastTotalPoints = totalPoints;
 
@@ -10190,11 +10385,22 @@ function showEliminatorResult(score, totalTimeMs, totalPoints) {
     setTimeout(() => {
       savingOverlay.classList.remove('show');
       const overlay = document.getElementById('eliminatorResultOverlay');
-      document.getElementById('elimResultTitle').textContent = 'ELIMINATED';
-  document.getElementById('elimResultScore').textContent = `${score} ROUND${score !== 1 ? 'S' : ''}`;
-  document.getElementById('elimResultBody').textContent = score === 0
-    ? 'Eliminated on round 1. Better luck next time!'
-    : `Survived ${score} round${score !== 1 ? 's' : ''}. Eliminated on round ${score + 1}.`;
+      const titleEl = document.getElementById('elimResultTitle');
+      if (perfect) {
+        titleEl.textContent = '🎉 PERFECT!';
+        titleEl.style.color = 'var(--gold)';
+      } else {
+        titleEl.textContent = 'ELIMINATED';
+        titleEl.style.color = '';
+      }
+      document.getElementById('elimResultScore').textContent = perfect
+        ? '11 / 11'
+        : `${score} ROUND${score !== 1 ? 'S' : ''}`;
+      document.getElementById('elimResultBody').textContent = perfect
+        ? 'You survived all 11 rounds — perfect score!'
+        : score === 0
+        ? 'Eliminated on round 1. Better luck next time!'
+        : `Survived ${score} round${score !== 1 ? 's' : ''}. Eliminated on round ${score + 1}.`;
 
   const secsPerRound = score > 0 ? (totalTimeMs / score / 1000).toFixed(1) + 's' : '—';
   const avgPts = score > 0 ? (totalPoints / score).toFixed(1) : '—';
@@ -10240,7 +10446,7 @@ function showEliminatorResult(score, totalTimeMs, totalPoints) {
       fetch('/api/save-eliminator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ rounds_survived: score, total_points: totalPoints }),
+        body: JSON.stringify({ rounds_survived: score, total_points: totalPoints, survival_mode: elimMode }),
       }).catch(e => console.error('Survival save error:', e)).finally(() => showResult());
     });
   } else {
@@ -10248,12 +10454,17 @@ function showEliminatorResult(score, totalTimeMs, totalPoints) {
   }
 }
 
-async function openEliminatorStats() {
+async function openEliminatorStats(mode = 'unlimited') {
   try {
     const overlay = document.getElementById('fullGameStatsOverlay');
     const loggedOut = document.getElementById('fullGameStatsLoggedOut');
+    const title = mode === 'play_to_11' ? 'SURVIVAL · PLAY TO 11' : 'SURVIVAL · UNLIMITED';
 
-    resetStatsOverlay('SURVIVAL');
+    // Update sub-picker tabs
+    document.getElementById('statsSurvivalUnlimited')?.classList.toggle('active', mode === 'unlimited');
+    document.getElementById('statsSurvivalPlay11')?.classList.toggle('active', mode === 'play_to_11');
+
+    resetStatsOverlay(title);
     document.getElementById('statsTabStatsContent').style.display = '';
 
     overlay.classList.add('show');
@@ -10266,7 +10477,9 @@ async function openEliminatorStats() {
     loggedOut.style.display = 'none';
 
     const rows = document.querySelectorAll('#statsOverlayStats .account-stats-row');
-    const labels = ['GAMES PLAYED', 'BEST ROUNDS', 'AVG ROUNDS', 'AVG PTS / ROUND'];
+    const labels = mode === 'play_to_11'
+      ? ['GAMES PLAYED', 'PERFECT SCORES', 'BEST ROUNDS', 'AVG PTS / ROUND']
+      : ['GAMES PLAYED', 'BEST ROUNDS', 'AVG ROUNDS', 'AVG PTS / ROUND'];
     const valueIds = ['statsOverlayGames', 'statsOverlayStreak', 'statsOverlayBest', 'statsOverlayAvgWord'];
 
     rows.forEach((r, i) => r.style.display = i < 4 ? '' : 'none');
@@ -10280,8 +10493,9 @@ async function openEliminatorStats() {
 
     const { data, error } = await sbClient
       .from('eliminator_results')
-      .select('rounds_survived, total_points')
-      .eq('user_id', currentUser.id);
+      .select('rounds_survived, total_points, survival_mode')
+      .eq('user_id', currentUser.id)
+      .eq('survival_mode', mode);
 
     if (error) throw error;
 
@@ -10291,14 +10505,27 @@ async function openEliminatorStats() {
     }
 
     const gamesPlayed = data.length;
-    const bestRounds = Math.max(...data.map(r => r.rounds_survived));
-    const avgRounds = (data.reduce((s, r) => s + r.rounds_survived, 0) / gamesPlayed).toFixed(1);
-    const solvable = data.filter(r => r.rounds_survived > 0);
-    const avgPtsPerRound = solvable.length
-      ? (solvable.reduce((s, r) => s + r.total_points / r.rounds_survived, 0) / solvable.length).toFixed(1)
-      : '—';
+    let stat2, stat3, stat4;
 
-    const values = [gamesPlayed, bestRounds, avgRounds, avgPtsPerRound];
+    if (mode === 'play_to_11') {
+      const perfect = data.filter(r => r.rounds_survived >= 11).length;
+      const bestRounds = Math.max(...data.map(r => r.rounds_survived));
+      const solvable = data.filter(r => r.rounds_survived > 0);
+      const avgPtsPerRound = solvable.length
+        ? (solvable.reduce((s, r) => s + r.total_points / r.rounds_survived, 0) / solvable.length).toFixed(1)
+        : '—';
+      stat2 = perfect; stat3 = bestRounds; stat4 = avgPtsPerRound;
+    } else {
+      const bestRounds = Math.max(...data.map(r => r.rounds_survived));
+      const avgRounds = (data.reduce((s, r) => s + r.rounds_survived, 0) / gamesPlayed).toFixed(1);
+      const solvable = data.filter(r => r.rounds_survived > 0);
+      const avgPtsPerRound = solvable.length
+        ? (solvable.reduce((s, r) => s + r.total_points / r.rounds_survived, 0) / solvable.length).toFixed(1)
+        : '—';
+      stat2 = bestRounds; stat3 = avgRounds; stat4 = avgPtsPerRound;
+    }
+
+    const values = [gamesPlayed, stat2, stat3, stat4];
     valueIds.forEach((id, i) => { const el = document.getElementById(id); if (el) el.textContent = values[i]; });
 
   } catch(err) {
@@ -10310,6 +10537,7 @@ async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
   const secsPerRound = score > 0 ? (totalTimeMs / score / 1000).toFixed(1) : '—';
   const avgPts = score > 0 ? (totalPoints / score).toFixed(1) : '—';
   const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+  const isPerfect = elimMode === 'play_to_11' && score >= 11;
 
   let nickname = null;
   if (sbClient && currentUser) {
@@ -10322,91 +10550,105 @@ async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
   const W = 1080, H = 1080;
   shareCanvas.width = W; shareCanvas.height = H;
   const ctx = shareCanvas.getContext('2d');
+  ctx.fillStyle = green; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center';
 
-  ctx.fillStyle = green;
-  ctx.fillRect(0, 0, W, H);
-
-  // Logo
-  ctx.fillStyle = gold; ctx.textAlign = 'center';
-  ctx.font = '900 52px Jost';
-  ctx.fillText('E L E V E N S I E S', W/2, 110);
+  let y = 80;
+  ctx.font = '900 48px Jost'; ctx.fillStyle = gold;
+  ctx.fillText('ELEVENSIES', W/2, y); y += 44;
 
   if (nickname) {
-    ctx.font = '700 26px Jost'; ctx.globalAlpha = 0.65;
-    ctx.fillText(nickname.toUpperCase(), W/2, 155);
+    ctx.font = '700 24px Jost'; ctx.globalAlpha = 0.6;
+    ctx.fillText(nickname.toUpperCase(), W/2, y); y += 30;
     ctx.globalAlpha = 1;
   }
 
-  // Divider under header
-  ctx.strokeStyle = 'rgba(240,192,32,0.4)'; ctx.lineWidth = 2;
-  const divY = nickname ? 178 : 148;
-  ctx.beginPath(); ctx.moveTo(W/2-220, divY); ctx.lineTo(W/2+220, divY); ctx.stroke();
+  ctx.strokeStyle = 'rgba(240,192,32,0.35)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W/2-200, y+8); ctx.lineTo(W/2+200, y+8); ctx.stroke();
+  y += 30;
 
-  // Result — large
-  const resultY = divY + 200;
-  ctx.font = '900 96px Jost'; ctx.fillStyle = gold;
-  ctx.fillText('SURVIVED', W/2, resultY);
-  ctx.fillText(`${score} ROUND${score !== 1 ? 'S' : ''}`, W/2, resultY + 108);
-  ctx.font = '700 32px Jost'; ctx.globalAlpha = 0.55;
-  ctx.fillText(date, W/2, resultY + 60);
+  const modeLabel = elimMode === 'play_to_11' ? 'PLAY TO 11' : 'UNLIMITED';
+  ctx.font = '700 22px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 0.55;
+  ctx.fillText(`SURVIVAL · ${modeLabel}`, W/2, y); y += 30;
   ctx.globalAlpha = 1;
 
-  // Words played (up to 11, two columns)
-  if (elimHistory.length > 0) {
-    const wordY = resultY + 130;
-    // Sort by score descending, take best 11
-    const best11 = [...elimHistory].sort((a, b) => b.pts - a.pts).slice(0, 11);
-    ctx.font = '700 26px Jost'; ctx.fillStyle = gold;
-    best11.forEach((h, i) => {
-      const col = i < 6 ? 0 : 1;
-      const row = i < 6 ? i : i - 6;
-      const x = col === 0 ? W/4 : 3*W/4;
-      const y = wordY + row * 44;
-      ctx.textAlign = 'left';
-      ctx.globalAlpha = 1;
-      ctx.fillText(h.word, x - 100, y);
-      ctx.globalAlpha = 0.6;
-      ctx.fillText(`${h.pts}pts`, x + 80, y);
-      ctx.globalAlpha = 1;
-    });
-    ctx.textAlign = 'center';
+  ctx.font = '900 112px Jost'; ctx.fillStyle = gold;
+  if (isPerfect) {
+    ctx.fillText('PERFECT!', W/2, y + 100); y += 130;
+  } else {
+    ctx.fillText('SURVIVED', W/2, y + 100); y += 120;
+    ctx.font = '900 80px Jost';
+    ctx.fillText(`${score} ROUND${score !== 1 ? 'S' : ''}`, W/2, y); y += 90;
   }
 
-  // Stats row
-  const statY = resultY + 430;
+  ctx.font = '700 24px Jost'; ctx.globalAlpha = 0.5;
+  ctx.fillText(date, W/2, y); y += 20;
+  ctx.globalAlpha = 1;
+
+  ctx.strokeStyle = 'rgba(240,192,32,0.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80, y+14); ctx.lineTo(W-80, y+14); ctx.stroke();
+  y += 36;
+
+  if (elimHistory.length > 0) {
+    const best11 = [...elimHistory].sort((a, b) => b.pts - a.pts).slice(0, 11);
+    const rowH = 48;
+    const colW = (W - 160) / 2;
+    const col1X = 80, col2X = 80 + colW + 20;
+    const leftCol = best11.slice(0, 6);
+    const rightCol = best11.slice(6);
+    ctx.font = '700 26px Jost';
+    leftCol.forEach((h, i) => {
+      const wy = y + i * rowH;
+      ctx.fillStyle = gold; ctx.globalAlpha = 1;
+      ctx.textAlign = 'left'; ctx.fillText(h.word, col1X, wy);
+      ctx.globalAlpha = 0.55; ctx.textAlign = 'right';
+      ctx.fillText(`${h.pts}`, col1X + colW - 10, wy);
+    });
+    rightCol.forEach((h, i) => {
+      const wy = y + i * rowH;
+      ctx.fillStyle = gold; ctx.globalAlpha = 1;
+      ctx.textAlign = 'left'; ctx.fillText(h.word, col2X, wy);
+      ctx.globalAlpha = 0.55; ctx.textAlign = 'right';
+      ctx.fillText(`${h.pts}`, col2X + colW - 10, wy);
+    });
+    ctx.globalAlpha = 1; ctx.textAlign = 'center';
+    y += Math.ceil(best11.length / 2) * rowH + 20;
+  }
+
+  ctx.strokeStyle = 'rgba(240,192,32,0.3)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W/2-260, y); ctx.lineTo(W/2+260, y); ctx.stroke();
+  y += 36;
+
   const statItems = [
     { label: 'TOTAL PTS', value: String(totalPoints) },
-    { label: 'SECS / ROUND', value: secsPerRound + 's' },
+    { label: 'SECS/ROUND', value: secsPerRound + 's' },
     { label: 'AVG PTS', value: avgPts },
   ];
-  const colW2 = W/3;
+  const colW2 = W / 3;
   statItems.forEach((s, i) => {
-    const cx = colW2*i + colW2/2;
-    ctx.font = '900 72px Jost'; ctx.fillStyle = gold;
-    ctx.fillText(s.value, cx, statY);
-    ctx.font = '700 26px Jost'; ctx.globalAlpha = 0.55;
-    ctx.fillText(s.label, cx, statY + 50);
-    ctx.globalAlpha = 1;
+    const cx = colW2 * i + colW2 / 2;
+    ctx.font = '900 52px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 1;
+    ctx.fillText(s.value, cx, y + 52);
+    ctx.font = '700 20px Jost'; ctx.globalAlpha = 0.5;
+    ctx.fillText(s.label, cx, y + 82);
   });
+  ctx.globalAlpha = 1; y += 110;
 
-  // Divider + CTA
-  ctx.strokeStyle = 'rgba(240,192,32,0.35)'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(W/2-280, statY + 110); ctx.lineTo(W/2+280, statY + 110); ctx.stroke();
-  ctx.font = '700 34px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 0.75;
-  ctx.fillText('CAN YOU BEAT ME?', W/2, statY + 200);
+  ctx.font = '700 28px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 0.7;
+  ctx.fillText('CAN YOU BEAT ME?', W/2, y + 20);
   ctx.globalAlpha = 1;
 
-  // Footer bar
-  ctx.fillStyle = gold; ctx.fillRect(0, H-96, W, 96);
-  ctx.fillStyle = greenDark; ctx.font = '900 38px Jost';
-  ctx.fillText('playelevensies.com', W/2, H-30);
+  ctx.fillStyle = gold; ctx.fillRect(0, H - 86, W, 86);
+  ctx.fillStyle = greenDark; ctx.font = '900 34px Jost';
+  ctx.fillText('playelevensies.com', W/2, H - 28);
 
   const blob = await new Promise(r => shareCanvas.toBlob(r, 'image/png'));
-  const linkText = `I survived ${score} round${score !== 1 ? 's' : ''} of Elevensies Survival! playelevensies.com`;
+  const linkText = isPerfect
+    ? `I got a PERFECT score on Elevensies Survival! playelevensies.com`
+    : `I survived ${score} round${score !== 1 ? 's' : ''} of Elevensies Survival! playelevensies.com`;
 
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'eliminator.png', { type: 'image/png' })] })) {
-    try { await navigator.share({ files: [new File([blob], 'eliminator.png', { type: 'image/png' })], text: linkText }); return; } catch(e) {}
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'survival.png', { type: 'image/png' })] })) {
+    try { await navigator.share({ files: [new File([blob], 'survival.png', { type: 'image/png' })], text: linkText }); return; } catch(e) {}
   }
   await navigator.clipboard.writeText(linkText);
   const btn = document.getElementById('elimShareBtn');
