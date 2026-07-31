@@ -2458,6 +2458,17 @@
   </div>
 </div>
 
+<!-- Push upgrade prompt (for existing email-only users on push-capable devices) -->
+<div class="overlay" id="pushUpgradeOverlay" style="z-index:4000;">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">UPGRADE TO PUSH?</div>
+    <p style="font-size:12px;letter-spacing:0.06em;line-height:1.8;opacity:0.7;margin-bottom:20px;">Your device supports instant push notifications — faster and more reliable than email reminders. Switch?</p>
+    <button class="auth-submit-btn" id="pushUpgradeYes" style="margin-bottom:10px;width:100%;">SWITCH TO PUSH</button>
+    <button class="cancel-btn" id="pushUpgradeKeep" style="margin-bottom:6px;">KEEP EMAIL</button>
+    <button class="cancel-btn" id="pushUpgradeNo" style="opacity:0.5;">NO THANKS</button>
+  </div>
+</div>
+
 <!-- New user reminder prompt -->
 <div class="overlay" id="reminderPromptOverlay" style="z-index:4000;">
   <div class="modal" style="text-align:center;">
@@ -3674,7 +3685,7 @@ async function handleAuthSubmit(mode) {
           streak_freezes: 1,
         }, { onConflict: 'id', ignoreDuplicates: false });
       }
-      authMessage.textContent = 'Account created! Check your email to confirm — and check your junk folder!';
+      authMessage.textContent = 'Account created! Check your email to confirm your account.';
       authMessage.className = 'auth-message success';
       // Show reminder prompt for new users after a short delay
       setTimeout(() => showNewUserReminderPrompt(), 2000);
@@ -8599,6 +8610,15 @@ async function initReminderState() {
 
   reminderOptedIn = emailOptedIn || pushOptedIn;
 
+  // One-time prompt for existing email-only users on push-capable devices
+  if (pushCapable && emailOptedIn && !pushOptedIn) {
+    const promptKey = `elv_push_prompt_${currentUser.id}`;
+    if (!localStorage.getItem(promptKey)) {
+      localStorage.setItem(promptKey, '1');
+      setTimeout(() => showPushUpgradePrompt(), 3000);
+    }
+  }
+
   // Hide reminder bells if already opted in — they live in TOOLS
   updateReminderBellVisibility(reminderOptedIn);
   updateReminderBellLabels();
@@ -8616,14 +8636,14 @@ function updateReminderBellVisibility(optedIn) {
 }
 
 function updateReminderBellLabels() {
-  const label = pushCapable
-    ? (currentUser ? 'GET A PUSH REMINDER' : 'SIGN IN FOR REMINDERS')
-    : 'GET AN EMAIL REMINDER';
+  const offLabel = pushCapable
+    ? (currentUser ? 'PUSH REMINDER AT 11AM' : 'SIGN IN FOR REMINDERS')
+    : 'EMAIL REMINDER AT 11AM';
   const onLabel = pushCapable ? 'PUSH REMINDER SET ✓' : 'EMAIL REMINDER SET ✓';
   ['remindBellWelcome', 'remindBellCountdown', 'remindBellLobby'].forEach(id => {
     const el = document.getElementById(id);
     const labelEl = document.getElementById(`${id}-label`);
-    if (labelEl) labelEl.textContent = el?.dataset.on === 'true' ? onLabel : label;
+    if (labelEl) labelEl.textContent = el?.dataset.on === 'true' ? onLabel : offLabel;
   });
 }
 
@@ -8649,11 +8669,12 @@ async function handleSmartRemindToggle(id) {
         const sub = await subscribeToPush();
         if (sub) {
           await savePushSubscription(sub);
+          // Turn off email daily reminder (no double-up) but keep weekly roundup
+          await sbClient.from('profiles').update({ reminders_unsubscribed: true }).eq('id', currentUser.id);
           reminderOptedIn = true;
-          // Hide all bells — it's now in TOOLS
           updateReminderBellVisibility(true);
           setSqToggle('toolsPushToggle', true);
-          showJunkNotice(id, true); // push-specific confirmation
+          setSqToggle('toolsReminderToggle', false);
         } else {
           if (Notification.permission === 'denied') {
             alert('Notifications are blocked. Enable them in your device settings.');
@@ -8669,18 +8690,58 @@ async function handleSmartRemindToggle(id) {
       updateReminderBellLabels();
     }
   } else {
-    // Email flow
-    await handleRemindToggle(id);
-    // Check if now opted in and hide bells
-    if (!isOn) {
+    // Email flow — only affects daily reminder, not weekly roundup
+    const el = document.getElementById(id);
+    const isCurrentlyOn = el?.dataset.on === 'true';
+    const newOn = !isCurrentlyOn;
+    ['remindBellWelcome','remindBellCountdown','remindBellLobby'].forEach(bid => setSqToggle(bid, newOn));
+    await sbClient.from('profiles').update({ reminders_unsubscribed: !newOn }).eq('id', currentUser.id);
+    if (newOn) {
       reminderOptedIn = true;
       updateReminderBellVisibility(true);
+      setSqToggle('toolsReminderToggle', true);
     } else {
       reminderOptedIn = false;
       updateReminderBellVisibility(false);
+      updateReminderBellLabels();
     }
   }
 }
+
+function showPushUpgradePrompt() {
+  document.getElementById('pushUpgradeOverlay')?.classList.add('show');
+}
+
+document.getElementById('pushUpgradeYes')?.addEventListener('click', async () => {
+  document.getElementById('pushUpgradeOverlay').classList.remove('show');
+  if (!sbClient || !currentUser) return;
+  const loadingOverlay = document.getElementById('anagramLoadingOverlay');
+  const loadingLabel = loadingOverlay?.querySelector('.loader-label');
+  if (loadingLabel) loadingLabel.textContent = 'SWITCHING TO PUSH…';
+  if (loadingOverlay) loadingOverlay.classList.add('show');
+  try {
+    const sub = await subscribeToPush();
+    if (sub) {
+      await savePushSubscription(sub);
+      // Replace email reminder with push — keep roundup
+      await sbClient.from('profiles').update({ reminders_unsubscribed: true }).eq('id', currentUser.id);
+      setSqToggle('toolsPushToggle', true);
+      setSqToggle('toolsReminderToggle', false);
+    } else {
+      if (Notification.permission === 'denied') alert('Notifications are blocked. Enable them in your device settings.');
+    }
+  } catch(e) { console.error(e); }
+  finally { if (loadingOverlay) loadingOverlay.classList.remove('show'); }
+});
+
+document.getElementById('pushUpgradeKeep')?.addEventListener('click', () => {
+  // Keep email, also add push on top
+  document.getElementById('pushUpgradeOverlay').classList.remove('show');
+});
+
+document.getElementById('pushUpgradeNo')?.addEventListener('click', () => {
+  document.getElementById('pushUpgradeOverlay').classList.remove('show');
+});
 
 // New user reminder prompt
 async function showNewUserReminderPrompt() {
@@ -8711,14 +8772,18 @@ document.getElementById('reminderPromptYes')?.addEventListener('click', async ()
       const sub = await subscribeToPush();
       if (sub) {
         await savePushSubscription(sub);
+        // Turn off email daily reminder (push replaces it) but keep roundup
+        await sbClient.from('profiles').update({ reminders_unsubscribed: true }).eq('id', currentUser.id);
         reminderOptedIn = true;
         updateReminderBellVisibility(true);
         setSqToggle('toolsPushToggle', true);
+        setSqToggle('toolsReminderToggle', false);
       }
     } catch(e) { console.error(e); }
     finally { if (loadingOverlay) loadingOverlay.classList.remove('show'); }
   } else {
-    await sbClient.from('profiles').update({ reminders_unsubscribed: false, email_unsubscribed: false }).eq('id', currentUser.id);
+    // Email — only turn on daily reminder, roundup already on by default at sign up
+    await sbClient.from('profiles').update({ reminders_unsubscribed: false }).eq('id', currentUser.id);
     reminderOptedIn = true;
     updateReminderBellVisibility(true);
     setSqToggle('toolsReminderToggle', true);
@@ -9321,6 +9386,7 @@ document.getElementById('menuIngameOverviewBtn').addEventListener('click', () =>
 });
 
 function showJunkNotice(id) {
+  if (pushCapable) return; // push users don't need junk folder advice
   const existing = document.getElementById('junkNotice');
   if (existing) existing.remove();
   const anchor = document.getElementById(`${id}-wrap`);
