@@ -1560,7 +1560,7 @@
 </style>
   <script>
     // VAPID public key — replace with your generated key
-    const VAPID_PUBLIC_KEY = 'BISZS-JEGySPglqtJPKNc5e5-w-YToxf_x_0dpYvYKhxn2N9dy2T6Uou5tgJZVDgEIptocAksRKJsiCCO9SKaiI';
+    const VAPID_PUBLIC_KEY = 'BKiIKCL7NguiFk359Kby3Ave4inLypHSNluyC363SoVeE-PDI2BaC_tmtNGpc2tTuDKmqGBYuW0hWwq0hBdxCZ4';
 
     // Register service worker
     if ('serviceWorker' in navigator) {
@@ -1793,13 +1793,13 @@
     <div class="modal-title" id="playerProfileName">—</div>
 
     <!-- Tab toggle -->
-    <div class="lb-tabs" style="margin-bottom:0;">
+    <div class="lb-tabs" style="margin-top:16px;margin-bottom:0;">
       <button class="lb-tab active" id="playerProfileStatsTab" onclick="switchProfileTab('stats')">STATS</button>
-      <button class="lb-tab" id="playerProfileWordsTab" onclick="switchProfileTab('words')">TODAY'S WORDS</button>
+      <button class="lb-tab" id="playerProfileWordsTab" onclick="switchProfileTab('words')">TODAY</button>
     </div>
 
     <!-- Stats panel -->
-    <div id="playerProfileStatsPanel" style="background:#155c33;padding:14px;margin-top:2px;">
+    <div id="playerProfileStatsPanel">
       <div class="account-stats" id="playerProfileStats" style="margin-bottom:12px;"></div>
       <div class="expand-section" id="playerProfileBadgesSection" style="display:none;">
         <div class="expand-header" id="playerProfileBadgesToggle">BADGES <span class="expand-arrow">▼</span></div>
@@ -1815,10 +1815,13 @@
       </div>
     </div>
 
-    <!-- Today's words panel -->
-    <div id="playerProfileWordsPanel" style="display:none;background:#155c33;padding:14px;margin-top:2px;">
-      <div id="playerProfileWordsList">
-        <div style="opacity:0.4;text-align:center;padding:16px 0;">NO WORDS TODAY</div>
+    <!-- Today panel -->
+    <div id="playerProfileWordsPanel" style="display:none;">
+      <div id="playerProfileTodayScore" style="display:none;" class="account-stats">
+        <div class="account-stats-row"><span>TODAY'S SCORE</span><span id="playerProfileTodayScoreVal">—</span></div>
+      </div>
+      <div class="account-stats" id="playerProfileWordsList">
+        <div style="opacity:0.4;text-align:center;">NO WORDS TODAY</div>
       </div>
     </div>
 
@@ -4129,12 +4132,17 @@ async function openPlayerProfile(uid) {
     return ds === todayStr;
   }) : null;
   const wordsList = document.getElementById('playerProfileWordsList');
+  const todayScoreEl = document.getElementById('playerProfileTodayScore');
+  const todayScoreVal = document.getElementById('playerProfileTodayScoreVal');
   if (!todayGame) {
-    wordsList.innerHTML = `<div style="opacity:0.4;text-align:center;padding:16px 0;">${windowOpenP ? "HASN'T PLAYED TODAY" : 'WINDOW NOT OPEN YET'}</div>`;
+    todayScoreEl.style.display = 'none';
+    wordsList.innerHTML = `<div style="opacity:0.4;text-align:center;">${windowOpenP ? "HASN'T PLAYED TODAY" : 'WINDOW NOT OPEN YET'}</div>`;
   } else {
     const words = Array.isArray(todayGame.history) ? todayGame.history : [];
+    todayScoreEl.style.display = '';
+    todayScoreVal.textContent = todayGame.total_score ?? '—';
     if (words.length === 0) {
-      wordsList.innerHTML = '<div style="opacity:0.4;text-align:center;padding:16px 0;">NO WORDS RECORDED</div>';
+      wordsList.innerHTML = '<div style="opacity:0.4;text-align:center;">NO WORDS RECORDED</div>';
     } else {
       wordsList.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">${
         words.map(w => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(240,192,32,0.08);">
