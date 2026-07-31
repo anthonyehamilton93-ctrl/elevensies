@@ -1908,15 +1908,15 @@
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;text-align:center;">
       60 seconds. Find a word scoring 11+.<br>Or you're out.
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-      <button id="elimPlayTo11Btn" style="background:#f0c020;border:2px solid #f0c020;padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
-        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#155c33;">PLAY TO 11</div>
-        <div style="font-size:9px;letter-spacing:0.06em;color:#155c33;opacity:0.7;line-height:1.6;">Survive 11 rounds<br>for a perfect score</div>
-      </button>
-      <button id="elimUnlimitedBtn" style="background:#f0c020;border:2px solid #f0c020;padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
-        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#155c33;">UNLIMITED</div>
-        <div style="font-size:9px;letter-spacing:0.06em;color:#155c33;opacity:0.7;line-height:1.6;">Go as far as<br>you can</div>
-      </button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <button id="elimPlayTo11Btn" class="auth-submit-btn" style="width:100%;margin:0;">PLAY TO 11</button>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Survive 11 rounds<br>for a perfect score</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <button id="elimUnlimitedBtn" class="auth-submit-btn" style="width:100%;margin:0;">UNLIMITED</button>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Go as far as<br>you can</div>
+      </div>
     </div>
     <button class="cancel-btn" id="eliminatorEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
     <button class="cancel-btn" id="eliminatorEntryCloseBtn">CLOSE</button>
@@ -2037,15 +2037,15 @@
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">
       Same letters every turn. Best of 3 rounds.
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-      <button id="h2hPrivateBtn" style="background:#f0c020;border:2px solid #f0c020;padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
-        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#155c33;">PRIVATE GAME</div>
-        <div style="font-size:9px;letter-spacing:0.06em;color:#155c33;opacity:0.7;line-height:1.6;">Create a game &<br>invite friends</div>
-      </button>
-      <button id="h2hMatchMeBtn" style="background:#f0c020;border:2px solid #f0c020;padding:16px 8px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;">
-        <div style="font-size:11px;font-weight:900;letter-spacing:0.12em;color:#155c33;">MATCH ME</div>
-        <div style="font-size:9px;letter-spacing:0.06em;color:#155c33;opacity:0.7;line-height:1.6;">Play against<br>a stranger</div>
-      </button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <button id="h2hPrivateBtn" class="auth-submit-btn" style="width:100%;margin:0;">PRIVATE GAME</button>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Create a game &<br>invite friends</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <button id="h2hMatchMeBtn" class="auth-submit-btn" style="width:100%;margin:0;">MATCH ME</button>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Play against<br>a stranger</div>
+      </div>
     </div>
     <button class="cancel-btn" id="h2hEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
     <button class="cancel-btn" id="h2hEntryCloseBtn">CLOSE</button>
@@ -2143,21 +2143,8 @@
 <!-- Head to Head screen -->
 <div class="h2h-screen" id="h2hScreen" style="display:none; flex-direction:column; align-items:center; width:100%; flex:1;">
 
-  <!-- Match Me lobby -->
-  <div id="h2hMatchMeLobby" style="display:none;width:260px;flex:1;text-align:center;justify-content:center;flex-direction:column;align-items:center;">
-    <div class="welcome-title">MATCH</div>
-    <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:24px;">ME</div>
-    <div id="h2hMatchMeStatus" style="font-size:11px;letter-spacing:0.15em;opacity:0.7;margin-bottom:8px;">FINDING OPPONENT…</div>
-    <div id="h2hMatchMeWait" style="font-size:9px;letter-spacing:0.1em;opacity:0.4;margin-bottom:32px;">Hang tight — this could take a moment</div>
-    <!-- Pulsing squares animation reused from loader -->
-    <div class="loader-squares" style="display:flex;justify-content:center;margin-bottom:32px;">
-      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
-    </div>
-    <button class="cancel-btn" id="h2hMatchMeCancelBtn">CANCEL</button>
-  </div>
-
   <!-- Lobby: create or join -->
-  <div id="h2hLobby" style="width:260px; padding:40px 0; text-align:center;">
+  <div id="h2hLobby" style="display:none;width:260px; padding:40px 0; text-align:center;">
     <div class="welcome-title">HEAD TO</div>
     <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:32px;">HEAD</div>
     <button class="auth-submit-btn" id="h2hCreateBtn" style="margin-bottom:12px;">CREATE GAME</button>
@@ -2171,6 +2158,18 @@
     </div>
     <button class="practice-back-btn visible" id="h2hBackBtn">BACK</button>
     <div class="auth-message" id="h2hLobbyMsg" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- Match Me lobby -->
+  <div id="h2hMatchMeLobby" style="display:none;width:260px;padding:40px 0;text-align:center;">
+    <div class="welcome-title">MATCH</div>
+    <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:24px;">ME</div>
+    <div id="h2hMatchMeStatus" style="font-size:11px;letter-spacing:0.15em;opacity:0.7;margin-bottom:8px;">FINDING OPPONENT…</div>
+    <div id="h2hMatchMeWait" style="font-size:9px;letter-spacing:0.1em;opacity:0.4;margin-bottom:32px;">Hang tight — this could take a moment</div>
+    <div class="loader-squares" style="display:flex;justify-content:center;margin-bottom:32px;">
+      <div class="loader-row"><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div><div class="loader-sq"></div></div>
+    </div>
+    <button class="cancel-btn" id="h2hMatchMeCancelBtn">CANCEL</button>
   </div>
 
   <!-- Waiting room: after creating/joining -->
@@ -10000,8 +9999,12 @@ async function startEliminator(mode = 'unlimited') {
   elimHistory = [];
   elimPlaying = true;
   const elimLoadStart = Date.now();
+  const loadingLabel = document.getElementById('anagramLoadingOverlay')?.querySelector('.loader-label');
+  if (loadingLabel) loadingLabel.textContent = 'LOADING…';
   document.getElementById('anagramLoadingOverlay').classList.add('show');
   showScreen('eliminator');
+  // Pre-generate first rack during loading so tiles are ready when overlay dismisses
+  elimCurrentRack = getElimRack();
   setTimeout(() => {
     document.getElementById('anagramLoadingOverlay').classList.remove('show');
     startElimRound();
@@ -10009,8 +10012,9 @@ async function startEliminator(mode = 'unlimited') {
 }
 
 function startElimRound() {
-  elimCurrentRack = getElimRack();
+  if (!elimCurrentRack) elimCurrentRack = getElimRack();
   const { rackLetters, bonus } = elimCurrentRack;
+  elimCurrentRack = null; // clear so next round generates fresh
   elimTiles = rackLetters.map((letter, i) => ({ id: i, letter }));
   elimSelected = [];
   elimRoundStartTime = Date.now();
