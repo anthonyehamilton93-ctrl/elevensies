@@ -8577,10 +8577,14 @@ async function subscribeToPush() {
 
 async function savePushSubscription(sub) {
   if (!sbClient || !currentUser || !sub) return;
-  await sbClient.from('push_subscriptions').upsert({
+  const subJson = sub.toJSON();
+  // First delete any existing subscription for this user, then insert fresh
+  await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
+  const { error } = await sbClient.from('push_subscriptions').insert({
     user_id: currentUser.id,
-    subscription: sub.toJSON(),
-  }, { onConflict: 'user_id' });
+    subscription: subJson,
+  });
+  if (error) console.error('Save push subscription error:', error);
 }
 
 async function deletePushSubscription() {
