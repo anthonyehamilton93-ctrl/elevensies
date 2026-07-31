@@ -2161,7 +2161,7 @@
   </div>
 
   <!-- Match Me lobby -->
-  <div id="h2hMatchMeLobby" style="display:none;width:260px;padding:40px 0;text-align:center;">
+  <div id="h2hMatchMeLobby" style="display:none;width:260px;padding:40px 0;text-align:center;flex-direction:column;align-items:center;justify-content:center;flex:1;">
     <div class="welcome-title">MATCH</div>
     <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:24px;">ME</div>
     <div id="h2hMatchMeStatus" style="font-size:11px;letter-spacing:0.15em;opacity:0.7;margin-bottom:8px;">FINDING OPPONENT…</div>
@@ -10001,8 +10001,9 @@ async function startEliminator(mode = 'unlimited') {
   const elimLoadStart = Date.now();
   const loadingLabel = document.getElementById('anagramLoadingOverlay')?.querySelector('.loader-label');
   if (loadingLabel) loadingLabel.textContent = 'LOADING…';
-  document.getElementById('anagramLoadingOverlay').classList.add('show');
   showScreen('eliminator');
+  // Add overlay AFTER showScreen (which would otherwise dismiss it)
+  document.getElementById('anagramLoadingOverlay').classList.add('show');
   // Pre-generate first rack during loading so tiles are ready when overlay dismisses
   elimCurrentRack = getElimRack();
   setTimeout(() => {
