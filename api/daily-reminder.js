@@ -19,6 +19,7 @@ async function db(path, options = {}) {
       apikey: SUPABASE_SERVICE_KEY,
       Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
       'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
       ...options.headers,
     },
     ...options,
@@ -110,8 +111,13 @@ export default async function handler(req, res) {
   // Test push — send to a single user: ?test=USER_ID
   const testUid = req.query?.test;
   if (testUid) {
-    const subs = await db(`/push_subscriptions?select=subscription&user_id=eq.${testUid}`);
-    if (!subs?.length) return res.status(404).json({ error: 'No push subscription found for that user ID' });
+    const subs = await db(`/push_subscriptions?select=id,user_id,subscription&user_id=eq.${testUid}`);
+    console.log('push_subscriptions for user:', JSON.stringify(subs));
+    if (!subs?.length) {
+      // Also check total count in table for debugging
+      const all = await db(`/push_subscriptions?select=user_id`);
+      return res.status(404).json({ error: 'No push subscription found for that user ID', totalInTable: all?.length ?? 0 });
+    }
     try {
       await webpush.sendNotification(subs[0].subscription, JSON.stringify({
         title: 'Time for Elevensies!',
