@@ -1564,7 +1564,9 @@
 
     // Register service worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.error('SW registration failed:', err));
     }
   </script>
 </head>
@@ -8572,19 +8574,29 @@ async function getPushSubscription() {
 
 async function subscribeToPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
-  // Check permission first — no need to wait for SW if already denied
   if (Notification.permission === 'denied') return null;
   const permission = Notification.permission === 'granted'
     ? 'granted'
     : await Notification.requestPermission();
   if (permission !== 'granted') return null;
   try {
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('SW timeout')), 8000))
+    ]);
+    // Always unsubscribe existing first — different VAPID keys cause subscribe() to fail
+    try {
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) await existing.unsubscribe();
+    } catch(e) { /* ignore unsubscribe errors */ }
     return await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
     });
-  } catch (err) { console.error('Push subscribe error:', err); return null; }
+  } catch (err) {
+    console.error('Push subscribe error:', err);
+    return null;
+  }
 }
 
 async function savePushSubscription(sub) {
@@ -8613,18 +8625,24 @@ async function handlePushToggle() {
   }
   if (!currentUser) { authOverlay.classList.add('show'); showAuthForm(); return; }
   if (!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY === 'YOUR_VAPID_PUBLIC_KEY_HERE') {
-    alert('Push notifications are not configured yet. Please contact the admin.');
+    alert('Push notifications are not configured yet.');
     return;
   }
   const el = document.getElementById('toolsPushToggle');
   const isOn = el?.dataset.on === 'true';
   try {
     if (!isOn) {
+      // Always clear any stale Supabase record first
+      await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
       const sub = await subscribeToPush();
-      if (sub) { await savePushSubscription(sub); setSqToggle('toolsPushToggle', true); }
-      else {
+      if (sub) {
+        await savePushSubscription(sub);
+        setSqToggle('toolsPushToggle', true);
+      } else {
         setSqToggle('toolsPushToggle', false);
-        if (Notification.permission === 'denied') alert('Notifications are blocked. Please enable them in your browser or app settings.');
+        if (Notification.permission === 'denied') {
+          alert('Notifications are blocked. Enable them in your browser/app settings then try again.');
+        }
       }
     } else {
       await deletePushSubscription();
@@ -8632,7 +8650,6 @@ async function handlePushToggle() {
     }
   } catch (err) {
     console.error('Push toggle error:', err);
-    alert('Something went wrong: ' + err.message);
   }
 }
 
