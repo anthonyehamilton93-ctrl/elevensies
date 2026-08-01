@@ -1,6 +1,4 @@
 // api/save-eliminator.js
-// Saves a completed Eliminator session result.
-
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
@@ -11,7 +9,6 @@ export default async function handler(req, res) {
   if (!authHeader?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
   const jwt = authHeader.replace('Bearer ', '');
 
-  // Verify JWT
   const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${jwt}` },
   });
@@ -19,14 +16,15 @@ export default async function handler(req, res) {
   const user = await userRes.json();
   if (!user?.id) return res.status(401).json({ error: 'Invalid token' });
 
-  const { rounds_survived, total_points } = req.body;
+  const { rounds_survived, total_points, survival_mode } = req.body;
 
-  if (typeof rounds_survived !== 'number' || rounds_survived < 0 || rounds_survived > 11) {
+  if (typeof rounds_survived !== 'number' || rounds_survived < 0) {
     return res.status(400).json({ error: 'Invalid rounds_survived' });
   }
   if (typeof total_points !== 'number' || total_points < 0) {
     return res.status(400).json({ error: 'Invalid total_points' });
   }
+  const mode = survival_mode === 'play_to_11' ? 'play_to_11' : 'unlimited';
 
   const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/eliminator_results`, {
     method: 'POST',
@@ -40,6 +38,7 @@ export default async function handler(req, res) {
       user_id: user.id,
       rounds_survived,
       total_points,
+      survival_mode: mode,
       played_at: new Date().toISOString(),
     }),
   });
@@ -51,4 +50,4 @@ export default async function handler(req, res) {
   }
 
   return res.status(200).json({ ok: true });
-}
+    }
