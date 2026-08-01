@@ -403,9 +403,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-bottom: 2px solid var(--gold);
+    min-height: 52px;
     margin-bottom: 8px;
-    height: 52px;
   }
   .word-display {
     font-size: clamp(20px, 7vw, 36px);
@@ -429,23 +428,37 @@
   .backspace-btn {
     position: absolute;
     right: 0;
-    bottom: 8px;
-    background: none;
+    bottom: 6px;
+    background: #f0c020;
     border: none;
-    color: var(--gold);
-    font-size: 28px;
+    width: 36px;
+    height: 40px;
     cursor: pointer;
-    padding: 4px 6px;
+    padding: 0;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s;
-    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
+  .backspace-btn::before,
+  .backspace-btn::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 3px;
+    background: #155c33;
+    border-radius: 0;
+  }
+  .backspace-btn::before { transform: rotate(45deg); }
+  .backspace-btn::after  { transform: rotate(-45deg); }
   .backspace-btn.show {
-    opacity: 0.75;
+    opacity: 1;
     pointer-events: auto;
   }
-  .backspace-btn:hover { opacity: 1; }
+  .backspace-btn:active { opacity: 0.8; }
   .word-value {
     height: 22px;
     font-size: 14px;
@@ -532,7 +545,7 @@
 
   /* TILE GRID — fixed pixel sizing, never reshapes regardless of viewport width.
      5 columns x 64px each + 4 gaps of 8px = 352px total grid width. */
-  /* Head to Head */
+  /* Match */
   .h2h-player-row {
     display: flex;
     justify-content: space-between;
@@ -651,13 +664,13 @@
   .action-btn.joker-btn.chosen {
     background: var(--gold);
     border: 3px solid var(--gold-dark);
-    box-shadow: 0 3px 0 var(--gold-shadow);
+    box-shadow: none;
     color: var(--green);
   }
   .action-btn.joker-btn.chosen.selected {
     background: var(--gold-dark);
     border: 3px solid #fff;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    box-shadow: none;
     transform: translateY(2px);
     color: var(--green);
   }
@@ -665,7 +678,7 @@
     background: var(--gold);
     color: var(--green);
     border: 3px solid var(--gold-dark);
-    box-shadow: 0 3px 0 var(--gold-shadow);
+    box-shadow: none;
     opacity: 0.5;
     cursor: default;
   }
@@ -716,7 +729,6 @@
     font-size: 15px;
     font-weight: 900;
     cursor: pointer;
-    box-shadow: 0 2px 0 var(--gold-shadow);
     font-family: inherit;
     display: flex;
     flex-direction: column;
@@ -1605,7 +1617,7 @@
       <span id="remindBellWelcome-label" style="font-size:10px;font-weight:700;letter-spacing:0.1em;opacity:0.6;">REMIND ME AT 11AM</span>
     </div>
     <button class="welcome-btn secondary" id="moreGamesBtn">MORE GAMES</button>
-    <div class="welcome-btn-label">HEAD TO HEAD · SURVIVAL · MORE</div>
+    <div class="welcome-btn-label">MATCH · SURVIVAL · MORE</div>
   </div>
 
   <!-- Countdown screen (shown when full game chosen outside window) -->
@@ -1652,9 +1664,9 @@
   <!-- Actual game (hidden when played-today lobby is showing) -->
   <div id="actualGame">
   <div class="word-section">
-    <div class="word-display-row">
-      <div class="word-display" id="wordDisplay">ELEVENSIES</div>
-      <button class="backspace-btn" id="backspaceBtn">⌫</button>
+    <div class="word-display-row" style="border-bottom:none;height:auto;margin-bottom:4px;">
+      <div class="word-display" id="wordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
+      <button class="backspace-btn" id="backspaceBtn"></button>
     </div>
     <div class="word-value" id="wordValue">0 PTS</div>
     <div class="score-line"><span id="totalScore">0</span> POINTS</div>
@@ -1694,7 +1706,7 @@
   <div class="word-section" id="anagramWordSection">
     <div class="word-display-row">
       <div class="word-display" id="anagramWordDisplay">ELEVENSIES</div>
-      <button class="backspace-btn" id="anagramBackspaceBtn">⌫</button>
+      <button class="backspace-btn" id="anagramBackspaceBtn"></button>
     </div>
     <div class="word-value" id="anagramWordValue" style="opacity:0;">&nbsp;</div>
     <div class="score-line" style="opacity:0;">&nbsp;</div>
@@ -1745,7 +1757,7 @@
     <div class="word-section" id="elimWordSection">
       <div class="word-display-row">
         <div class="word-display" id="elimWordDisplay"></div>
-        <button class="backspace-btn" id="elimBackspaceBtn">⌫</button>
+        <button class="backspace-btn" id="elimBackspaceBtn"></button>
       </div>
       <div class="word-value" id="elimWordValue" style="opacity:0;">&nbsp;</div>
       <div class="score-line" style="opacity:0;">&nbsp;</div>
@@ -1777,8 +1789,8 @@
 
   <!-- Lobby: create or join -->
   <div id="h2hLobby" style="display:none;width:260px; padding:40px 0; text-align:center;">
-    <div class="welcome-title">HEAD TO</div>
-    <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:32px;">HEAD</div>
+    <div class="welcome-title">PRIVATE</div>
+    <div style="font-size:32px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:32px;">GAME</div>
     <button class="auth-submit-btn" id="h2hCreateBtn" style="margin-bottom:12px;">CREATE GAME</button>
     <div style="font-size:10px;letter-spacing:0.1em;opacity:0.4;margin-bottom:12px;">OR</div>
     <div style="display:flex;gap:8px;margin-bottom:32px;">
@@ -1971,7 +1983,7 @@
           <img src="/icons/h2h.png" style="height:48px;width:auto;">
         </div>
         <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">CHALLENGE A FRIEND.<br>SAME TILES EVERY TURN.</div>
-        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">HEAD TO HEAD</div>
+        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;">MATCH</div>
       </button>
 
     </div>
@@ -2108,11 +2120,11 @@
   </div>
 </div>
 
-<!-- Head to Head: entry overlay -->
+<!-- Match: entry overlay -->
 <div class="overlay" id="h2hEntryOverlay">
   <div class="modal" style="text-align:center;">
     <div style="display:flex;justify-content:center;align-items:center;height:48px;margin-bottom:12px;"><img src="/icons/h2h.png" style="height:48px;width:auto;"></div>
-    <div class="modal-title">HEAD TO HEAD</div>
+    <div class="modal-title">MATCH</div>
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">
       Same letters every turn. Best of 3 rounds.
     </div>
@@ -2122,8 +2134,8 @@
         <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Create a private game<br>&amp; invite friends</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-        <button id="h2hMatchMeBtn" class="auth-submit-btn" style="width:100%;margin:0;">MATCH</button>
-        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Get matched with<br>another player</div>
+        <button id="h2hMatchMeBtn" class="auth-submit-btn" style="width:100%;margin:0;">PUBLIC</button>
+        <div style="font-size:9px;letter-spacing:0.06em;color:var(--gold);opacity:0.55;line-height:1.6;text-align:center;">Play against<br>a random opponent</div>
       </div>
     </div>
     <button class="cancel-btn" id="h2hEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
@@ -2131,10 +2143,10 @@
   </div>
 </div>
 
-<!-- Head to Head: entry (create or join) -->
+<!-- Match: entry (create or join) -->
 <div class="overlay" id="headToHeadOverlay">
   <div class="modal">
-    <div class="modal-title">HEAD TO HEAD</div>
+    <div class="modal-title">PRIVATE GAME</div>
     <div id="h2hEntryPanel">
       <button class="auth-submit-btn" id="h2hEntryCreateBtn" style="margin-bottom:10px;">CREATE GAME</button>
       <div style="font-size:10px;letter-spacing:0.12em;opacity:0.5;margin-bottom:10px;text-align:center;">OR</div>
@@ -2149,10 +2161,10 @@
   </div>
 </div>
 
-<!-- Head to Head: lobby (waiting for players) -->
+<!-- Match: lobby (waiting for players) -->
 <div class="overlay" id="h2hLobbyOverlay">
   <div class="modal">
-    <div class="modal-title">HEAD TO HEAD</div>
+    <div class="modal-title">PRIVATE GAME</div>
     <div style="text-align:center;margin-bottom:16px;">
       <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:6px;">GAME WORD</div>
       <div style="font-size:28px;font-weight:900;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;" id="h2hLobbyCode">——</div>
@@ -2166,7 +2178,7 @@
   </div>
 </div>
 
-<!-- Head to Head: round intro -->
+<!-- Match: round intro -->
 <div class="overlay" id="h2hRoundIntroOverlay">
   <div class="modal" style="text-align:center;">
     <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:6px;" id="h2hRoundLabel">ROUND 1 OF 3</div>
@@ -2177,7 +2189,7 @@
   </div>
 </div>
 
-<!-- Head to Head: waiting for opponents after submitting -->
+<!-- Match: waiting for opponents after submitting -->
 <div class="overlay" id="h2hWaitingOverlay">
   <div class="modal" style="text-align:center;">
     <div class="modal-title">YOUR SCORE</div>
@@ -2187,7 +2199,7 @@
   </div>
 </div>
 
-<!-- Head to Head: round results -->
+<!-- Match: round results -->
 <div class="overlay" id="h2hResultsOverlay">
   <div class="modal">
     <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:6px;text-align:center;" id="h2hResultsLabel">ROUND 1 RESULTS</div>
@@ -2219,7 +2231,7 @@
   </div>
 </div>
 
-<!-- Head to Head screen -->
+<!-- Match screen -->
 
 
 <!-- Practice entry overlay -->
@@ -2439,6 +2451,7 @@
       <div style="display:flex;flex-direction:column;gap:4px;">
         <button id="moreAboutElevenBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">ABOUT ELEVENSIES ›</button>
         <button id="morePrivacyBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">PRIVACY POLICY ›</button>
+        <button id="moreTermsBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">TERMS OF USE ›</button>
         <button id="moreContactBtn" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--gold);opacity:0.7;padding:4px 0;text-align:left;">CONTACT / FEEDBACK ›</button>
       </div>
     </div>
@@ -2561,6 +2574,76 @@
   </div>
 </div>
 
+<!-- Terms of Use overlay -->
+<div class="overlay" id="termsOverlay" style="z-index:2000;">
+  <div class="modal" style="max-height:85vh;overflow-y:auto;">
+    <div class="modal-title">TERMS OF USE</div>
+    <div style="font-size:11px;letter-spacing:0.04em;line-height:1.9;color:rgba(240,192,32,0.85);">
+
+      <p style="margin:0 0 6px;font-size:9px;letter-spacing:0.12em;opacity:0.5;">LAST UPDATED: JULY 2026</p>
+
+      <p style="margin:0 0 14px;">These Terms of Use govern your access to and use of Elevensies ("the Game"), operated by Anthony Hamilton ("we", "us", "our"). By playing Elevensies, you agree to these terms.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">1. THE GAME</div>
+      <p style="margin:0 0 14px;">Elevensies is a daily word game available at playelevensies.com. The Full Game opens at 11:00am and closes at 2:00pm in your local time zone. Your device's clock is used to determine eligibility; we do not adjust for manual clock changes or time zone spoofing. Scores submitted outside the game window will not be accepted.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">2. LETTER SCORING</div>
+      <p style="margin:0 0 8px;">Each letter carries a point value based on its frequency in the English language. Less common letters are worth more. The values are as follows:</p>
+      <div style="background:#155c33;padding:10px;margin-bottom:14px;font-size:10px;line-height:2;letter-spacing:0.04em;">
+        <div>1 point — A, E, I, O, U, L, N, R, S, T</div>
+        <div>2 points — D, G</div>
+        <div>3 points — B, C, M, P</div>
+        <div>4 points — F, H, V, W, Y</div>
+        <div>5 points — K</div>
+        <div>8 points — J, X</div>
+        <div>10 points — Q, Z</div>
+      </div>
+      <p style="margin:0 0 14px;">A letter like J scores more than K because it appears far less frequently in English words, making it harder to use effectively. A word's score is the sum of all its letters' values. There are no multipliers or positional bonuses in standard play.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">3. LEADERBOARD & RANKINGS</div>
+      <p style="margin:0 0 8px;">The Top 11 leaderboard ranks players by their score for the current game day. The following rules apply:</p>
+      <div style="background:#155c33;padding:10px;margin-bottom:8px;font-size:10px;line-height:2;letter-spacing:0.04em;">
+        <div><strong style="color:var(--gold);">Primary ranking:</strong> Total score for that day's game</div>
+        <div><strong style="color:var(--gold);">Tiebreaker:</strong> Where two players share the same score, the player with the longer current streak is ranked higher</div>
+        <div><strong style="color:var(--gold);">Second tiebreaker:</strong> Where streak is also equal, players are ranked by time of submission — earliest first</div>
+      </div>
+      <p style="margin:0 0 8px;">The Today column on the leaderboard becomes visible once the 11am game window opens in your local time. Scores from players in other time zones who played in their own valid 11am window will appear at that point.</p>
+      <p style="margin:0 0 14px;">Leaderboard positions are calculated at the time of viewing and may shift throughout the day as other players submit scores. A position shown at 11:05am is not guaranteed at 12:00pm.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">4. STREAKS & LIFELINES</div>
+      <p style="margin:0 0 8px;">A streak is the number of consecutive days on which you have completed the Full Game. A streak is maintained only if you play within the 11am–2pm window on each calendar day in your local time zone.</p>
+      <p style="margin:0 0 8px;">Missing a day breaks your streak. If you hold a Streak Lifeline, you may apply it to restore a broken streak for one missed day. Lifelines cannot be applied to streaks broken more than one day ago, and a freeze day does not itself count toward your streak total.</p>
+      <p style="margin:0 0 14px;">The Streak badge displayed on your profile is calculated live and always reflects your current streak at the time of viewing.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">5. GAME MODES</div>
+      <p style="margin:0 0 8px;"><strong style="color:var(--gold);">Full Game</strong> — one game per day, played within the 11am–2pm window. Scores are saved and count toward the leaderboard and streak.</p>
+      <p style="margin:0 0 8px;"><strong style="color:var(--gold);">Practice</strong> — unlimited plays at any time. Scores are not saved and do not affect your standing.</p>
+      <p style="margin:0 0 8px;"><strong style="color:var(--gold);">Anagram</strong> — one daily challenge. A streak is tracked separately from the Full Game streak.</p>
+      <p style="margin:0 0 8px;"><strong style="color:var(--gold);">Survival (Play to 11)</strong> — survive all 11 rounds of 60 seconds each by scoring 11 or more points per round. Results are saved to your Survival stats.</p>
+      <p style="margin:0 0 8px;"><strong style="color:var(--gold);">Survival (Unlimited)</strong> — survive as many rounds as possible with no cap. Ranked by rounds survived, then total points.</p>
+      <p style="margin:0 0 14px;"><strong style="color:var(--gold);">Match</strong> — competitive play against other users. Results do not affect the main leaderboard.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">6. WORD VALIDITY</div>
+      <p style="margin:0 0 14px;">Words are validated against an internal dictionary. We do not publish the dictionary or the criteria by which words are included or excluded. Proper nouns, abbreviations, and words requiring punctuation are not accepted. If a word you believe to be valid is rejected, we are unable to add individual words on request.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">7. ACCOUNTS & CONDUCT</div>
+      <p style="margin:0 0 8px;">You may create one account per person. Accounts found to be exploiting the game, manipulating scores, or operating automated play will be removed without notice. Display names must not contain offensive or inappropriate language.</p>
+      <p style="margin:0 0 14px;">We reserve the right to remove or adjust any score, streak, or ranking that we reasonably believe to have been obtained through means not intended by the game.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">8. AVAILABILITY</div>
+      <p style="margin:0 0 14px;">We aim to keep Elevensies available during game hours but do not guarantee uninterrupted access. Maintenance, technical issues, or circumstances beyond our control may occasionally affect availability. We are not liable for missed game windows resulting from service disruption.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">9. CHANGES</div>
+      <p style="margin:0 0 14px;">We may update these terms at any time. Continued use of the game following any change constitutes acceptance of the revised terms.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">10. CONTACT</div>
+      <p style="margin:0 0 14px;">Questions about these terms can be submitted via the Contact / Feedback form in the More menu.</p>
+
+    </div>
+    <button class="cancel-btn" id="termsCloseBtn">CLOSE</button>
+  </div>
+</div>
+
 <!-- About Elevensies blurb overlay -->
 <div class="overlay" id="aboutElevenOverlay" style="z-index:2000;">
   <div class="modal" style="text-align:center;">
@@ -2569,7 +2652,7 @@
       Elevensies is a daily word game designed to make you take a little time out of your busy day and enjoy a well-deserved mid-morning break.
     </p>
     <p style="font-size:13px;letter-spacing:0.05em;line-height:1.8;opacity:0.8;margin-bottom:12px;">
-      Play the Full Game at 11am each day and test your vocabulary skills by climbing the Top 11, earning streaks and badges, and playing alongside friends through the mini league tables. Or try your hand at the other game modes — Practice, Anagram, Survival, and Head to Head.
+      Play the Full Game at 11am each day and test your vocabulary skills by climbing the Top 11, earning streaks and badges, and playing alongside friends through the mini league tables. Or try your hand at the other game modes — Practice, Anagram, Survival, and Match.
     </p>
     <p style="font-size:13px;letter-spacing:0.05em;line-height:1.8;opacity:0.8;margin-bottom:20px;">
       Elevensies is created by a solo developer and designer and made available completely free — no ads, no subscriptions, no catch. If you enjoy it, the best thing you can do is tell a friend.
@@ -2626,7 +2709,7 @@
         <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('h2hEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
           <img src="/icons/h2h.png" style="height:48px;width:auto;">
           <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">CHALLENGE A FRIEND.<br>SAME TILES EVERY TURN.</div>
-          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">HEAD TO HEAD</div>
+          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;">MATCH</div>
         </button>
 
       </div>
@@ -2847,7 +2930,7 @@
   </div>
 </div>
 
-<!-- About: Head to Head — visual how-to -->
+<!-- About: Match — visual how-to -->
 <div class="overlay" id="aboutH2HOverlay">
   <div class="modal" style="padding:0;max-width:380px;display:flex;flex-direction:column;max-height:90vh;">
     <div style="flex:1;overflow-y:auto;padding:24px 24px 0;">
@@ -2860,7 +2943,7 @@
 
         <!-- Step 0: Challenge -->
         <div class="how-to-step h2h-step" id="h2hStep0" style="position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div style="font-size:13px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;font-weight:700;">HEAD TO HEAD</div>
+          <div style="font-size:13px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;font-weight:700;">MATCH</div>
           <div style="font-size:24px;font-weight:900;letter-spacing:0.04em;margin-bottom:12px;line-height:1.3;">CHALLENGE<br>A FRIEND.</div>
           <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">Create a game and share your<br>game word with your opponent.</div>
           <div style="border:2px solid var(--gold);padding:14px 28px;display:inline-block;">
@@ -5294,7 +5377,7 @@ async function startFullGame() {
   });
 }
 
-// ===== Head to Head mode =====
+// ===== Match mode =====
 let h2hGameId = null;
 let h2hRoundId = null;
 let h2hGameCode = null;
@@ -5661,7 +5744,7 @@ async function h2hPlayAgain() {
   startH2H();
 }
 
-// ===== Head to Head =====
+// ===== Match =====
 let h2hGame = null;       // current game record from Supabase
 let h2hPlayers = [];      // players in the game
 let h2hCurrentRound = 0;  // 1-indexed
@@ -6782,14 +6865,25 @@ function render() {
     tileGrid.appendChild(btn);
   });
 
-  // Word display
+  // Word display — render as tiles, always fits on one line
   const currentWord = selected.map(s => s.letter).join('');
   if (currentWord.length === 0) {
-    wordDisplay.textContent = 'ELEVENSIES';
+    wordDisplay.innerHTML = '<span style="font-size:clamp(16px,5vw,28px);font-weight:900;letter-spacing:0.2em;color:rgba(240,192,32,0.2);">ELEVENSIES</span>';
     wordDisplay.classList.remove('filled');
     backspaceBtn.classList.remove('show');
   } else {
-    wordDisplay.textContent = currentWord;
+    // Scale tile size so 11 letters always fits — max tile 36px, min 24px
+    const n = selected.length;
+    const tileW = Math.min(36, Math.max(24, Math.floor(240 / n) - 3));
+    const tileH = Math.round(tileW * 1.1);
+    const fontSize = Math.round(tileW * 0.44);
+    const ptSize = Math.max(7, Math.round(tileW * 0.22));
+    wordDisplay.innerHTML = selected.map(s => {
+      const pts = LETTER_VALUES[s.letter] || 0;
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:${tileW}px;height:${tileH}px;background:var(--gold-dark);border:2px solid #fff;font-size:${fontSize}px;font-weight:900;color:var(--green);flex-shrink:0;">
+        ${s.letter}<span style="font-size:${ptSize}px;font-weight:700;opacity:0.7;line-height:1;">${pts}</span>
+      </div>`;
+    }).join('');
     wordDisplay.classList.add('filled');
     backspaceBtn.classList.add('show');
   }
@@ -6831,8 +6925,8 @@ function render() {
     if (!swapHint) {
       swapHint = document.createElement('div');
       swapHint.id = 'jokerSwapHint';
-      swapHint.style.cssText = 'font-size:10px;letter-spacing:0.1em;opacity:0.4;text-align:center;margin-top:8px;margin-bottom:4px;cursor:pointer;text-decoration:underline;';
-      swapHint.textContent = 'SWAP TILE';
+      swapHint.style.cssText = 'display:flex;align-items:center;justify-content:center;margin-top:6px;margin-bottom:2px;';
+      swapHint.innerHTML = '<button style="background:rgba(240,192,32,0.12);border:1px solid rgba(240,192,32,0.4);color:var(--gold);font-family:inherit;font-size:10px;font-weight:900;letter-spacing:0.12em;padding:6px 16px;cursor:pointer;">↺ SWAP BONUS TILE</button>';
       swapHint.addEventListener('click', () => {
         const jokerId = jokerTile ? jokerTile.id : null;
         jokerTile = null;
@@ -8564,7 +8658,7 @@ document.getElementById('anagramEntryHowToBtn').addEventListener('click', () => 
 document.getElementById('anagramEntryCloseBtn').addEventListener('click', () => {
   document.getElementById('anagramEntryOverlay').classList.remove('show');
 });
-// Head to Head button wiring
+// Match button wiring
 document.getElementById('moreGamesHeadToHeadBtn').addEventListener('click', () => {
   document.getElementById('moreGamesOverlay').classList.remove('show');
   document.getElementById('h2hEntryOverlay').classList.add('show');
@@ -8577,7 +8671,7 @@ document.getElementById('h2hJoinBtn').addEventListener('click', joinH2HGame);
 document.getElementById('h2hJoinCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') joinH2HGame(); });
 document.getElementById('h2hShareBtn').addEventListener('click', async () => {
   const word = h2hGame?.code || '';
-  const text = `Join my Elevensies Head to Head game! The game word is: ${word} — play at playelevensies.com`;
+  const text = `Join my Elevensies Match game! The game word is: ${word} — play at playelevensies.com`;
   if (navigator.share) {
     try { await navigator.share({ text }); return; } catch (e) {}
   }
@@ -9668,6 +9762,13 @@ document.getElementById('moreToolsBtn').addEventListener('click', () => {
 document.getElementById('moreOverviewBtn').addEventListener('click', () => {
   document.getElementById('moreOverlay').classList.remove('show');
   showDailyBriefing();
+});
+document.getElementById('moreTermsBtn')?.addEventListener('click', () => {
+  document.getElementById('moreOverlay').classList.remove('show');
+  document.getElementById('termsOverlay').classList.add('show');
+});
+document.getElementById('termsCloseBtn')?.addEventListener('click', () => {
+  document.getElementById('termsOverlay').classList.remove('show');
 });
 document.getElementById('moreAboutElevenBtn').addEventListener('click', () => {
   document.getElementById('moreOverlay').classList.remove('show');
