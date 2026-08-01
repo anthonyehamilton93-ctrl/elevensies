@@ -103,18 +103,16 @@ export default async function handler(req, res) {
   const secret = req.headers['x-cron-secret'];
   if (CRON_SECRET && secret !== CRON_SECRET) return res.status(401).json({ error: 'Unauthorized' });
 
-  // Configure web-push VAPID
   if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
     webpush.setVapidDetails('mailto:noreply@playelevensies.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
   }
 
-  // Test push — send to a single user: ?test=USER_ID
+  // Test push
   const testUid = req.query?.test;
   if (testUid) {
     const subs = await db(`/push_subscriptions?select=id,user_id,subscription&user_id=eq.${testUid}`);
     console.log('push_subscriptions for user:', JSON.stringify(subs));
     if (!subs?.length) {
-      // Also check total count in table for debugging
       const all = await db(`/push_subscriptions?select=user_id`);
       return res.status(404).json({ error: 'No push subscription found for that user ID', totalInTable: all?.length ?? 0 });
     }
@@ -127,6 +125,53 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, message: 'Test push sent' });
     } catch (err) {
       return res.status(500).json({ error: err.message, statusCode: err.statusCode, body: err.body });
+    }
+  }
+
+  // ---- Push notifications — timezone-aware, same as emails ----
+  let pushSent = 0;
+  if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+    try {
+      const now = new Date();
+      const targetOffset = (11 - now.getUTCHours()) * 60;
+
+      // Fetch all push subscriptions
+      const pushSubs = await db(`/push_subscriptions?select=id,user_id,subscription`);
+      if (pushSubs?.length) {
+        // Fetch profiles for these users to get their timezone offset
+        const pushUserIds = pushSubs.map(s => s.user_id);
+        const pushProfiles = await db(`/profiles?select=id,utc_offset&id=in.(${pushUserIds.join(',')})`);
+        const offsetMap = {};
+        (pushProfiles || []).forEach(p => { offsetMap[p.id] = p.utc_offset; });
+
+        // Filter to users whose local time is currently 11am
+        const eligibleSubs = pushSubs.filter(sub => {
+          const offset = offsetMap[sub.user_id];
+          if (offset === null || offset === undefined) {
+            // No offset stored — default to UK (0 or 60)
+            return targetOffset === 0 || targetOffset === 60;
+          }
+          return offset === targetOffset;
+        });
+
+        const expiredIds = [];
+        for (const sub of eligibleSubs) {
+          try {
+            await webpush.sendNotification(sub.subscription, JSON.stringify({
+              title: 'Time for Elevensies!',
+              body: "Today's game is open. Time to play! 🟨",
+              url: GAME_URL,
+            }));
+            pushSent++;
+          } catch (err) {
+            if (err.statusCode === 404 || err.statusCode === 410) expiredIds.push(sub.id);
+            else console.error('Push error:', sub.user_id, err.message);
+          }
+        }
+        for (const id of expiredIds) await db(`/push_subscriptions?id=eq.${id}`, { method: 'DELETE' });
+      }
+    } catch (err) {
+      console.error('Push batch error:', err.message);
     }
   }
 
@@ -214,42 +259,6 @@ export default async function handler(req, res) {
         body: JSON.stringify(emails.slice(i, i + 100)),
       });
       emailsSent += Math.min(100, emails.length - i);
-    }
-
-    // ---- Send push notifications (all players with a subscription who played yesterday) ----
-    let pushSent = 0;
-    if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && playedYesterdayIds.length) {
-      const pushSubs = await db(
-        `/push_subscriptions?select=id,user_id,subscription&user_id=in.(${playedYesterdayIds.join(',')})`
-      );
-
-      const expiredIds = [];
-      for (const sub of pushSubs || []) {
-        const streak = calcStreak(datesByUser[sub.user_id] || []);
-        const body = streak >= 2
-          ? `${streak}-day streak — don't break it now! 🟨`
-          : "Today's game is open. Time to play! 🟨";
-
-        try {
-          await webpush.sendNotification(sub.subscription, JSON.stringify({
-            title: 'Time for Elevensies!',
-            body,
-            url: GAME_URL,
-          }));
-          pushSent++;
-        } catch (err) {
-          if (err.statusCode === 404 || err.statusCode === 410) {
-            expiredIds.push(sub.id);
-          } else {
-            console.error('Push error for', sub.user_id, err.message);
-          }
-        }
-      }
-
-      // Delete expired subscriptions
-      for (const id of expiredIds) {
-        await db(`/push_subscriptions?id=eq.${id}`, { method: 'DELETE' });
-      }
     }
 
     return res.status(200).json({ emailsSent, pushSent, offset: targetOffset });
