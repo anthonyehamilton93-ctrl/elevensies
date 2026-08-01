@@ -812,6 +812,7 @@
     text-align: center;
   }
   #newPasswordInput::placeholder { color: rgba(240,192,32,0.35); opacity: 1; }
+  .gold-placeholder::placeholder { color: rgba(240,192,32,0.35) !important; opacity: 1 !important; }
   #contactName::placeholder, #contactEmail::placeholder, #contactMessage::placeholder {
     color: rgba(240,192,32,0.35) !important;
     opacity: 1 !important;
@@ -3279,7 +3280,7 @@
       <div style="margin-top:12px;margin-bottom:4px;">
         <div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;margin-bottom:8px;">CHANGE PASSWORD</div>
         <div style="position:relative;margin-bottom:8px;">
-          <input type="password" id="newPasswordInput" placeholder="NEW PASSWORD" style="width:100%;padding:8px 36px 8px 12px;background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;outline:none;box-sizing:border-box;">
+          <input type="password" id="newPasswordInput" placeholder="NEW PASSWORD" style="width:100%;padding:8px 36px 8px 12px;background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;outline:none;box-sizing:border-box;" class="gold-placeholder">
           <button type="button" id="toggleNewPasswordBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;opacity:0.5;display:flex;align-items:center;">
             <img src="/icons/eye.png" style="width:18px;height:18px;object-fit:contain;">
           </button>
