@@ -8801,6 +8801,20 @@ async function initReminderState() {
   if (pushCapable) {
     const { data: pushData } = await sbClient.from('push_subscriptions').select('id').eq('user_id', currentUser.id).maybeSingle();
     pushOptedIn = !!pushData;
+    // If Supabase says opted in but browser has no subscription, silently resubscribe
+    if (pushOptedIn) {
+      const browserSub = await getPushSubscription();
+      if (!browserSub) {
+        try {
+          const newSub = await subscribeToPush();
+          if (newSub) await savePushSubscription(newSub);
+          else {
+            await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
+            pushOptedIn = false;
+          }
+        } catch(e) { pushOptedIn = false; }
+      }
+    }
   }
 
   reminderOptedIn = emailOptedIn || pushOptedIn;
@@ -9256,7 +9270,24 @@ async function openToolsOverlay() {
     setSqToggle('toolsRoundupToggle', !data.email_unsubscribed);
   }
   const { data: pushData } = await sbClient.from('push_subscriptions').select('id').eq('user_id', currentUser.id).maybeSingle();
-  setSqToggle('toolsPushToggle', !!pushData);
+  const hasSupabaseSub = !!pushData;
+  const browserSub = await getPushSubscription();
+  if (hasSupabaseSub && !browserSub && canUsePush()) {
+    // Supabase says opted in but browser lost subscription (e.g. app reinstall) — silently resubscribe
+    try {
+      const newSub = await subscribeToPush();
+      if (newSub) {
+        await savePushSubscription(newSub);
+        setSqToggle('toolsPushToggle', true);
+      } else {
+        // Can't resubscribe — clean up Supabase row
+        await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
+        setSqToggle('toolsPushToggle', false);
+      }
+    } catch(e) { setSqToggle('toolsPushToggle', false); }
+  } else {
+    setSqToggle('toolsPushToggle', hasSupabaseSub && !!browserSub);
+  }
   // Hide push toggle if device can't support it
   const pushRow = document.getElementById('toolsPushToggle')?.closest('div[style*="justify-content"]');
   if (pushRow) pushRow.style.display = canUsePush() ? 'flex' : 'none';
