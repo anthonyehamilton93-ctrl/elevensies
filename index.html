@@ -1010,7 +1010,7 @@
     padding: 14px;
     background: var(--gold);
     color: var(--green);
-    border: none;
+    border: 2px solid var(--gold-dark);
     font-size: 14px;
     font-weight: 900;
     letter-spacing: 0.1em;
@@ -9233,7 +9233,7 @@ function renderWordAsTiles(el, letters, placeholder = 'ELEVENSIES') {
   const ptSize = Math.max(7, Math.round(tileW * 0.22));
   el.innerHTML = letters.map(({ letter }) => {
     const pts = LETTER_VALUES[letter] || 0;
-    return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:${tileW}px;height:${tileH}px;background:var(--gold-dark);border:2px solid #fff;font-size:${fontSize}px;font-weight:900;color:var(--green);flex-shrink:0;">${letter}<span style="font-size:${ptSize}px;font-weight:700;opacity:0.7;line-height:1;">${pts}</span></div>`;
+    return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:${tileW}px;height:${tileH}px;background:var(--gold);border:2px solid var(--gold-dark);font-size:${fontSize}px;font-weight:900;color:var(--green);flex-shrink:0;">${letter}<span style="font-size:${ptSize}px;font-weight:700;opacity:0.7;line-height:1;">${pts}</span></div>`;
   }).join('');
   el.classList.add('filled');
 }
