@@ -1706,7 +1706,7 @@
 
   <div class="word-section" id="anagramWordSection">
     <div class="word-display-row">
-      <div class="word-display" id="anagramWordDisplay">ELEVENSIES</div>
+      <div class="word-display" id="anagramWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
       <button class="backspace-btn" id="anagramBackspaceBtn"></button>
     </div>
     <div class="word-value" id="anagramWordValue" style="opacity:0;">&nbsp;</div>
@@ -1757,7 +1757,7 @@
 
     <div class="word-section" id="elimWordSection">
       <div class="word-display-row">
-        <div class="word-display" id="elimWordDisplay"></div>
+        <div class="word-display" id="elimWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
         <button class="backspace-btn" id="elimBackspaceBtn"></button>
       </div>
       <div class="word-value" id="elimWordValue" style="opacity:0;">&nbsp;</div>
@@ -6384,8 +6384,14 @@ function renderAnagram() {
     return t ? t.letter : '';
   }).join('');
 
-  wordDisplay.textContent = word || 'ELEVENSIES';
-  wordDisplay.classList.toggle('filled', word.length > 0);
+  const wordLetters = anagramSelected.map(id => {
+    if (id === 'mystery') return { letter: anagramMysteryLetter || '?' };
+    const t = anagramTiles.find(t => t.id === id);
+    return t ? { letter: t.letter } : null;
+  }).filter(Boolean);
+
+  renderWordAsTiles(wordDisplay, wordLetters);
+  const word = wordLetters.map(l => l.letter).join('');
 
   // Show backspace when there are selected tiles
   const backspaceBtn = document.getElementById('anagramBackspaceBtn');
@@ -6866,26 +6872,12 @@ function render() {
     tileGrid.appendChild(btn);
   });
 
-  // Word display — render as tiles, always fits on one line
+  // Word display — render as tiles
   const currentWord = selected.map(s => s.letter).join('');
+  renderWordAsTiles(wordDisplay, selected);
   if (currentWord.length === 0) {
-    wordDisplay.innerHTML = '<span style="font-size:clamp(16px,5vw,28px);font-weight:900;letter-spacing:0.2em;color:rgba(240,192,32,0.2);">ELEVENSIES</span>';
-    wordDisplay.classList.remove('filled');
     backspaceBtn.classList.remove('show');
   } else {
-    // Scale tile size so 11 letters always fits — max tile 36px, min 24px
-    const n = selected.length;
-    const tileW = Math.min(36, Math.max(24, Math.floor(240 / n) - 3));
-    const tileH = Math.round(tileW * 1.1);
-    const fontSize = Math.round(tileW * 0.44);
-    const ptSize = Math.max(7, Math.round(tileW * 0.22));
-    wordDisplay.innerHTML = selected.map(s => {
-      const pts = LETTER_VALUES[s.letter] || 0;
-      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:${tileW}px;height:${tileH}px;background:var(--gold-dark);border:2px solid #fff;font-size:${fontSize}px;font-weight:900;color:var(--green);flex-shrink:0;">
-        ${s.letter}<span style="font-size:${ptSize}px;font-weight:700;opacity:0.7;line-height:1;">${pts}</span>
-      </div>`;
-    }).join('');
-    wordDisplay.classList.add('filled');
     backspaceBtn.classList.add('show');
   }
 
@@ -9233,6 +9225,25 @@ async function handlePushToggle() {
   }
 }
 
+// ===== Shared tile word builder =====
+function renderWordAsTiles(el, letters, placeholder = 'ELEVENSIES') {
+  if (!letters || letters.length === 0) {
+    el.innerHTML = `<span style="font-size:clamp(16px,5vw,28px);font-weight:900;letter-spacing:0.2em;color:rgba(240,192,32,0.2);">${placeholder}</span>`;
+    el.classList.remove('filled');
+    return;
+  }
+  const n = letters.length;
+  const tileW = Math.min(36, Math.max(24, Math.floor(240 / n) - 3));
+  const tileH = Math.round(tileW * 1.1);
+  const fontSize = Math.round(tileW * 0.44);
+  const ptSize = Math.max(7, Math.round(tileW * 0.22));
+  el.innerHTML = letters.map(({ letter }) => {
+    const pts = LETTER_VALUES[letter] || 0;
+    return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:${tileW}px;height:${tileH}px;background:var(--gold-dark);border:2px solid #fff;font-size:${fontSize}px;font-weight:900;color:var(--green);flex-shrink:0;">${letter}<span style="font-size:${ptSize}px;font-weight:700;opacity:0.7;line-height:1;">${pts}</span></div>`;
+  }).join('');
+  el.classList.add('filled');
+}
+
 async function openToolsOverlay() {
   document.getElementById('toolsOverlay').classList.add('show');
   updateToolsInstallSection();
@@ -10128,7 +10139,7 @@ function startElimRound() {
   bonusBtn.onclick = () => tapElimBonus(bonus);
 
   const _wd = document.getElementById('elimWordDisplay');
-  _wd.textContent = ''; _wd.classList.remove('filled');
+  renderWordAsTiles(_wd, []);
   document.getElementById('elimWordValue').style.opacity = '0';
   document.getElementById('elimStatusLine').textContent = 'FIND A WORD SCORING 11+';
   document.getElementById('elimMessage').textContent = '';
@@ -10173,12 +10184,12 @@ function renderElimTiles() {
 }
 
 function updateElimWordDisplay() {
-  const word = elimSelected.map(t => t.letter).join('');
+  const letters = elimSelected.map(t => ({ letter: t.letter }));
   const el = document.getElementById('elimWordDisplay');
-  el.textContent = word;
-  el.classList.toggle('filled', word.length > 0);
-  document.getElementById('elimBackspaceBtn').classList.toggle('show', word.length > 0);
+  renderWordAsTiles(el, letters);
+  document.getElementById('elimBackspaceBtn').classList.toggle('show', letters.length > 0);
   // Live score display
+  const word = letters.map(l => l.letter).join('');
   const valEl = document.getElementById('elimWordValue');
   if (word.length > 0) {
     const pts = word.split('').reduce((s,l) => s+(LETTER_VALUES[l]||0), 0);
@@ -10285,7 +10296,7 @@ function shuffleElimTiles() {
   bonusBtn.onclick = () => tapElimBonus(newBonus);
 
   const _wd = document.getElementById('elimWordDisplay');
-  _wd.textContent = ''; _wd.classList.remove('filled');
+  renderWordAsTiles(_wd, []);
   document.getElementById('elimBackspaceBtn').classList.remove('show');
   document.getElementById('elimWordValue').style.opacity = '0';
   renderElimTiles();
