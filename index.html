@@ -6378,12 +6378,6 @@ function renderAnagram() {
   const statusLine = document.getElementById('anagramStatusLine');
 
   // Build word from selected tiles in click order
-  const word = anagramSelected.map(id => {
-    if (id === 'mystery') return anagramMysteryLetter || '';
-    const t = anagramTiles.find(t => t.id === id);
-    return t ? t.letter : '';
-  }).join('');
-
   const wordLetters = anagramSelected.map(id => {
     if (id === 'mystery') return { letter: anagramMysteryLetter || '?' };
     const t = anagramTiles.find(t => t.id === id);
