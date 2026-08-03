@@ -88,7 +88,7 @@ async function sendPushToTimezone(targetOffset) {
   const eligibleSubs = pushSubs.filter(sub => {
     const offset = offsetMap[sub.user_id];
     if (offset === null || offset === undefined) return targetOffset === 0 || targetOffset === 60;
-    return offset === targetOffset;
+    return Number(offset) === Number(targetOffset); // cast both to ensure no string/int mismatch
   });
 
   let pushSent = 0;
@@ -141,7 +141,16 @@ export default async function handler(req, res) {
     }
   }
 
-  // ---- Catch-up push — send to anyone opted in who hasn't received one today ----
+  // ---- Push-only route ----
+  if (req.query?.push) {
+    const explicitOffset = req.query.offset !== undefined ? Number(req.query.offset) : null;
+    const now2 = new Date();
+    const targetOffset2 = explicitOffset !== null ? explicitOffset : (11 - now2.getUTCHours()) * 60;
+    const result = await sendPushToTimezone(targetOffset2);
+    return res.status(200).json(result);
+  }
+
+  // ---- Catch-up push ----
   if (req.query?.catchup) {
     const pushSubs = await db(`/push_subscriptions?select=id,user_id,subscription`);
     if (!pushSubs?.length) return res.status(200).json({ catchupSent: 0, message: 'No subscribers' });
@@ -207,7 +216,8 @@ export default async function handler(req, res) {
   }
 
   // ---- Main: 11am push + emails ----
-  const targetOffset = (11 - now.getUTCHours()) * 60;
+  const explicitOffset = req.query.offset !== undefined ? Number(req.query.offset) : null;
+  const targetOffset = explicitOffset !== null ? explicitOffset : (11 - now.getUTCHours()) * 60;
   const isUK = targetOffset === 60 || targetOffset === 0;
 
   // Send push notifications
