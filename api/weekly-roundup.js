@@ -38,6 +38,80 @@ async function db(path) {
   return Array.isArray(data) ? data : [];
 }
 
+// ===== Scaling helpers =====
+// PostgREST returns at most 1000 rows per request. This job reads whole tables,
+// so without paging it silently stops at row 1000 and every figure it produces
+// — leaderboard, ranks, streaks — is computed from a truncated slice.
+
+const PAGE_SIZE = 1000;
+
+function chunk(arr, size) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+async function dbAll(path, orderCol = 'id') {
+  const sep = path.includes('?') ? '&' : '?';
+  let out = [];
+  let offset = 0;
+  while (true) {
+    const page = await db(`${path}${sep}order=${orderCol}.asc&limit=${PAGE_SIZE}&offset=${offset}`);
+    if (!page.length) break;
+    out = out.concat(page);
+    if (page.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
+  }
+  return out;
+}
+
+async function listAllAuthUsers() {
+  const perPage = 1000;
+  let page = 1;
+  const all = [];
+  while (true) {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?page=${page}&per_page=${perPage}`, {
+      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
+    });
+    if (!r.ok) {
+      console.error('admin/users page', page, 'failed:', r.status);
+      break;
+    }
+    const j = await r.json();
+    const users = j.users || [];
+    all.push(...users);
+    if (users.length < perPage) break;
+    page++;
+    if (page > 100) break;
+  }
+  return all;
+}
+
+async function sendResendBatches(emails) {
+  let sent = 0;
+  let failed = 0;
+  const batches = chunk(emails, 100);
+  for (let i = 0; i < batches.length; i++) {
+    try {
+      const r = await fetch('https://api.resend.com/emails/batch', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(batches[i]),
+      });
+      if (r.ok) sent += batches[i].length;
+      else {
+        failed += batches[i].length;
+        console.error('Resend batch failed:', r.status, await r.text());
+      }
+    } catch (err) {
+      failed += batches[i].length;
+      console.error('Resend batch error:', err.message);
+    }
+    if (i < batches.length - 1) await new Promise(r => setTimeout(r, 600));
+  }
+  return { sent, failed };
+}
+
 const divider = (label) => `
   <tr><td colspan="10" style="padding:20px 40px 8px;">
     <p style="font-family:'Jost',sans-serif;font-size:10px;letter-spacing:0.15em;color:#8ba895;margin:0;border-bottom:1px solid rgba(240,192,32,0.2);padding-bottom:8px;">${label}</p>
@@ -48,7 +122,7 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
   const greeting = name && !name.startsWith('user') ? `Hey ${name},` : 'Hey,';
   const rankLine = userRank
     ? `You're ranked <strong style="color:#f0c020;">#${userRank} of ${totalUsers}</strong> overall.`
-    : `Play more games to earn a leaderboard ranking.`;
+    : `Play more games to earn a Top 11 ranking.`;
 
   const scoresHTML = weekScores.length > 0
     ? weekScores.map(s => `
@@ -142,7 +216,7 @@ function buildEmail({ name, userId, weekScores, myBestWord, globalBestWord, lead
         ${divider('YOUR BADGES')}
         <tr><td style="padding:8px 40px 16px;text-align:center;">${badgesHTML}</td></tr>` : ''}
 
-        ${divider('LEADERBOARD — TOP 11')}
+        ${divider('TOP 11')}
         <tr><td style="padding:4px 24px 8px;">
           <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
             <tr style="border-bottom:1px solid rgba(240,192,32,0.2);">
@@ -191,10 +265,10 @@ export default async function handler(req, res) {
 
   try {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const allResults = await db('/game_results?select=user_id,total_score,best_word,best_word_score,played_at,avg_points_per_word&game_status=eq.completed&order=played_at.desc');
+    const allResults = await dbAll('/game_results?select=user_id,total_score,best_word,best_word_score,played_at,avg_points_per_word&game_status=eq.completed');
     const weekResults = allResults.filter(r => r.played_at > oneWeekAgo);
 
-    const profiles = await db('/profiles?select=id,display_name,badges,email_unsubscribed');
+    const profiles = await dbAll('/profiles?select=id,display_name,badges,email_unsubscribed');
     const profileMap = {};
     profiles.forEach(p => { profileMap[p.id] = p; });
 
@@ -235,11 +309,8 @@ export default async function handler(req, res) {
       avgWordMap[uid] = wordTotals[uid] / wordCounts[uid];
     }
 
-    const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?per_page=1000`, {
-      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
-    });
-    const { users } = await authRes.json();
-    const confirmedUsers = (users || []).filter(u => u.email && u.email_confirmed_at);
+    const users = await listAllAuthUsers();
+    const confirmedUsers = users.filter(u => u.email && u.email_confirmed_at);
     if (confirmedUsers.length === 0) return res.status(200).json({ message: 'No recipients' });
 
     // All-time leaderboard
@@ -317,15 +388,9 @@ export default async function handler(req, res) {
         };
       });
 
-    for (let i = 0; i < emails.length; i += 100) {
-      await fetch('https://api.resend.com/emails/batch', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(emails.slice(i, i + 100)),
-      });
-    }
+    const { sent, failed } = await sendResendBatches(emails);
 
-    return res.status(200).json({ sent: emails.length });
+    return res.status(200).json({ sent, failed, recipients: emails.length });
   } catch (err) {
     console.error('weekly-roundup error:', err);
     return res.status(500).json({ error: err.message });
