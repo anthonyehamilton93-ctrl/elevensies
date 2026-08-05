@@ -1698,7 +1698,10 @@
   </div>
 
   <div class="history" id="historyPanel">
-    <div class="history-title">WORDS PLAYED</div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+      <div class="history-title" style="margin-bottom:0;">WORDS PLAYED</div>
+      <div style="font-size:12px;letter-spacing:0.1em;opacity:0.45;" id="historyCount"></div>
+    </div>
     <div id="historyList"><div class="history-empty">No words yet</div></div>
   </div>
   <button class="practice-back-btn" id="practiceBackBtn">BACK</button>
@@ -1882,8 +1885,6 @@
     <div style="display:flex;gap:4px;" id="draftProgress"></div>
   </div>
 
-  <!-- Words played so far (play phase only) -->
-  <div id="draftWordsChain" style="display:none;width:352px;max-width:100%;min-height:22px;margin-bottom:6px;flex-wrap:wrap;gap:4px;align-items:center;"></div>
 
   <!-- Word section -->
   <div class="word-section" id="draftWordSection" style="display:none;">
@@ -1891,7 +1892,7 @@
       <div class="word-display" id="draftWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
       <button class="backspace-btn" id="draftBackspaceBtn"></button>
     </div>
-    <div class="word-value" id="draftWordValue" style="opacity:0;">&nbsp;</div>
+    <div class="word-value" id="draftWordValue">&nbsp;</div>
     <div class="score-line"><span id="draftTotalScore">0</span> POINTS</div>
     <div class="turns-line" id="draftStatusLine">WORD 1 OF 11</div>
   </div>
@@ -1917,6 +1918,14 @@
     <button class="action-btn wide" id="draftSubmitBtn">SUBMIT</button>
   </div>
 
+  <div class="history" id="draftHistoryPanel" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+      <div class="history-title" style="margin-bottom:0;">WORDS PLAYED</div>
+      <div style="font-size:12px;letter-spacing:0.1em;opacity:0.45;" id="draftHistoryCount"></div>
+    </div>
+    <div id="draftHistoryList"></div>
+  </div>
+
   <button class="practice-back-btn visible" id="draftBackBtn" style="margin-top:16px;">BACK</button>
 </div>
 
@@ -1935,16 +1944,13 @@
     </div>
   </div>
 
-  <!-- Chain -->
-  <div style="width:352px;max-width:100%;min-height:24px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;" id="linksChain"></div>
-
   <!-- Word section -->
   <div class="word-section">
     <div class="word-display-row">
       <div class="word-display" id="linksWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
       <button class="backspace-btn" id="linksBackspaceBtn"></button>
     </div>
-    <div class="word-value" id="linksWordValue" style="opacity:0;">&nbsp;</div>
+    <div class="word-value" id="linksWordValue">&nbsp;</div>
     <div class="score-line" style="opacity:0;">&nbsp;</div>
     <div class="turns-line" id="linksStatusLine">START WITH ANY LETTER</div>
   </div>
@@ -1959,6 +1965,14 @@
     <button class="action-btn wide" id="linksShuffleBtn">SHUFFLE</button>
     <button class="action-btn joker-btn chosen" id="linksExtraTileBtn"></button>
     <button class="action-btn wide" id="linksSubmitBtn">SUBMIT</button>
+  </div>
+
+  <div class="history" id="linksHistoryPanel">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+      <div class="history-title" style="margin-bottom:0;">WORDS PLAYED</div>
+      <div style="font-size:12px;letter-spacing:0.1em;opacity:0.45;" id="linksHistoryCount"></div>
+    </div>
+    <div id="linksHistoryList"></div>
   </div>
 
   <button class="practice-back-btn visible" id="linksBackBtn" style="margin-top:16px;">QUIT</button>
@@ -2268,7 +2282,7 @@
 
     <!-- Words played dropdown -->
     <div class="expand-section" id="elimWordsSection" style="margin-bottom:16px;display:none;">
-      <div class="expand-header" id="elimWordsToggle">YOUR WORDS <span class="expand-arrow">▼</span></div>
+      <div class="expand-header" id="elimWordsToggle">YOUR WORDS <span style="opacity:0.5;font-weight:400;" id="elimWordsCount"></span> <span class="expand-arrow">▼</span></div>
       <div class="expand-body" id="elimWordsBody">
         <div id="elimWordsList"></div>
       </div>
@@ -7295,13 +7309,7 @@ function render() {
   }
 
   // History panel
-  if (history.length === 0) {
-    historyList.innerHTML = '<div class="history-empty">No words yet</div>';
-  } else {
-    historyList.innerHTML = history.map(h =>
-      `<div class="history-row"><span class="word">${h.word}</span><span class="score">+${h.score}</span></div>`
-    ).join('');
-  }
+  renderWordChipsPanel('historyList', 'historyCount', history);
 
   // Disable interactions on game over
   submitBtn.disabled = phase === 'gameover';
@@ -8192,9 +8200,7 @@ async function showGameOver() {
   }
   document.getElementById('gameoverTitle').textContent = 'YOUR SCORE';
   finalScore.textContent = totalScore;
-  finalHistory.innerHTML = history.map(h =>
-    `<div class="history-row"><span class="word">${h.word}</span><span>${h.score} pts</span></div>`
-  ).join('');
+  renderWordChips(finalHistory, history);
   finalRating.textContent =
     totalScore >= 100 ? 'INCREDIBLE SCORE!' :
     totalScore >= 60  ? 'GREAT GAME!' :
@@ -9155,7 +9161,8 @@ function startDraft() {
   document.getElementById('draftWordSection').style.display = 'none';
   document.getElementById('draftTileGrid').style.display = 'none';
   document.getElementById('draftActionRow').style.display = 'none';
-  document.getElementById('draftWordsChain').style.display = 'none';
+  document.getElementById('draftHistoryPanel').style.display = 'none';
+  document.getElementById('draftProgress').style.display = 'flex';
   document.getElementById('draftMessage').className = 'message';
   document.getElementById('draftTotalScore').textContent = '0';
   document.getElementById('draftStatusLine').textContent = `WORD 1 OF ${DRAFT_MAX_WORDS}`;
@@ -9210,12 +9217,11 @@ function pickDraftLetter(letter) {
     document.getElementById('draftWordSection').style.display = '';
     document.getElementById('draftTileGrid').style.display = 'grid';
     document.getElementById('draftActionRow').style.display = '';
-    document.getElementById('draftWordsChain').style.display = 'flex';
+    document.getElementById('draftHistoryPanel').style.display = 'block';
     document.getElementById('draftPickLabel').textContent = 'YOUR RACK';
     document.getElementById('draftBackBtn').textContent = 'FINISH';
-    document.getElementById('draftProgress').innerHTML = Array.from({length:11}, () =>
-      `<div style="width:8px;height:8px;background:var(--gold)"></div>`
-    ).join('');
+    // Pips tracked the 11 picks — they've served their purpose now
+    document.getElementById('draftProgress').style.display = 'none';
     draftTiles = draftPicks.map((letter, i) => ({ id: i, letter }));
     draftSelected = [];
     renderDraftChain();
@@ -9274,14 +9280,8 @@ function renderDraftWord() {
 }
 
 function renderDraftChain() {
-  const chain = document.getElementById('draftWordsChain');
-  if (!draftWords.length) {
-    chain.innerHTML = '<span style="font-size:10px;opacity:0.3;letter-spacing:0.1em;">YOUR WORDS WILL APPEAR HERE</span>';
-    return;
-  }
-  chain.innerHTML = draftWords.map(w =>
-    `<span style="font-size:11px;font-weight:700;letter-spacing:0.06em;color:var(--gold);background:rgba(240,192,32,0.1);padding:2px 6px;">${w.word}<span style="opacity:0.5;font-weight:400;"> ${w.pts}</span></span>`
-  ).join('');
+  renderWordChips(document.getElementById('draftHistoryList'), draftWords);
+  document.getElementById('draftHistoryCount').textContent = `${draftWords.length} OF ${DRAFT_MAX_WORDS}`;
 }
 
 function submitDraftWord() {
@@ -9340,10 +9340,7 @@ async function showDraftResult() {
     `${draftWords.length} WORD${draftWords.length !== 1 ? 'S' : ''}`;
 
   // Words played, best first
-  document.getElementById('draftResultWords').innerHTML = [...draftWords]
-    .sort((a, b) => b.pts - a.pts)
-    .map(w => `<div class="account-stats-row"><span>${w.word}</span><span>${w.pts} pts</span></div>`)
-    .join('');
+  renderWordChips(document.getElementById('draftResultWords'), draftWords);
 
   const statsEl = document.getElementById('draftResultStats');
   if (sbClient && currentUser) {
@@ -9491,11 +9488,8 @@ function generateLinksRack(mustInclude) {
 }
 
 function renderLinksChain() {
-  const chain = document.getElementById('linksChain');
-  if (linksWords.length === 0) { chain.innerHTML = '<span style="font-size:10px;opacity:0.3;letter-spacing:0.1em;">YOUR CHAIN WILL APPEAR HERE</span>'; return; }
-  chain.innerHTML = linksWords.map((w, i) =>
-    `<span style="font-size:11px;font-weight:700;letter-spacing:0.06em;color:var(--gold);">${w.word}</span>${i < linksWords.length - 1 ? '<span style="opacity:0.3;margin:0 2px;">›</span>' : ''}`
-  ).join('');
+  renderWordChips(document.getElementById('linksHistoryList'), linksWords);
+  document.getElementById('linksHistoryCount').textContent = `${linksWords.length} OF 11`;
 }
 
 function renderLinksTiles() {
@@ -9582,10 +9576,7 @@ function submitLinksWord() {
 async function showLinksResult() {
   document.getElementById('linksResultScore').textContent = linksTotalScore;
 
-  const wordsEl = document.getElementById('linksResultWords');
-  wordsEl.innerHTML = linksWords.map(w =>
-    `<div class="account-stats-row"><span>${w.word}</span><span>${w.pts} pts</span></div>`
-  ).join('');
+  renderWordChips(document.getElementById('linksResultWords'), linksWords);
 
   if (sbClient && currentUser) {
     await sbClient.from('links_results').insert({
@@ -10126,6 +10117,49 @@ function renderWordAsTiles(el, letters, placeholder = 'ELEVENSIES', showPts = tr
   el.classList.add('filled');
 }
 
+// ===== Shared words-played renderer =====
+// Two columns of gold chips, word left, score right. Used by every mode's
+// in-game panel and game-over screen so they all read the same way.
+// `limit` keeps only the highest-scoring N — for uncapped modes like
+// Survival Unlimited, where the full list could run to any length.
+
+function renderWordChips(el, words, limit) {
+  if (!el) return 0;
+  let list = (words || [])
+    .map(w => ({ word: w.word, score: w.score ?? w.pts ?? 0 }))
+    .filter(w => w.word);
+
+  if (limit && list.length > limit) {
+    list = [...list].sort((a, b) => b.score - a.score).slice(0, limit);
+  }
+
+  if (!list.length) {
+    el.style.display = 'block';
+    el.innerHTML = '<div class="history-empty">No words yet</div>';
+    return 0;
+  }
+
+  el.style.display = 'grid';
+  el.style.gridTemplateColumns = '1fr 1fr';
+  el.style.gap = '6px';
+  el.innerHTML = list.map(w =>
+    `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:6px;background:rgba(240,192,32,0.12);border:1px solid rgba(240,192,32,0.35);padding:5px 9px;box-sizing:border-box;min-width:0;">
+      <span style="font-size:13px;letter-spacing:0.06em;color:var(--gold);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${w.word}</span>
+      <span style="font-size:11px;color:rgba(240,192,32,0.55);flex-shrink:0;">${w.score}</span>
+    </div>`
+  ).join('');
+  return list.length;
+}
+
+function renderWordChipsPanel(listId, countId, words, limit, total) {
+  const shown = renderWordChips(document.getElementById(listId), words, limit);
+  const countEl = document.getElementById(countId);
+  if (countEl) {
+    const all = total !== undefined ? total : (words || []).length;
+    countEl.textContent = limit && all > limit ? `BEST ${shown} OF ${all}` : `${all}`;
+  }
+}
+
 // ===== Shared 11-tile layout helpers (Draft + Links) =====
 // 10 tiles render in the .tile-grid (5 + 5); the 11th renders into the middle
 // slot of the .action-row, matching Survival's layout.
@@ -10238,9 +10272,7 @@ lobbyDetailsBtn.addEventListener('click', async () => {
   }
 
   finalScore.textContent = saved ? saved.score : lobbyScore.textContent;
-  finalHistory.innerHTML = saved && saved.history && saved.history.length
-    ? saved.history.map(h => `<div class="history-row"><span class="word">${h.word}</span><span>${h.score} pts</span></div>`).join('')
-    : '<div class="history-empty">No words recorded</div>';
+  renderWordChips(finalHistory, (saved && saved.history) ? saved.history : []);
   document.getElementById('finalRating').textContent = saved ? saved.rating : '';
 
   if (saved && saved.bestWord) {
@@ -11504,13 +11536,8 @@ function showEliminatorResult(score, totalTimeMs, totalPoints, perfect = false) 
   const wordsList = document.getElementById('elimWordsList');
   if (elimHistory.length > 0) {
     wordsSection.style.display = '';
-    wordsList.innerHTML = elimHistory.map((h, i) =>
-      `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;letter-spacing:0.06em;border-bottom:1px solid rgba(240,192,32,0.08);">
-        <span style="opacity:0.4;flex:0 0 20px;">${i+1}</span>
-        <span style="flex:1;font-weight:700;color:var(--gold);">${h.word}</span>
-        <span style="opacity:0.7;">${h.pts} PTS</span>
-      </div>`
-    ).join('');
+    // Unlimited has no cap, so show the best 11 rather than everything
+    renderWordChipsPanel('elimWordsList', 'elimWordsCount', elimHistory, 11);
     // Wire toggle
     const toggle = document.getElementById('elimWordsToggle');
     const body = document.getElementById('elimWordsBody');
@@ -11657,7 +11684,7 @@ async function openEliminatorStats(mode = 'unlimited') {
 
     const rows = document.querySelectorAll('#statsOverlayStats .account-stats-row');
     const labels = mode === 'play_to_11'
-      ? ['GAMES PLAYED', 'PERFECT SCORES', 'BEST ROUNDS', 'AVG PTS / ROUND']
+      ? ['GAMES PLAYED', 'PERFECT SCORES', 'AVG ROUNDS', 'AVG PTS / ROUND']
       : ['GAMES PLAYED', 'BEST ROUNDS', 'AVG ROUNDS', 'AVG PTS / ROUND'];
     const valueIds = ['statsOverlayGames', 'statsOverlayStreak', 'statsOverlayBest', 'statsOverlayAvgWord'];
 
@@ -11688,12 +11715,12 @@ async function openEliminatorStats(mode = 'unlimited') {
 
     if (mode === 'play_to_11') {
       const perfect = data.filter(r => r.rounds_survived >= 11).length;
-      const bestRounds = Math.max(...data.map(r => r.rounds_survived));
+      const avgRounds = (data.reduce((s, r) => s + r.rounds_survived, 0) / gamesPlayed).toFixed(1);
       const solvable = data.filter(r => r.rounds_survived > 0);
       const avgPtsPerRound = solvable.length
         ? (solvable.reduce((s, r) => s + r.total_points / r.rounds_survived, 0) / solvable.length).toFixed(1)
         : '—';
-      stat2 = perfect; stat3 = bestRounds; stat4 = avgPtsPerRound;
+      stat2 = perfect; stat3 = avgRounds; stat4 = avgPtsPerRound;
     } else {
       const bestRounds = Math.max(...data.map(r => r.rounds_survived));
       const avgRounds = (data.reduce((s, r) => s + r.rounds_survived, 0) / gamesPlayed).toFixed(1);
