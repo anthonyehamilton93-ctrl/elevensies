@@ -24,6 +24,137 @@ async function db(path, options = {}) {
   return res.json();
 }
 
+// ===== Scaling helpers =====
+// PostgREST caps a single response (1000 rows by default) and a URL can only
+// hold so many UUIDs, so anything that could grow with the user base has to be
+// paged or chunked rather than fetched in one go.
+
+const PAGE_SIZE = 1000;
+const ID_CHUNK = 50;          // ~37 chars per UUID — keeps URLs well under limits
+const PUSH_CONCURRENCY = 25;  // parallel push sends; serial is too slow to finish
+
+function chunk(arr, size) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+// Pages through a table until it runs out of rows.
+async function dbAll(path, orderCol = 'id') {
+  const sep = path.includes('?') ? '&' : '?';
+  let out = [];
+  let offset = 0;
+  while (true) {
+    const page = await db(`${path}${sep}order=${orderCol}.asc&limit=${PAGE_SIZE}&offset=${offset}`);
+    if (!Array.isArray(page) || page.length === 0) break;
+    out = out.concat(page);
+    if (page.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
+  }
+  return out;
+}
+
+// Splits an `id=in.(...)` filter across several requests.
+async function dbByIds(basePath, column, ids, extra = '') {
+  if (!ids.length) return [];
+  const out = [];
+  for (const batch of chunk(ids, ID_CHUNK)) {
+    const sep = basePath.includes('?') ? '&' : '?';
+    const rows = await dbAll(`${basePath}${sep}${column}=in.(${batch.join(',')})${extra}`);
+    out.push(...rows);
+  }
+  return out;
+}
+
+// The admin API returns at most per_page users; walk every page.
+async function listAllAuthUsers() {
+  const perPage = 1000;
+  let page = 1;
+  const all = [];
+  while (true) {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?page=${page}&per_page=${perPage}`, {
+      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
+    });
+    if (!r.ok) {
+      console.error('admin/users page', page, 'failed:', r.status);
+      break;
+    }
+    const j = await r.json();
+    const users = j.users || [];
+    all.push(...users);
+    if (users.length < perPage) break;
+    page++;
+    if (page > 100) break; // hard stop at 100k users
+  }
+  return all;
+}
+
+// Sends push in parallel batches and reports which subscriptions are dead.
+async function sendPushBatch(subs, payload) {
+  let sent = 0;
+  const expiredIds = [];
+  for (const slice of chunk(subs, PUSH_CONCURRENCY)) {
+    await Promise.all(slice.map(async (sub) => {
+      try {
+        await webpush.sendNotification(sub.subscription, JSON.stringify(payload));
+        sent++;
+      } catch (err) {
+        if (err.statusCode === 404 || err.statusCode === 410) expiredIds.push(sub.id);
+        else console.error('Push error:', sub.user_id, err.message);
+      }
+    }));
+  }
+  return { sent, expiredIds };
+}
+
+// One DELETE per batch rather than one per row.
+async function deleteExpiredSubs(ids) {
+  for (const batch of chunk(ids, ID_CHUNK)) {
+    await db(`/push_subscriptions?id=in.(${batch.join(',')})`, { method: 'DELETE' });
+  }
+}
+
+// Resend caps a batch at 100 and rate-limits requests. Count what actually
+// succeeded instead of assuming every batch landed.
+async function sendResendBatches(emails) {
+  let sent = 0;
+  let failed = 0;
+  const batches = chunk(emails, 100);
+  for (let i = 0; i < batches.length; i++) {
+    try {
+      const r = await fetch('https://api.resend.com/emails/batch', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(batches[i]),
+      });
+      if (r.ok) sent += batches[i].length;
+      else {
+        failed += batches[i].length;
+        console.error('Resend batch failed:', r.status, await r.text());
+      }
+    } catch (err) {
+      failed += batches[i].length;
+      console.error('Resend batch error:', err.message);
+    }
+    if (i < batches.length - 1) await new Promise(r => setTimeout(r, 600));
+  }
+  return { sent, failed };
+}
+
+// Local-midnight-to-UTC for a given timezone offset in minutes.
+function localDayStartUTC(now, offsetMinutes) {
+  const local = new Date(now.getTime() + offsetMinutes * 60000);
+  return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()) - offsetMinutes * 60000);
+}
+
+// Offsets run from -720 to +720; wrap anything outside that back into range.
+function normaliseOffset(mins) {
+  let m = mins;
+  if (m > 720) m -= 1440;
+  if (m < -720) m += 1440;
+  return m;
+}
+
 function calcStreak(dates) {
   const unique = [...new Set(dates)].sort().reverse();
   if (!unique.length) return 0;
@@ -77,11 +208,11 @@ function reminderHTML(name, streak, yesterdayScore, userId) {
 async function sendPushToTimezone(targetOffset) {
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return { pushSent: 0, error: 'VAPID not configured' };
 
-  const pushSubs = await db(`/push_subscriptions?select=id,user_id,subscription`);
+  const pushSubs = await dbAll('/push_subscriptions?select=id,user_id,subscription');
   if (!pushSubs?.length) return { pushSent: 0, totalSubscribers: 0 };
 
   const pushUserIds = pushSubs.map(s => s.user_id);
-  const pushProfiles = await db(`/profiles?select=id,utc_offset&id=in.(${pushUserIds.join(',')})`);
+  const pushProfiles = await dbByIds('/profiles?select=id,utc_offset', 'id', pushUserIds);
   const offsetMap = {};
   (pushProfiles || []).forEach(p => { offsetMap[p.id] = p.utc_offset; });
 
@@ -91,22 +222,12 @@ async function sendPushToTimezone(targetOffset) {
     return Number(offset) === Number(targetOffset); // cast both to ensure no string/int mismatch
   });
 
-  let pushSent = 0;
-  const expiredIds = [];
-  for (const sub of eligibleSubs) {
-    try {
-      await webpush.sendNotification(sub.subscription, JSON.stringify({
-        title: 'Time for Elevensies!',
-        body: "Today's game is open. Time to play! 🟨",
-        url: GAME_URL,
-      }));
-      pushSent++;
-    } catch (err) {
-      if (err.statusCode === 404 || err.statusCode === 410) expiredIds.push(sub.id);
-      else console.error('Push error:', sub.user_id, err.message);
-    }
-  }
-  for (const id of expiredIds) await db(`/push_subscriptions?id=eq.${id}`, { method: 'DELETE' });
+  const { sent: pushSent, expiredIds } = await sendPushBatch(eligibleSubs, {
+    title: 'Time for Elevensies!',
+    body: "Today's game is open. Time to play! 🟨",
+    url: GAME_URL,
+  });
+  await deleteExpiredSubs(expiredIds);
 
   return { pushSent, totalSubscribers: pushSubs.length, eligible: eligibleSubs.length, targetOffset };
 }
@@ -152,72 +273,84 @@ export default async function handler(req, res) {
 
   // ---- Catch-up push ----
   if (req.query?.catchup) {
-    const pushSubs = await db(`/push_subscriptions?select=id,user_id,subscription`);
+    const pushSubs = await dbAll('/push_subscriptions?select=id,user_id,subscription');
     if (!pushSubs?.length) return res.status(200).json({ catchupSent: 0, message: 'No subscribers' });
 
-    let catchupSent = 0;
-    const expiredIds = [];
-    for (const sub of pushSubs) {
-      try {
-        await webpush.sendNotification(sub.subscription, JSON.stringify({
-          title: 'Time for Elevensies!',
-          body: "Today's game is open. Time to play! 🟨",
-          url: GAME_URL,
-        }));
-        catchupSent++;
-      } catch (err) {
-        if (err.statusCode === 404 || err.statusCode === 410) expiredIds.push(sub.id);
-        else console.error('Catchup push error:', sub.user_id, err.message);
-      }
-    }
-    for (const id of expiredIds) await db(`/push_subscriptions?id=eq.${id}`, { method: 'DELETE' });
+    const { sent: catchupSent, expiredIds } = await sendPushBatch(pushSubs, {
+      title: 'Time for Elevensies!',
+      body: "Today's game is open. Time to play! 🟨",
+      url: GAME_URL,
+    });
+    await deleteExpiredSubs(expiredIds);
     return res.status(200).json({ catchupSent, total: pushSubs.length });
   }
 
   // ---- Nudge push (13:30 local) ----
   if (req.query?.nudge) {
-    const targetOffset = (13 - now.getUTCHours()) * 60 + 30;
-    const pushSubs = await db(`/push_subscriptions?select=id,user_id,subscription`);
-    if (!pushSubs?.length) return res.status(200).json({ nudgeSent: 0 });
+    // A player is at 13:30 local when their offset equals 13:30 minus the
+    // current UTC time. Deriving it from the real clock (rather than assuming
+    // the cron fires at :30) means whole-hour, half-hour and quarter-hour
+    // timezones are all reachable — you just need a cron at the matching
+    // minute. See the note at the bottom of this file for which to add.
+    //
+    // The old version computed (13 - hour) * 60 + 30, which always ended in
+    // :30 and so could never equal a whole-hour offset like 0, 60 or -480.
+    const nudgeOffsetOverride = req.query.offset !== undefined ? Number(req.query.offset) : null;
+    const slot = Math.round((now.getUTCHours() * 60 + now.getUTCMinutes()) / 15) * 15;
+    const targetOffset = nudgeOffsetOverride !== null
+      ? nudgeOffsetOverride
+      : normaliseOffset(810 - slot); // 810 = 13h30m in minutes
+
+    const pushSubs = await dbAll('/push_subscriptions?select=id,user_id,subscription');
+    if (!pushSubs?.length) return res.status(200).json({ nudgeSent: 0, targetOffset });
 
     const pushUserIds = pushSubs.map(s => s.user_id);
-    const pushProfiles = await db(`/profiles?select=id,utc_offset&id=in.(${pushUserIds.join(',')})`);
+    const pushProfiles = await dbByIds('/profiles?select=id,utc_offset', 'id', pushUserIds);
     const offsetMap = {};
     (pushProfiles || []).forEach(p => { offsetMap[p.id] = p.utc_offset; });
 
     const eligibleSubs = pushSubs.filter(sub => {
       const offset = offsetMap[sub.user_id];
-      return offset === targetOffset;
+      if (offset === null || offset === undefined) return false;
+      return Number(offset) === Number(targetOffset);
     });
 
-    const todayStart = new Date(now); todayStart.setUTCHours(0, 0, 0, 0);
-    const playedToday = await db(
-      `/game_results?select=user_id&game_status=eq.completed&user_id=in.(${eligibleSubs.map(s=>s.user_id).join(',')})&played_at=gte.${todayStart.toISOString()}`
+    // Nobody in this timezone — stop before building an empty in.() filter,
+    // which PostgREST rejects.
+    if (!eligibleSubs.length) {
+      return res.status(200).json({ nudgeSent: 0, eligible: 0, targetOffset });
+    }
+
+    // "Today" means the player's local day, not the UTC day.
+    const todayStart = localDayStartUTC(now, targetOffset);
+    const playedToday = await dbByIds(
+      '/game_results?select=user_id&game_status=eq.completed',
+      'user_id',
+      eligibleSubs.map(s => s.user_id),
+      `&played_at=gte.${todayStart.toISOString()}`
     );
     const playedIds = new Set((playedToday || []).map(r => r.user_id));
     const unplayedSubs = eligibleSubs.filter(s => !playedIds.has(s.user_id));
 
-    let nudgeSent = 0;
-    const expiredIds = [];
-    for (const sub of unplayedSubs) {
-      try {
-        await webpush.sendNotification(sub.subscription, JSON.stringify({
-          title: 'Last chance — game closes at 2pm!',
-          body: "You haven't played today yet. 30 minutes left! 🟨",
-          url: GAME_URL,
-        }));
-        nudgeSent++;
-      } catch (err) {
-        if (err.statusCode === 404 || err.statusCode === 410) expiredIds.push(sub.id);
-      }
-    }
-    for (const id of expiredIds) await db(`/push_subscriptions?id=eq.${id}`, { method: 'DELETE' });
-    return res.status(200).json({ nudgeSent, eligible: eligibleSubs.length, alreadyPlayed: playedIds.size });
+    const { sent: nudgeSent, expiredIds } = await sendPushBatch(unplayedSubs, {
+      title: 'Last chance — game closes at 2pm!',
+      body: "You haven't played today yet. 30 minutes left! 🟨",
+      url: GAME_URL,
+    });
+    await deleteExpiredSubs(expiredIds);
+    return res.status(200).json({
+      nudgeSent,
+      eligible: eligibleSubs.length,
+      alreadyPlayed: playedIds.size,
+      targetOffset,
+    });
   }
 
   // ---- Main: 11am push + emails ----
   const explicitOffset = req.query.offset !== undefined ? Number(req.query.offset) : null;
-  const targetOffset = explicitOffset !== null ? explicitOffset : (11 - now.getUTCHours()) * 60;
+  const targetOffset = explicitOffset !== null
+    ? explicitOffset
+    : normaliseOffset((11 - now.getUTCHours()) * 60);
   const isUK = targetOffset === 60 || targetOffset === 0;
 
   // Send push notifications
@@ -228,14 +361,14 @@ export default async function handler(req, res) {
     ? `utc_offset=in.(0,60)&utc_offset=not.is.null`
     : `utc_offset=eq.${targetOffset}`;
 
-  const eligibleProfiles = await db(`/profiles?select=id,display_name,reminders_unsubscribed,utc_offset&${offsetFilter}`);
+  const eligibleProfiles = await dbAll(`/profiles?select=id,display_name,reminders_unsubscribed,utc_offset&${offsetFilter}`);
   if (!eligibleProfiles?.length) {
     return res.status(200).json({ message: `No profiles at offset ${targetOffset}`, ...pushResult });
   }
 
   let allProfiles = eligibleProfiles;
   if (isUK) {
-    const nullOffsets = await db(`/profiles?select=id,display_name,reminders_unsubscribed,utc_offset&utc_offset=is.null`);
+    const nullOffsets = await dbAll('/profiles?select=id,display_name,reminders_unsubscribed,utc_offset&utc_offset=is.null');
     allProfiles = [...eligibleProfiles, ...(nullOffsets || [])];
   }
 
@@ -246,8 +379,11 @@ export default async function handler(req, res) {
   const twoDaysAgo = new Date(yesterday); twoDaysAgo.setUTCDate(twoDaysAgo.getUTCDate() - 1);
   const todayStart = new Date(now); todayStart.setUTCHours(0, 0, 0, 0);
 
-  const recentGames = await db(
-    `/game_results?select=user_id,played_at,total_score&game_status=eq.completed&user_id=in.(${allEligibleIds.join(',')})&played_at=gte.${twoDaysAgo.toISOString()}&played_at=lt.${now.toISOString()}`
+  const recentGames = await dbByIds(
+    '/game_results?select=user_id,played_at,total_score&game_status=eq.completed',
+    'user_id',
+    allEligibleIds,
+    `&played_at=gte.${twoDaysAgo.toISOString()}&played_at=lt.${now.toISOString()}`
   );
 
   const yesterdayByUser = {};
@@ -264,19 +400,18 @@ export default async function handler(req, res) {
     return res.status(200).json({ message: 'No eligible players played yesterday', ...pushResult });
   }
 
-  const allGames = await db(
-    `/game_results?select=user_id,played_at&game_status=eq.completed&user_id=in.(${playedYesterdayIds.join(',')})`
+  const allGames = await dbByIds(
+    '/game_results?select=user_id,played_at&game_status=eq.completed',
+    'user_id',
+    playedYesterdayIds
   );
 
   const profileMap = {};
   allProfiles.forEach(p => { profileMap[p.id] = p; });
 
-  const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?per_page=1000`, {
-    headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` },
-  });
-  const { users } = await authRes.json();
+  const users = await listAllAuthUsers();
   const emailMap = {};
-  (users || []).forEach(u => { emailMap[u.id] = u.email; });
+  users.forEach(u => { emailMap[u.id] = u.email; });
 
   const datesByUser = {};
   for (const g of allGames || []) {
@@ -284,8 +419,9 @@ export default async function handler(req, res) {
     datesByUser[g.user_id].push(g.played_at.slice(0, 10));
   }
 
+  const emailEligibleSet = new Set(emailEligibleIds);
   const emails = playedYesterdayIds
-    .filter(uid => emailEligibleIds.includes(uid) && emailMap[uid])
+    .filter(uid => emailEligibleSet.has(uid) && emailMap[uid])
     .map(uid => {
       const profile = profileMap[uid];
       const streak = calcStreak(datesByUser[uid] || []);
@@ -297,15 +433,25 @@ export default async function handler(req, res) {
       };
     });
 
-  let emailsSent = 0;
-  for (let i = 0; i < emails.length; i += 100) {
-    await fetch('https://api.resend.com/emails/batch', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(emails.slice(i, i + 100)),
-    });
-    emailsSent += Math.min(100, emails.length - i);
-  }
+  const { sent: emailsSent, failed: emailsFailed } = await sendResendBatches(emails);
 
-  return res.status(200).json({ emailsSent, offset: targetOffset, ...pushResult });
+  return res.status(200).json({ emailsSent, emailsFailed, offset: targetOffset, ...pushResult });
 }
+
+// ---------------------------------------------------------------------------
+// NUDGE CRON SCHEDULE
+//
+// The nudge targets whoever is at 13:30 local time when it runs, so the cron's
+// MINUTE decides which timezones it can reach. Your existing job is:
+//
+//   elevensies-nudge          30 * * * *    -> 23 zones (all whole-hour offsets)
+//
+// Two zones sit on non-whole-hour offsets and need their own jobs:
+//
+//   elevensies-nudge-india    0 8 * * *     -> UTC+5:30  (08:00Z = 13:30 IST)
+//   elevensies-nudge-nepal    45 7 * * *    -> UTC+5:45  (07:45Z = 13:30 NPT)
+//
+// Both call this endpoint with ?nudge=1 and the x-cron-secret header, exactly
+// like the existing job. No offset parameter needed — it's derived from the
+// clock. Pass ?nudge=1&offset=X only when testing a specific timezone.
+// ---------------------------------------------------------------------------
