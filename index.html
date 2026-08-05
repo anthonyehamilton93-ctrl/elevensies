@@ -1672,14 +1672,26 @@
 
   <!-- Actual game (hidden when played-today lobby is showing) -->
   <div id="actualGame">
-  <div class="word-section">
+  <div id="gameHeaderBar" style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0 8px;box-sizing:border-box;">
+    <div style="text-align:left;">
+      <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;">TURN</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);line-height:1.2;" id="turnsLine">1 OF 11</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;">POINTS</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);line-height:1.2;" id="totalScore">0</div>
+    </div>
+  </div>
+  <div style="width:352px;max-width:100%;height:4px;background:rgba(240,192,32,0.15);margin-bottom:6px;border-radius:2px;">
+    <div id="gameProgressBar" style="height:100%;background:var(--gold);width:0%;border-radius:2px;transition:width 0.3s;"></div>
+  </div>
+
+  <div class="word-section" style="padding-top:8px;">
     <div class="word-display-row" style="border-bottom:none;height:auto;margin-bottom:4px;">
       <div class="word-display" id="wordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
       <button class="backspace-btn" id="backspaceBtn"></button>
     </div>
     <div class="word-value" id="wordValue">0 PTS</div>
-    <div class="score-line"><span id="totalScore">0</span> POINTS</div>
-    <div class="turns-line" id="turnsLine">11 TURNS LEFT</div>
   </div>
 
   <div class="message" id="message"></div>
@@ -1880,9 +1892,18 @@
 <div id="draftScreen" style="display:none;flex-direction:column;align-items:center;width:100%;flex:1;">
 
   <!-- Header -->
-  <div style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 0 8px;">
-    <div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;" id="draftPickLabel">PICK 1 OF 11</div>
-    <div style="display:flex;gap:4px;" id="draftProgress"></div>
+  <div style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0 8px;box-sizing:border-box;">
+    <div style="text-align:left;">
+      <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;" id="draftHeaderLabel">PICK</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);line-height:1.2;" id="draftHeaderValue">1 OF 11</div>
+    </div>
+    <div style="text-align:right;display:none;" id="draftHeaderRight">
+      <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;">POINTS</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);line-height:1.2;" id="draftTotalScore">0</div>
+    </div>
+  </div>
+  <div style="width:352px;max-width:100%;height:4px;background:rgba(240,192,32,0.15);margin-bottom:6px;border-radius:2px;">
+    <div id="draftProgressBar" style="height:100%;background:var(--gold);width:0%;border-radius:2px;transition:width 0.3s;"></div>
   </div>
 
 
@@ -1893,8 +1914,7 @@
       <button class="backspace-btn" id="draftBackspaceBtn"></button>
     </div>
     <div class="word-value" id="draftWordValue">&nbsp;</div>
-    <div class="score-line"><span id="draftTotalScore">0</span> POINTS</div>
-    <div class="turns-line" id="draftStatusLine">WORD 1 OF 11</div>
+    <div class="turns-line" id="draftStatusLine">BUILD A WORD FROM YOUR RACK</div>
   </div>
 
   <div class="message" id="draftMessage"></div>
@@ -1927,6 +1947,10 @@
   </div>
 
   <button class="practice-back-btn visible" id="draftBackBtn" style="margin-top:16px;">BACK</button>
+  <div class="cancel-game-wrap" id="draftCancelWrap" style="display:none;">
+    <button class="cancel-game-btn" id="draftEndBtn">END GAME</button>
+    <div class="cancel-game-note">YOUR CURRENT SCORE WILL COUNT TOWARDS YOUR AVERAGE</div>
+  </div>
 </div>
 
 <!-- Links screen -->
@@ -1975,7 +1999,10 @@
     <div id="linksHistoryList"></div>
   </div>
 
-  <button class="practice-back-btn visible" id="linksBackBtn" style="margin-top:16px;">QUIT</button>
+  <div class="cancel-game-wrap" id="linksCancelWrap">
+    <button class="cancel-game-btn" id="linksEndBtn">END GAME</button>
+    <div class="cancel-game-note">YOUR CURRENT SCORE WILL COUNT TOWARDS YOUR AVERAGE</div>
+  </div>
 </div>
 
 </div><!-- end .app -->
@@ -7261,8 +7288,9 @@ function render() {
 
   // Score / turns
   totalScoreEl.textContent = totalScore;
-  const turnsLeft = MAX_TURNS - turns;
-  turnsLine.textContent = turnsLeft > 0 ? `${turnsLeft} TURN${turnsLeft !== 1 ? 'S' : ''} LEFT` : 'LAST TURN!';
+  turnsLine.textContent = `${Math.min(turns + 1, MAX_TURNS)} OF ${MAX_TURNS}`;
+  const gameBar = document.getElementById('gameProgressBar');
+  if (gameBar) gameBar.style.width = `${(turns / MAX_TURNS) * 100}%`;
 
   // Joker button: shows "?" until a letter is chosen, then becomes that
   // letter tile permanently, in the same slot — never added to the main grid.
@@ -9162,13 +9190,15 @@ function startDraft() {
   document.getElementById('draftTileGrid').style.display = 'none';
   document.getElementById('draftActionRow').style.display = 'none';
   document.getElementById('draftHistoryPanel').style.display = 'none';
-  document.getElementById('draftProgress').style.display = 'flex';
+  document.getElementById('draftHeaderRight').style.display = 'none';
+  document.getElementById('draftProgressBar').style.width = '0%';
   document.getElementById('draftMessage').className = 'message';
   document.getElementById('draftTotalScore').textContent = '0';
-  document.getElementById('draftStatusLine').textContent = `WORD 1 OF ${DRAFT_MAX_WORDS}`;
+  document.getElementById('draftStatusLine').textContent = 'BUILD A WORD FROM YOUR RACK';
   const backBtn = document.getElementById('draftBackBtn');
   backBtn.style.display = '';
   backBtn.textContent = 'BACK';
+  document.getElementById('draftCancelWrap').style.display = 'none';
 
   showScreen('draft');
   renderDraftPick();
@@ -9186,13 +9216,9 @@ function getDraftChoices() {
 }
 
 function renderDraftPick() {
-  // Progress dots
-  const prog = document.getElementById('draftProgress');
-  prog.innerHTML = Array.from({length:11}, (_, i) =>
-    `<div style="width:8px;height:8px;background:${i < draftPickStep ? 'var(--gold)' : 'rgba(240,192,32,0.2)'}"></div>`
-  ).join('');
-
-  document.getElementById('draftPickLabel').textContent = `PICK ${draftPickStep + 1} OF 11`;
+  document.getElementById('draftHeaderLabel').textContent = 'PICK';
+  document.getElementById('draftHeaderValue').textContent = `${draftPickStep + 1} OF 11`;
+  document.getElementById('draftProgressBar').style.width = `${(draftPickStep / 11) * 100}%`;
 
   const choices = getDraftChoices();
   const choicesEl = document.getElementById('draftChoices');
@@ -9209,6 +9235,12 @@ function renderDraftPick() {
 function pickDraftLetter(letter) {
   draftPicks.push(letter);
   draftPickStep++;
+
+  // The round is live from the first pick — backing out now counts as a quit
+  if (draftPickStep === 1) {
+    document.getElementById('draftBackBtn').style.display = 'none';
+    document.getElementById('draftCancelWrap').style.display = 'block';
+  }
   if (draftPickStep >= 11) {
     // Switch to play phase — the 11 tiles stay put and get reused for
     // every word, so the rack you drafted is the rack you mine.
@@ -9218,10 +9250,10 @@ function pickDraftLetter(letter) {
     document.getElementById('draftTileGrid').style.display = 'grid';
     document.getElementById('draftActionRow').style.display = '';
     document.getElementById('draftHistoryPanel').style.display = 'block';
-    document.getElementById('draftPickLabel').textContent = 'YOUR RACK';
-    document.getElementById('draftBackBtn').textContent = 'FINISH';
-    // Pips tracked the 11 picks — they've served their purpose now
-    document.getElementById('draftProgress').style.display = 'none';
+    document.getElementById('draftHeaderLabel').textContent = 'WORD';
+    document.getElementById('draftHeaderValue').textContent = `1 OF ${DRAFT_MAX_WORDS}`;
+    document.getElementById('draftHeaderRight').style.display = '';
+    document.getElementById('draftProgressBar').style.width = '0%';
     draftTiles = draftPicks.map((letter, i) => ({ id: i, letter }));
     draftSelected = [];
     renderDraftChain();
@@ -9303,14 +9335,17 @@ function submitDraftWord() {
   renderDraftTileGrid();
   renderDraftWord();
 
+  document.getElementById('draftProgressBar').style.width =
+    `${(draftWords.length / DRAFT_MAX_WORDS) * 100}%`;
+
   if (draftWords.length >= DRAFT_MAX_WORDS) {
     document.getElementById('draftStatusLine').textContent = 'ALL 11 WORDS PLAYED';
     draftPhase = 'done';
     setTimeout(showDraftResult, 900);
     return;
   }
-  document.getElementById('draftStatusLine').textContent =
-    `WORD ${draftWords.length + 1} OF ${DRAFT_MAX_WORDS}`;
+  document.getElementById('draftHeaderValue').textContent =
+    `${draftWords.length + 1} OF ${DRAFT_MAX_WORDS}`;
 }
 
 function showDraftMessage(text, type) {
@@ -9321,12 +9356,9 @@ function showDraftMessage(text, type) {
 }
 
 function finishDraft() {
-  if (draftPhase !== 'play') return;
-  if (!draftWords.length) {
-    showDraftMessage('Play at least one word first!', 'error');
-    return;
-  }
+  if (draftPhase === 'done') return;
   draftPhase = 'done';
+  document.getElementById('draftCancelWrap').style.display = 'none';
   showDraftResult();
 }
 
@@ -9390,10 +9422,10 @@ document.getElementById('draftWordDisplay')?.addEventListener('click', () => {
   if (draftSelected.length > 0) { draftSelected = []; renderDraftTileGrid(); renderDraftWord(); }
 });
 document.getElementById('draftBackBtn')?.addEventListener('click', () => {
-  if (draftPhase === 'play') { finishDraft(); return; }
   showScreen('welcome');
   startWelcomeLabelTicker();
 });
+document.getElementById('draftEndBtn')?.addEventListener('click', finishDraft);
 document.getElementById('draftPlayAgainBtn')?.addEventListener('click', () => {
   document.getElementById('draftResultOverlay').classList.remove('show');
   startDraft();
@@ -9401,6 +9433,7 @@ document.getElementById('draftPlayAgainBtn')?.addEventListener('click', () => {
 document.getElementById('draftResultCloseBtn')?.addEventListener('click', () => {
   document.getElementById('draftResultOverlay').classList.remove('show');
   showScreen('welcome');
+  startWelcomeLabelTicker();
 });
 document.getElementById('draftShareBtn')?.addEventListener('click', async () => {
   const pts = document.getElementById('draftResultScore').textContent;
@@ -9429,6 +9462,7 @@ let linksTiles = [];
 let linksSelected = [];
 let linksTotalScore = 0;
 let linksCurrentStartLetter = null;
+let linksPlaying = false;
 
 function startLinks() {
   linksWords = [];
@@ -9437,12 +9471,23 @@ function startLinks() {
   linksSelected = [];
   linksTotalScore = 0;
   linksCurrentStartLetter = null;
+  linksPlaying = true;
+  document.getElementById('linksCancelWrap').style.display = 'block';
+
+  // Clear anything left over from the previous round — the success line has
+  // no timeout, so without this it survives into the next game
+  const msgEl = document.getElementById('linksMessage');
+  msgEl.textContent = '';
+  msgEl.className = 'message';
+
   showScreen('links');
   startLinksRound();
 }
 
 function startLinksRound() {
   linksSelected = [];
+  const roundMsg = document.getElementById('linksMessage');
+  if (roundMsg) { roundMsg.textContent = ''; roundMsg.className = 'message'; }
   // Generate rack — if we have a required start letter, ensure it's included
   let rack = generateLinksRack(linksCurrentStartLetter);
   linksTiles = rack.map((letter, i) => ({ id: i, letter }));
@@ -9465,26 +9510,101 @@ function startLinksRound() {
   renderLinksWord();
 }
 
+// Dictionary indexed by first letter, built once on first use. Lets us check
+// "is there a word starting with R that this rack can make" without walking
+// all 268k words every round.
+let _wordsByFirstLetter = null;
+function getWordsByFirstLetter() {
+  if (_wordsByFirstLetter) return _wordsByFirstLetter;
+  _wordsByFirstLetter = {};
+  for (const w of SCRABBLE_WORDS) {
+    if (w.length < 2 || w.length > 11) continue;
+    const f = w[0];
+    if (!_wordsByFirstLetter[f]) _wordsByFirstLetter[f] = [];
+    _wordsByFirstLetter[f].push(w);
+  }
+  return _wordsByFirstLetter;
+}
+
+function canFormFromRack(word, rack) {
+  const avail = {};
+  for (const l of rack) avail[l] = (avail[l] || 0) + 1;
+  for (const l of word) {
+    if (!avail[l]) return false;
+    avail[l]--;
+  }
+  return true;
+}
+
+// At least `need` different words start with mustInclude and fit the rack.
+function linksRackSolvable(rack, mustInclude, need) {
+  if (!mustInclude) return true;
+  if (!SCRABBLE_WORDS.size) return true; // dictionary not loaded — don't block
+  const candidates = getWordsByFirstLetter()[mustInclude] || [];
+  let found = 0;
+  for (const w of candidates) {
+    if (w.length > rack.length) continue;
+    if (canFormFromRack(w, rack)) {
+      found++;
+      if (found >= need) return true;
+    }
+  }
+  return false;
+}
+
+function linksRackBalanced(rack) {
+  const vowels = countVowels(rack);
+  if (vowels < MIN_VOWELS || vowels > MAX_VOWELS) return false;
+  const counts = {};
+  for (const l of rack) {
+    counts[l] = (counts[l] || 0) + 1;
+    if (counts[l] > 2) return false; // no more than two of any letter
+  }
+  return true;
+}
+
+// Builds an 11-tile rack using the same balance rules as the rest of the game
+// (2–4 vowels, max two of any letter, a sensible spread of tile values), while
+// guaranteeing the required starting letter is present and that a word can
+// actually be made with it.
 function generateLinksRack(mustInclude) {
-  const pool = [...LETTER_POOL];
-  const rack = [];
-  // Add required letter first
-  if (mustInclude) {
-    const idx = pool.findIndex(l => l === mustInclude);
-    if (idx >= 0) rack.push(pool.splice(idx, 1)[0]);
-    else rack.push(mustInclude);
+  const swapIn = (rack) => {
+    if (!mustInclude || rack.includes(mustInclude)) return rack;
+    const isVowel = VOWELS.has(mustInclude);
+    // Prefer replacing a duplicate, then a tile of the same vowel/consonant
+    // class, so the balance we just drew survives the swap.
+    const counts = {};
+    rack.forEach(l => { counts[l] = (counts[l] || 0) + 1; });
+    let idx = rack.findIndex(l => counts[l] > 1 && VOWELS.has(l) === isVowel);
+    if (idx === -1) idx = rack.findIndex(l => VOWELS.has(l) === isVowel);
+    if (idx === -1) idx = rack.findIndex(l => counts[l] > 1);
+    if (idx === -1) idx = Math.floor(Math.random() * rack.length);
+    const out = [...rack];
+    out[idx] = mustInclude;
+    return out;
+  };
+
+  // Pass 1: balanced, and at least two possible words — a real choice
+  // Pass 2: balanced, at least one possible word
+  // Pass 3: balanced only, in case the required letter is a hard one
+  const passes = [
+    { tries: 120, need: 2, balanced: true },
+    { tries: 120, need: 1, balanced: true },
+    { tries: 60, need: 0, balanced: true },
+  ];
+
+  for (const pass of passes) {
+    for (let i = 0; i < pass.tries; i++) {
+      const rack = swapIn(drawBalancedRack(11));
+      if (pass.balanced && !linksRackBalanced(rack)) continue;
+      if (pass.need && !linksRackSolvable(rack, mustInclude, pass.need)) continue;
+      return shuffleInPlace(rack);
+    }
   }
-  // Fill rest randomly
-  while (rack.length < 11) {
-    const idx = Math.floor(Math.random() * pool.length);
-    rack.push(pool.splice(idx, 1)[0]);
-  }
-  // Shuffle
-  for (let i = rack.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [rack[i], rack[j]] = [rack[j], rack[i]];
-  }
-  return rack;
+
+  // Last resort — never leave the player without the letter they need
+  const fallback = swapIn(drawBalancedRack(11));
+  return shuffleInPlace(fallback);
 }
 
 function renderLinksChain() {
@@ -9574,6 +9694,9 @@ function submitLinksWord() {
 }
 
 async function showLinksResult() {
+  if (!linksPlaying) return;
+  linksPlaying = false;
+  document.getElementById('linksCancelWrap').style.display = 'none';
   document.getElementById('linksResultScore').textContent = linksTotalScore;
 
   renderWordChips(document.getElementById('linksResultWords'), linksWords);
@@ -9605,9 +9728,9 @@ document.getElementById('linksSubmitBtn')?.addEventListener('click', submitLinks
 document.getElementById('linksWordDisplay')?.addEventListener('click', () => {
   if (linksSelected.length > 0) { linksSelected = []; renderLinksTiles(); renderLinksWord(); }
 });
-document.getElementById('linksBackBtn')?.addEventListener('click', () => {
-  showScreen('welcome');
-  startWelcomeLabelTicker();
+document.getElementById('linksEndBtn')?.addEventListener('click', () => {
+  if (!linksPlaying) return;
+  showLinksResult();
 });
 document.getElementById('linksPlayAgainBtn')?.addEventListener('click', () => {
   document.getElementById('linksResultOverlay').classList.remove('show');
@@ -9616,6 +9739,7 @@ document.getElementById('linksPlayAgainBtn')?.addEventListener('click', () => {
 document.getElementById('linksResultCloseBtn')?.addEventListener('click', () => {
   document.getElementById('linksResultOverlay').classList.remove('show');
   showScreen('welcome');
+  startWelcomeLabelTicker();
 });
 document.getElementById('linksShareBtn')?.addEventListener('click', async () => {
   const text = `I scored ${linksTotalScore} points on Elevensies Links! ${linksWords.map(w=>w.word).join(' › ')} playelevensies.com`;
