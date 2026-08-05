@@ -3377,6 +3377,26 @@
         <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">SURVIVAL</div>
       </button>
 
+      <div style="grid-column:1 / -1;display:flex;justify-content:center;gap:10px;">
+
+        <button id="statsModeDraft" style="width:calc(33.33% - 7px);background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;position:relative;box-sizing:border-box;">
+          <div style="position:absolute;top:5px;right:5px;font-size:6px;font-weight:900;letter-spacing:0.1em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 4px;line-height:1;">BETA</div>
+          <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+            <img src="/icons/draft.png" style="height:48px;width:auto;">
+          </div>
+          <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">DRAFT</div>
+        </button>
+
+        <button id="statsModeLinks" style="width:calc(33.33% - 7px);background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;position:relative;box-sizing:border-box;">
+          <div style="position:absolute;top:5px;right:5px;font-size:6px;font-weight:900;letter-spacing:0.1em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 4px;line-height:1;">BETA</div>
+          <div style="height:48px;display:flex;align-items:center;justify-content:center;">
+            <img src="/icons/links.png" style="height:48px;width:auto;">
+          </div>
+          <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">LINKS</div>
+        </button>
+
+      </div>
+
     </div>
 
     <button class="cancel-btn" id="statsModeClose">CLOSE</button>
@@ -10334,13 +10354,13 @@ menuBtn.addEventListener('click', async () => {
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-draft';
     document.getElementById('menuHowToIcon').src = '/icons/draft.png';
-    document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
+    document.getElementById('menuIngameStatsBtn').dataset.target = 'draft-stats';
   } else if (screen === 'links') {
     menuTitle.textContent = 'LINKS';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-links';
     document.getElementById('menuHowToIcon').src = '/icons/links.png';
-    document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
+    document.getElementById('menuIngameStatsBtn').dataset.target = 'links-stats';
   } else if (screen === 'game' && mode === 'practice') {
     menuTitle.textContent = 'PRACTICE';
     howToLabel.textContent = 'HOW TO PLAY';
@@ -10364,6 +10384,8 @@ document.getElementById('menuStatsBtn').addEventListener('click', async () => {
   if (target === 'fullgame-stats') await openFullGameStats();
   else if (target === 'anagram-stats') await openAnagramStats();
   else if (target === 'eliminator-stats') await openEliminatorStats();
+  else if (target === 'draft-stats') await openDraftStats();
+  else if (target === 'links-stats') await openLinksStats();
   else if (target === 'stats-picker') document.getElementById('statsModeOverlay').classList.add('show');
 });
 
@@ -10432,6 +10454,14 @@ document.getElementById('statsModeAnagram').addEventListener('click', async () =
   document.getElementById('statsModeOverlay').classList.remove('show');
   document.getElementById('statsSurvivalPicker').style.display = 'none';
   await openAnagramStats();
+});
+document.getElementById('statsModeDraft')?.addEventListener('click', async () => {
+  document.getElementById('statsModeOverlay').classList.remove('show');
+  await openDraftStats();
+});
+document.getElementById('statsModeLinks')?.addEventListener('click', async () => {
+  document.getElementById('statsModeOverlay').classList.remove('show');
+  await openLinksStats();
 });
 document.getElementById('leagueDetailCloseBtn').addEventListener('click', () => {
   document.getElementById('leagueDetailOverlay').classList.remove('show');
@@ -10731,6 +10761,9 @@ document.getElementById('menuIngameStatsBtn').addEventListener('click', async ()
   mainMenuOverlay.classList.remove('show');
   const target = document.getElementById('menuIngameStatsBtn').dataset.target;
   if (target === 'anagram-stats') await openAnagramStats();
+  else if (target === 'draft-stats') await openDraftStats();
+  else if (target === 'links-stats') await openLinksStats();
+  else if (target === 'eliminator-stats') await openEliminatorStats();
   else await openFullGameStats();
 });
 
@@ -11509,6 +11542,95 @@ function showEliminatorResult(score, totalTimeMs, totalPoints, perfect = false) 
   } else {
     showResult();
   }
+}
+
+// ===== Draft & Links stats =====
+// Both are unlimited-play modes with no streak and no leaderboard, so they
+// reuse the first four rows of the shared stats panel.
+
+async function openSimpleModeStats(opts) {
+  try {
+    const overlay = document.getElementById('fullGameStatsOverlay');
+    const loggedOut = document.getElementById('fullGameStatsLoggedOut');
+
+    resetStatsOverlay(opts.title);
+    document.getElementById('statsSurvivalPicker').style.display = 'none';
+    document.getElementById('statsTabStatsContent').style.display = '';
+
+    const rows = document.querySelectorAll('#statsOverlayStats .account-stats-row');
+    const labels = ['GAMES PLAYED', 'BEST SCORE', 'AVERAGE SCORE', 'BEST WORD'];
+    const valueIds = ['statsOverlayGames', 'statsOverlayStreak', 'statsOverlayBest', 'statsOverlayAvgWord'];
+    rows.forEach((r, i) => { r.style.display = i < 4 ? '' : 'none'; });
+    labels.forEach((label, i) => {
+      if (rows[i]) rows[i].querySelector('span:first-child').textContent = label;
+    });
+    valueIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '…';
+    });
+
+    overlay.classList.add('show');
+
+    if (!sbClient || !currentUser) {
+      loggedOut.style.display = '';
+      document.getElementById('statsTabStatsContent').style.display = 'none';
+      return;
+    }
+    loggedOut.style.display = 'none';
+
+    const { data, error } = await sbClient
+      .from(opts.table)
+      .select(opts.columns)
+      .eq('user_id', currentUser.id);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      valueIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+      return;
+    }
+
+    const scores = data.map(r => r[opts.scoreCol] || 0);
+    const played = data.length;
+    const best = Math.max(...scores);
+    const avg = Math.round(scores.reduce((a, b) => a + b, 0) / played);
+
+    // Best single word across every game, scored live from letter values
+    let bestWord = null;
+    for (const row of data) {
+      for (const w of (row.words || [])) {
+        if (!w) continue;
+        const pts = scoreWord(w);
+        if (!bestWord || pts > bestWord.pts) bestWord = { word: w, pts };
+      }
+    }
+
+    const values = [played, best, avg, bestWord ? `${bestWord.word} (${bestWord.pts})` : '—'];
+    valueIds.forEach((id, i) => { const el = document.getElementById(id); if (el) el.textContent = values[i]; });
+
+  } catch (err) {
+    console.error(opts.title + ' stats error:', err);
+    ['statsOverlayGames', 'statsOverlayStreak', 'statsOverlayBest', 'statsOverlayAvgWord']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+  }
+}
+
+function openDraftStats() {
+  return openSimpleModeStats({
+    title: 'DRAFT',
+    table: 'draft_results',
+    columns: 'score, word, words',
+    scoreCol: 'score',
+  });
+}
+
+function openLinksStats() {
+  return openSimpleModeStats({
+    title: 'LINKS',
+    table: 'links_results',
+    columns: 'total_score, words',
+    scoreCol: 'total_score',
+  });
 }
 
 async function openEliminatorStats(mode = 'unlimited') {
