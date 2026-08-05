@@ -1957,15 +1957,18 @@
 <div id="linksScreen" style="display:none;flex-direction:column;align-items:center;width:100%;flex:1;">
 
   <!-- Header -->
-  <div style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;">
-    <div>
-      <div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;" id="linksWordLabel">WORD 1 OF 11</div>
-      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;margin-top:3px;" id="linksStartLetter"></div>
+  <div style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0 8px;box-sizing:border-box;">
+    <div style="text-align:left;">
+      <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;" id="linksStartLetter">TURN</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);line-height:1.2;" id="linksWordLabel">1 OF 11</div>
     </div>
     <div style="text-align:right;">
-      <div style="font-size:9px;letter-spacing:0.12em;opacity:0.5;">TOTAL</div>
-      <div style="font-size:22px;font-weight:900;color:var(--gold);" id="linksTotalScore">0</div>
+      <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;">POINTS</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);line-height:1.2;" id="linksTotalScore">0</div>
     </div>
+  </div>
+  <div style="width:352px;max-width:100%;height:4px;background:rgba(240,192,32,0.15);margin-bottom:6px;border-radius:2px;">
+    <div id="linksProgressBar" style="height:100%;background:var(--gold);width:0%;border-radius:2px;transition:width 0.3s;"></div>
   </div>
 
   <!-- Word section -->
@@ -2123,7 +2126,7 @@
         <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/h2h.png" style="height:48px;width:auto;">
         </div>
-        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">CHALLENGE A FRIEND.<br>SAME TILES EVERY TURN.</div>
+        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">CHALLENGE A FRIEND.<br>SAME TILES EACH.</div>
         <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">MATCH</div>
       </button>
 
@@ -2610,7 +2613,7 @@
     <div id="menuIngameGrid" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
       <button id="menuHowToBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
         <div style="height:48px;display:flex;align-items:center;justify-content:center;">
-          <img id="menuHowToIcon" src="/icons/games.png" style="height:40px;width:auto;">
+          <img id="menuHowToIcon" src="/icons/full.png" style="height:40px;width:auto;">
         </div>
         <div style="font-size:10px;font-weight:900;letter-spacing:0.1em;color:var(--gold);height:28px;display:flex;align-items:center;justify-content:center;text-align:center;" id="menuHowToLabel">HOW TO PLAY</div>
       </button>
@@ -2795,7 +2798,7 @@
 
       <p style="margin:0 0 6px;font-size:9px;letter-spacing:0.12em;opacity:0.5;">LAST UPDATED: JULY 2026</p>
 
-      <p style="margin:0 0 14px;">These Terms of Use govern your access to and use of Elevensies ("the Game"), operated by Anthony Hamilton ("we", "us", "our"). By playing Elevensies, you agree to these terms.</p>
+      <p style="margin:0 0 14px;">These Terms of Use govern your access to and use of Elevensies ("the Game"), operated by a solo designer and developer ("we", "us", "our"). By playing Elevensies, you agree to these terms.</p>
 
       <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">1. THE GAME</div>
       <p style="margin:0 0 14px;">Elevensies is a daily word game available at playelevensies.com. The Full Game opens at 11:00am and closes at 2:00pm in your local time zone. Your device's clock is used to determine eligibility; we do not adjust for manual clock changes or time zone spoofing. Scores submitted outside the game window will not be accepted.</p>
@@ -2921,7 +2924,7 @@
 
         <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('h2hEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;">
           <img src="/icons/h2h.png" style="height:48px;width:auto;">
-          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">CHALLENGE A FRIEND.<br>SAME TILES EVERY TURN.</div>
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">CHALLENGE A FRIEND.<br>SAME TILES EACH.</div>
           <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">MATCH</div>
         </button>
 
@@ -5539,7 +5542,7 @@ function showScreen(name) {
   // Update header mode icon — full game shows Elevensies logo
   const iconEl = document.getElementById('headerModeIcon');
   if (name === 'game' && (gameMode === 'full' || !gameMode)) {
-    iconEl.innerHTML = `<img src="/icons/games.png" style="height:28px;width:auto;opacity:0.85;">`;
+    iconEl.innerHTML = `<img src="/icons/full.png" style="height:28px;width:auto;opacity:0.85;">`;
     iconEl.style.display = 'flex';
   } else {
     const modeKey = name === 'game'
@@ -7191,7 +7194,7 @@ let messageTimer = null;
 const tileGrid = document.getElementById('tileGrid');
 // Set all logo images from the single embedded data URL
 // Logo is CSS text — no src to set
-document.getElementById('statsModeFullGameLogo').src = '/icons/games.png';
+document.getElementById('statsModeFullGameLogo').src = '/icons/full.png';
 
 // Welcome & countdown DOM refs
 const welcomeScreen = document.getElementById('welcomeScreen');
@@ -7411,6 +7414,7 @@ function submitWord() {
   turns += 1;
   totalScore += pts;
   history.push({ word: currentWord, score: pts });
+  showMessage(`✓ ${currentWord} · ${pts} PTS`, 'success');
 
   // Capture the exact rack available at this moment (before replacement) —
   // this is the true set of letters the player had to work with this turn.
@@ -9201,7 +9205,17 @@ function startDraft() {
   document.getElementById('draftCancelWrap').style.display = 'none';
 
   showScreen('draft');
-  renderDraftPick();
+
+  // Minimum one second on the loader, longer if the work takes longer
+  const loadStart = Date.now();
+  const overlay = document.getElementById('anagramLoadingOverlay');
+  const label = overlay?.querySelector('.loader-label');
+  if (label) label.textContent = 'LOADING…';
+  overlay.classList.add('show');
+  setTimeout(() => {
+    renderDraftPick();
+    setTimeout(() => overlay.classList.remove('show'), Math.max(0, 1000 - (Date.now() - loadStart)));
+  }, 50);
 }
 
 function getDraftChoices() {
@@ -9250,7 +9264,7 @@ function pickDraftLetter(letter) {
     document.getElementById('draftTileGrid').style.display = 'grid';
     document.getElementById('draftActionRow').style.display = '';
     document.getElementById('draftHistoryPanel').style.display = 'block';
-    document.getElementById('draftHeaderLabel').textContent = 'WORD';
+    document.getElementById('draftHeaderLabel').textContent = 'TURN';
     document.getElementById('draftHeaderValue').textContent = `1 OF ${DRAFT_MAX_WORDS}`;
     document.getElementById('draftHeaderRight').style.display = '';
     document.getElementById('draftProgressBar').style.width = '0%';
@@ -9481,7 +9495,17 @@ function startLinks() {
   msgEl.className = 'message';
 
   showScreen('links');
-  startLinksRound();
+
+  // The first rack also builds the word index, so hide that behind the loader
+  const loadStart = Date.now();
+  const overlay = document.getElementById('anagramLoadingOverlay');
+  const label = overlay?.querySelector('.loader-label');
+  if (label) label.textContent = 'LOADING…';
+  overlay.classList.add('show');
+  setTimeout(() => {
+    startLinksRound();
+    setTimeout(() => overlay.classList.remove('show'), Math.max(0, 1000 - (Date.now() - loadStart)));
+  }, 50);
 }
 
 function startLinksRound() {
@@ -9492,16 +9516,15 @@ function startLinksRound() {
   let rack = generateLinksRack(linksCurrentStartLetter);
   linksTiles = rack.map((letter, i) => ({ id: i, letter }));
 
-  document.getElementById('linksWordLabel').textContent = `WORD ${linksWordNum + 1} OF 11`;
+  document.getElementById('linksWordLabel').textContent = `${linksWordNum + 1} OF 11`;
   document.getElementById('linksTotalScore').textContent = linksTotalScore;
+  document.getElementById('linksProgressBar').style.width = `${(linksWordNum / 11) * 100}%`;
 
   if (linksCurrentStartLetter) {
-    document.getElementById('linksStartLetter').textContent = `MUST START WITH: ${linksCurrentStartLetter}`;
-    document.getElementById('linksStartLetter').style.color = 'var(--gold)';
+    document.getElementById('linksStartLetter').textContent = `TURN · STARTS WITH ${linksCurrentStartLetter}`;
     document.getElementById('linksStatusLine').textContent = `START WITH ${linksCurrentStartLetter}`;
   } else {
-    document.getElementById('linksStartLetter').textContent = 'ANY STARTING LETTER';
-    document.getElementById('linksStartLetter').style.color = 'rgba(240,192,32,0.5)';
+    document.getElementById('linksStartLetter').textContent = 'TURN';
     document.getElementById('linksStatusLine').textContent = 'START WITH ANY LETTER';
   }
 
@@ -10527,7 +10550,7 @@ menuBtn.addEventListener('click', async () => {
     menuTitle.textContent = 'FULL GAME';
     howToLabel.textContent = 'HOW TO PLAY';
     document.getElementById('menuHowToBtn').dataset.target = 'about-fullgame';
-    document.getElementById('menuHowToIcon').src = '/icons/games.png';
+    document.getElementById('menuHowToIcon').src = '/icons/full.png';
     document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
   }
   mainMenuOverlay.classList.add('show');
