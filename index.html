@@ -1873,6 +1873,94 @@
 
 </div>
 
+<!-- Draft screen -->
+<div id="draftScreen" style="display:none;flex-direction:column;align-items:center;width:100%;flex:1;">
+
+  <!-- Header -->
+  <div style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 0 8px;">
+    <div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;" id="draftPickLabel">PICK 1 OF 11</div>
+    <div style="display:flex;gap:4px;" id="draftProgress"></div>
+  </div>
+
+  <!-- Word section -->
+  <div class="word-section" id="draftWordSection" style="display:none;">
+    <div class="word-display-row">
+      <div class="word-display" id="draftWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
+      <button class="backspace-btn" id="draftBackspaceBtn"></button>
+    </div>
+    <div class="word-value" id="draftWordValue" style="opacity:0;">&nbsp;</div>
+    <div class="score-line" style="opacity:0;">&nbsp;</div>
+    <div class="turns-line" id="draftStatusLine">BUILD YOUR BEST WORD</div>
+  </div>
+
+  <div class="message" id="draftMessage"></div>
+
+  <!-- Choice tiles (picking phase) -->
+  <div id="draftChoiceSection">
+    <div style="font-size:9px;letter-spacing:0.12em;opacity:0.5;text-align:center;margin-bottom:10px;">CHOOSE ONE</div>
+    <div style="display:flex;gap:8px;justify-content:center;" id="draftChoices"></div>
+    <!-- Rack so far -->
+    <div style="font-size:9px;letter-spacing:0.12em;opacity:0.5;text-align:center;margin:14px 0 8px;" id="draftRackLabel">YOUR RACK SO FAR</div>
+    <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;min-height:38px;" id="draftRack"></div>
+  </div>
+
+  <!-- Tile grid (play phase) -->
+  <div class="tile-grid" id="draftTileGrid" style="display:none;"></div>
+
+  <!-- Action row (play phase) -->
+  <div class="action-row" id="draftActionRow" style="display:none;">
+    <button class="action-btn wide" id="draftShuffleBtn">SHUFFLE</button>
+    <button class="action-btn joker-btn chosen" id="draftExtraTileBtn"></button>
+    <button class="action-btn wide" id="draftSubmitBtn">SUBMIT</button>
+  </div>
+
+  <button class="practice-back-btn visible" id="draftBackBtn" style="margin-top:16px;">BACK</button>
+</div>
+
+<!-- Links screen -->
+<div id="linksScreen" style="display:none;flex-direction:column;align-items:center;width:100%;flex:1;">
+
+  <!-- Header -->
+  <div style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;">
+    <div>
+      <div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;" id="linksWordLabel">WORD 1 OF 11</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;margin-top:3px;" id="linksStartLetter"></div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:9px;letter-spacing:0.12em;opacity:0.5;">TOTAL</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);" id="linksTotalScore">0</div>
+    </div>
+  </div>
+
+  <!-- Chain -->
+  <div style="width:352px;max-width:100%;min-height:24px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;" id="linksChain"></div>
+
+  <!-- Word section -->
+  <div class="word-section">
+    <div class="word-display-row">
+      <div class="word-display" id="linksWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
+      <button class="backspace-btn" id="linksBackspaceBtn"></button>
+    </div>
+    <div class="word-value" id="linksWordValue" style="opacity:0;">&nbsp;</div>
+    <div class="score-line" style="opacity:0;">&nbsp;</div>
+    <div class="turns-line" id="linksStatusLine">START WITH ANY LETTER</div>
+  </div>
+
+  <div class="message" id="linksMessage"></div>
+
+  <!-- Tile grid -->
+  <div class="tile-grid" id="linksTileGrid"></div>
+
+  <!-- Action row -->
+  <div class="action-row">
+    <button class="action-btn wide" id="linksShuffleBtn">SHUFFLE</button>
+    <button class="action-btn joker-btn chosen" id="linksExtraTileBtn"></button>
+    <button class="action-btn wide" id="linksSubmitBtn">SUBMIT</button>
+  </div>
+
+  <button class="practice-back-btn visible" id="linksBackBtn" style="margin-top:16px;">QUIT</button>
+</div>
+
 </div><!-- end .app -->
 
 <!-- Milestone popup -->
@@ -1995,8 +2083,79 @@
         <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">MATCH</div>
       </button>
 
+      <button id="moreGamesDraftBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;font-family:inherit;position:relative;">
+        <div style="position:absolute;top:6px;right:6px;font-size:7px;font-weight:900;letter-spacing:0.12em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 5px;line-height:1;">BETA</div>
+        <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/draft.png" style="height:48px;width:auto;">
+        </div>
+        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">PICK YOUR LETTERS.<br>PLAY YOUR BEST WORD.</div>
+        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">DRAFT</div>
+      </button>
+
+      <button id="moreGamesLinksBtn" style="background:transparent;border:2px solid var(--gold-dark);padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;font-family:inherit;position:relative;">
+        <div style="position:absolute;top:6px;right:6px;font-size:7px;font-weight:900;letter-spacing:0.12em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 5px;line-height:1;">BETA</div>
+        <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
+          <img src="/icons/links.png" style="height:48px;width:auto;">
+        </div>
+        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">WORDS START WHERE<br>THE LAST ENDED.</div>
+        <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">LINKS</div>
+      </button>
+
     </div>
     <button class="cancel-btn" id="moreGamesCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- Draft entry overlay -->
+<div class="overlay" id="draftEntryOverlay">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">DRAFT<span style="font-size:8px;font-weight:900;letter-spacing:0.12em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 5px;margin-left:8px;vertical-align:middle;">BETA</span></div>
+    <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.8;margin-bottom:20px;">
+      Pick your letters, one at a time.<br>11 picks, 3 choices each.<br>Then play your best word.
+    </div>
+    <button class="auth-submit-btn" id="draftPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
+    <button class="cancel-btn" id="draftEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
+    <button class="cancel-btn" id="draftEntryCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- Draft result overlay -->
+<div class="overlay" id="draftResultOverlay">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title" id="draftResultTitle">DRAFT</div>
+    <div style="font-size:64px;font-weight:900;color:var(--gold);line-height:1;margin:16px 0 4px;" id="draftResultScore">0</div>
+    <div style="font-size:13px;letter-spacing:0.1em;opacity:0.6;margin-bottom:8px;">POINTS</div>
+    <div style="font-size:22px;font-weight:900;letter-spacing:0.12em;color:var(--gold);margin-bottom:16px;" id="draftResultWord"></div>
+    <div class="account-stats" id="draftResultStats" style="margin-bottom:16px;"></div>
+    <button class="auth-submit-btn" id="draftPlayAgainBtn" style="margin-bottom:10px;">PLAY AGAIN</button>
+    <button class="cancel-btn" id="draftShareBtn" style="margin-bottom:6px;">SHARE</button>
+    <button class="cancel-btn" id="draftResultCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- Links entry overlay -->
+<div class="overlay" id="linksEntryOverlay">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">LINKS<span style="font-size:8px;font-weight:900;letter-spacing:0.12em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 5px;margin-left:8px;vertical-align:middle;">BETA</span></div>
+    <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.8;margin-bottom:20px;">
+      Play 11 words in a chain.<br>Each word must start with the<br>last letter of the previous one.
+    </div>
+    <button class="auth-submit-btn" id="linksPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
+    <button class="cancel-btn" id="linksEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
+    <button class="cancel-btn" id="linksEntryCloseBtn">CLOSE</button>
+  </div>
+</div>
+
+<!-- Links result overlay -->
+<div class="overlay" id="linksResultOverlay">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title">LINKS</div>
+    <div style="font-size:64px;font-weight:900;color:var(--gold);line-height:1;margin:16px 0 4px;" id="linksResultScore">0</div>
+    <div style="font-size:13px;letter-spacing:0.1em;opacity:0.6;margin-bottom:16px;">TOTAL POINTS</div>
+    <div class="account-stats" id="linksResultWords" style="margin-bottom:16px;"></div>
+    <button class="auth-submit-btn" id="linksPlayAgainBtn" style="margin-bottom:10px;">PLAY AGAIN</button>
+    <button class="cancel-btn" id="linksShareBtn" style="margin-bottom:6px;">SHARE</button>
+    <button class="cancel-btn" id="linksResultCloseBtn">CLOSE</button>
   </div>
 </div>
 
@@ -2591,7 +2750,7 @@
 
       <p style="margin:0 0 6px;font-size:9px;letter-spacing:0.12em;opacity:0.5;">LAST UPDATED: JULY 2026</p>
 
-      <p style="margin:0 0 14px;">These Terms of Use govern your access to and use of Elevensies ("the Game"), operated by a solo designer and developer ("we", "us", "our"). By playing Elevensies, you agree to these terms.</p>
+      <p style="margin:0 0 14px;">These Terms of Use govern your access to and use of Elevensies ("the Game"), operated by Anthony Hamilton ("we", "us", "our"). By playing Elevensies, you agree to these terms.</p>
 
       <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;">1. THE GAME</div>
       <p style="margin:0 0 14px;">Elevensies is a daily word game available at playelevensies.com. The Full Game opens at 11:00am and closes at 2:00pm in your local time zone. Your device's clock is used to determine eligibility; we do not adjust for manual clock changes or time zone spoofing. Scores submitted outside the game window will not be accepted.</p>
@@ -2719,6 +2878,20 @@
           <img src="/icons/h2h.png" style="height:48px;width:auto;">
           <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">CHALLENGE A FRIEND.<br>SAME TILES EVERY TURN.</div>
           <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">MATCH</div>
+        </button>
+
+        <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('draftEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;position:relative;">
+          <div style="position:absolute;top:6px;right:6px;font-size:7px;font-weight:900;letter-spacing:0.12em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 5px;line-height:1;">BETA</div>
+          <img src="/icons/draft.png" style="height:48px;width:auto;">
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">PICK YOUR LETTERS.<br>PLAY YOUR BEST WORD.</div>
+          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">DRAFT</div>
+        </button>
+
+        <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('linksEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;position:relative;">
+          <div style="position:absolute;top:6px;right:6px;font-size:7px;font-weight:900;letter-spacing:0.12em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 5px;line-height:1;">BETA</div>
+          <img src="/icons/links.png" style="height:48px;width:auto;">
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">WORDS START WHERE<br>THE LAST ENDED.</div>
+          <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">LINKS</div>
         </button>
 
       </div>
@@ -3020,6 +3193,157 @@
   </div>
 </div>
 
+
+<!-- About: Draft — visual how-to -->
+<div class="overlay" id="aboutDraftOverlay">
+  <div class="modal" style="padding:0;max-width:380px;display:flex;flex-direction:column;max-height:90vh;">
+    <div style="flex:1;overflow-y:auto;padding:24px 24px 0;">
+      <div style="display:flex;justify-content:center;gap:6px;margin-bottom:16px;">
+        <div class="how-to-dot draft-dot active" data-step="0"></div>
+        <div class="how-to-dot draft-dot" data-step="1"></div>
+        <div class="how-to-dot draft-dot" data-step="2"></div>
+      </div>
+      <div id="draftHowToPanel" style="height:320px;position:relative;">
+
+        <!-- Step 0: Concept -->
+        <div class="how-to-step draft-step" id="draftStep0" style="position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:13px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;font-weight:700;">DRAFT</div>
+          <div style="font-size:24px;font-weight:900;letter-spacing:0.04em;margin-bottom:12px;line-height:1.3;">BUILD YOUR<br>OWN RACK.</div>
+          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">11 picks, 3 letters to choose from<br>each time. Then play one word.</div>
+          <div style="display:flex;justify-content:center;gap:6px;">
+            <div class="how-to-tile">S<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile how-to-tile-sel">T<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile">Q<span class="how-to-pts">10</span></div>
+          </div>
+          <div style="font-size:11px;letter-spacing:0.1em;opacity:0.5;margin-top:10px;">PICK ONE — THEN THREE MORE APPEAR</div>
+        </div>
+
+        <!-- Step 1: The trade-off -->
+        <div class="how-to-step draft-step" id="draftStep1" style="position:absolute;inset:0;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:14px;">CHOOSE CAREFULLY</div>
+          <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;">
+            <div class="how-to-tile">Z<span class="how-to-pts">10</span></div>
+            <div class="how-to-tile">X<span class="how-to-pts">8</span></div>
+            <div class="how-to-tile">J<span class="how-to-pts">8</span></div>
+          </div>
+          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.7;margin-bottom:16px;">High points — but hard to use.</div>
+          <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;">
+            <div class="how-to-tile how-to-tile-sel">E<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile how-to-tile-sel">A<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile how-to-tile-sel">R<span class="how-to-pts">1</span></div>
+          </div>
+          <div style="font-size:12px;letter-spacing:0.07em;line-height:1.8;opacity:0.8;">Low points — but they fit anywhere.<br>You need <strong style="color:var(--gold);">both</strong> to score well.</div>
+        </div>
+
+        <!-- Step 2: Play your word -->
+        <div class="how-to-step draft-step" id="draftStep2" style="position:absolute;inset:0;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:12px;">THEN PLAY YOUR BEST WORD</div>
+          <div style="display:grid;grid-template-columns:repeat(5,40px);gap:4px;justify-content:center;margin-bottom:4px;">
+            <div class="how-to-tile how-to-tile-sel" style="width:40px;height:40px;font-size:15px;">Q<span class="how-to-pts">10</span></div>
+            <div class="how-to-tile how-to-tile-sel" style="width:40px;height:40px;font-size:15px;">U<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile how-to-tile-sel" style="width:40px;height:40px;font-size:15px;">A<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile how-to-tile-sel" style="width:40px;height:40px;font-size:15px;">R<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile how-to-tile-sel" style="width:40px;height:40px;font-size:15px;">T<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">Z<span class="how-to-pts">10</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">O<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">N<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">I<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">E<span class="how-to-pts">1</span></div>
+          </div>
+          <div style="display:flex;justify-content:center;margin-bottom:10px;">
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">S<span class="how-to-pts">1</span></div>
+          </div>
+          <div style="font-size:22px;font-weight:900;color:var(--gold);letter-spacing:0.1em;margin-bottom:2px;">QUART · 14 PTS</div>
+          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.7;">One word from your 11 tiles.<br>Play as many times as you like.</div>
+        </div>
+
+      </div>
+    </div>
+    <div style="flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:16px 20px 20px;border-top:1px solid rgba(240,192,32,0.1);gap:8px;">
+      <div style="display:flex;justify-content:flex-start;">
+        <button id="draftHowToPrev" class="cancel-btn" style="display:none;margin:0;padding:9px 16px;font-size:11px;">BACK</button>
+        <button id="draftHowToSkip" class="cancel-btn" style="margin:0;padding:9px 16px;font-size:11px;opacity:0.5;">SKIP</button>
+      </div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button id="draftHowToNext" class="auth-submit-btn" style="margin:0;padding:9px 20px;font-size:12px;">NEXT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- About: Links — visual how-to -->
+<div class="overlay" id="aboutLinksOverlay">
+  <div class="modal" style="padding:0;max-width:380px;display:flex;flex-direction:column;max-height:90vh;">
+    <div style="flex:1;overflow-y:auto;padding:24px 24px 0;">
+      <div style="display:flex;justify-content:center;gap:6px;margin-bottom:16px;">
+        <div class="how-to-dot links-dot active" data-step="0"></div>
+        <div class="how-to-dot links-dot" data-step="1"></div>
+        <div class="how-to-dot links-dot" data-step="2"></div>
+      </div>
+      <div id="linksHowToPanel" style="height:320px;position:relative;">
+
+        <!-- Step 0: Concept -->
+        <div class="how-to-step links-step" id="linksStep0" style="position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:13px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;font-weight:700;">LINKS</div>
+          <div style="font-size:24px;font-weight:900;letter-spacing:0.04em;margin-bottom:12px;line-height:1.3;">ELEVEN WORDS.<br>ONE CHAIN.</div>
+          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">Each word starts with the last<br>letter of the word before it.</div>
+          <div style="font-size:18px;font-weight:900;letter-spacing:0.08em;color:var(--gold);line-height:1.25;">
+            <div>BOA<span style="color:#fff;">T</span></div>
+            <div style="opacity:0.3;font-size:9px;line-height:1;">↓</div>
+            <div><span style="color:#fff;">T</span>IGE<span style="color:#fff;">R</span></div>
+            <div style="opacity:0.3;font-size:9px;line-height:1;">↓</div>
+            <div><span style="color:#fff;">R</span>AVEN</div>
+          </div>
+        </div>
+
+        <!-- Step 1: Mechanic -->
+        <div class="how-to-step links-step" id="linksStep1" style="position:absolute;inset:0;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:12px;">FRESH TILES EVERY WORD</div>
+          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.8;margin-bottom:12px;">You played <strong style="color:var(--gold);">TIGER</strong> — so your next<br>word must start with <strong style="color:var(--gold);">R</strong>.</div>
+          <div style="display:grid;grid-template-columns:repeat(5,40px);gap:4px;justify-content:center;margin-bottom:4px;">
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;border:3px solid var(--green-dark);">R<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">A<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">V<span class="how-to-pts">4</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">E<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">N<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">P<span class="how-to-pts">3</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">O<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">L<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">I<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">D<span class="how-to-pts">2</span></div>
+          </div>
+          <div style="display:flex;justify-content:center;margin-bottom:10px;">
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">S<span class="how-to-pts">1</span></div>
+          </div>
+          <div style="font-size:11px;letter-spacing:0.08em;opacity:0.6;">Your required letter is always there,<br>outlined in green.</div>
+        </div>
+
+        <!-- Step 2: Scoring -->
+        <div class="how-to-step links-step" id="linksStep2" style="position:absolute;inset:0;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:16px;">SCORING</div>
+          <div style="width:100%;max-width:220px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;letter-spacing:0.06em;padding:4px 0;border-bottom:1px solid rgba(240,192,32,0.1);"><span>BOAT</span><span style="opacity:0.7;">6</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;letter-spacing:0.06em;padding:4px 0;border-bottom:1px solid rgba(240,192,32,0.1);"><span>TIGER</span><span style="opacity:0.7;">6</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;letter-spacing:0.06em;padding:4px 0;border-bottom:1px solid rgba(240,192,32,0.1);"><span>RAVEN</span><span style="opacity:0.7;">8</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;letter-spacing:0.06em;padding:4px 0;opacity:0.4;"><span>···</span><span>···</span></div>
+          </div>
+          <div style="font-size:32px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:4px;">TOTAL</div>
+          <div style="font-size:12px;letter-spacing:0.07em;line-height:1.8;opacity:0.8;">Every word adds to one total.<br>No bonuses — just letter values.<br>Play as many times as you like.</div>
+        </div>
+
+      </div>
+    </div>
+    <div style="flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:16px 20px 20px;border-top:1px solid rgba(240,192,32,0.1);gap:8px;">
+      <div style="display:flex;justify-content:flex-start;">
+        <button id="linksHowToPrev" class="cancel-btn" style="display:none;margin:0;padding:9px 16px;font-size:11px;">BACK</button>
+        <button id="linksHowToSkip" class="cancel-btn" style="margin:0;padding:9px 16px;font-size:11px;opacity:0.5;">SKIP</button>
+      </div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button id="linksHowToNext" class="auth-submit-btn" style="margin:0;padding:9px 20px;font-size:12px;">NEXT</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Stats mode picker (shown from homepage burger when logged in) -->
 <div class="overlay" id="statsModeOverlay">
@@ -5125,6 +5449,8 @@ const MODE_ICONS = {
   anagram: '<img src="/icons/anagram.png" style="height:28px;width:auto;">',
   eliminator: '<img src="/icons/eliminator.png" style="height:28px;width:auto;">',
   h2h: '<img src="/icons/h2h.png" style="height:28px;width:auto;">',
+  draft: '<img src="/icons/draft.png" style="height:28px;width:auto;">',
+  links: '<img src="/icons/links.png" style="height:28px;width:auto;">',
 };
 
 function showScreen(name) {
@@ -5136,7 +5462,8 @@ function showScreen(name) {
   countdownScreen.style.display = name === 'countdown' ? 'flex' : 'none';
   gameBoard.classList.toggle('visible', name === 'game');
   document.getElementById('anagramScreen').style.display = name === 'anagram' ? 'flex' : 'none';
-  document.getElementById('h2hScreen').style.display = name === 'h2h' ? 'flex' : 'none';
+  document.getElementById('draftScreen').style.display = name === 'draft' ? 'flex' : 'none';
+  document.getElementById('linksScreen').style.display = name === 'links' ? 'flex' : 'none';
   document.getElementById('eliminatorScreen').style.display = name === 'eliminator' ? 'flex' : 'none';
   const onWelcome = name === 'welcome';
   document.getElementById('logoHomeBtn').style.visibility = onWelcome ? 'hidden' : '';
@@ -5150,7 +5477,9 @@ function showScreen(name) {
     iconEl.innerHTML = `<img src="/icons/games.png" style="height:28px;width:auto;opacity:0.85;">`;
     iconEl.style.display = 'flex';
   } else {
-    const modeKey = name === 'game' ? (gameMode === 'practice' ? 'practice' : null) : (name === 'h2h' ? 'h2h' : name === 'anagram' ? 'anagram' : name === 'eliminator' ? 'eliminator' : null);
+    const modeKey = name === 'game'
+      ? (gameMode === 'practice' ? 'practice' : null)
+      : (['h2h', 'anagram', 'eliminator', 'draft', 'links'].includes(name) ? name : null);
     if (modeKey && MODE_ICONS[modeKey]) { iconEl.innerHTML = MODE_ICONS[modeKey]; iconEl.style.display = 'flex'; }
     else { iconEl.style.display = 'none'; }
   }
@@ -8776,7 +9105,437 @@ async function handleRemindToggle(id) {
   if (newOn) showJunkNotice(id);
 }
 
-// ===== Smart Reminder System =====
+// ===== DRAFT MODE =====
+let draftPicks = [];       // letters chosen so far
+let draftSelected = [];    // selected tiles for word building
+let draftTiles = [];       // tile objects from rack
+let draftPickStep = 0;     // 0-10
+
+function startDraft() {
+  draftPicks = [];
+  draftSelected = [];
+  draftTiles = [];
+  draftPickStep = 0;
+
+  // Reset to the picking phase — PLAY AGAIN comes back through here
+  document.getElementById('draftChoiceSection').style.display = '';
+  document.getElementById('draftWordSection').style.display = 'none';
+  document.getElementById('draftTileGrid').style.display = 'none';
+  document.getElementById('draftActionRow').style.display = 'none';
+  document.getElementById('draftMessage').className = 'message';
+  document.getElementById('draftBackBtn').style.display = '';
+
+  showScreen('draft');
+  renderDraftPick();
+}
+
+function getDraftChoices() {
+  // Pick 3 random letters from pool
+  const pool = [...LETTER_POOL];
+  const choices = [];
+  for (let i = 0; i < 3; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    choices.push(pool.splice(idx, 1)[0]);
+  }
+  return choices;
+}
+
+function renderDraftPick() {
+  // Progress dots
+  const prog = document.getElementById('draftProgress');
+  prog.innerHTML = Array.from({length:11}, (_, i) =>
+    `<div style="width:8px;height:8px;background:${i < draftPickStep ? 'var(--gold)' : 'rgba(240,192,32,0.2)'}"></div>`
+  ).join('');
+
+  document.getElementById('draftPickLabel').textContent = `PICK ${draftPickStep + 1} OF 11`;
+
+  const choices = getDraftChoices();
+  const choicesEl = document.getElementById('draftChoices');
+  choicesEl.innerHTML = choices.map((letter) => {
+    const pts = LETTER_VALUES[letter] || 0;
+    return `<button onclick="pickDraftLetter('${letter}')" style="width:96px;height:96px;background:var(--gold);border:3px solid var(--gold-dark);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900;color:var(--green);position:relative;">
+      ${letter}<span style="position:absolute;bottom:5px;right:6px;font-size:13px;font-weight:700;opacity:0.7;">${pts}</span>
+    </button>`;
+  }).join('');
+
+  renderDraftRack();
+}
+
+function pickDraftLetter(letter) {
+  draftPicks.push(letter);
+  draftPickStep++;
+  if (draftPickStep >= 11) {
+    // Switch to play phase
+    document.getElementById('draftChoiceSection').style.display = 'none';
+    document.getElementById('draftWordSection').style.display = '';
+    document.getElementById('draftTileGrid').style.display = 'grid';
+    document.getElementById('draftActionRow').style.display = '';
+    document.getElementById('draftPickLabel').textContent = 'PLAY YOUR BEST WORD';
+    document.getElementById('draftProgress').innerHTML = Array.from({length:11}, () =>
+      `<div style="width:8px;height:8px;background:var(--gold)"></div>`
+    ).join('');
+    draftTiles = draftPicks.map((letter, i) => ({ id: i, letter }));
+    draftSelected = [];
+    renderDraftTileGrid();
+    renderDraftWord();
+  } else {
+    renderDraftPick();
+  }
+}
+
+function renderDraftRack() {
+  const rack = document.getElementById('draftRack');
+  const label = document.getElementById('draftRackLabel');
+  if (draftPicks.length === 0) { rack.innerHTML = ''; if(label) label.style.opacity = '0'; return; }
+  if(label) label.style.opacity = '0.5';
+  rack.innerHTML = draftPicks.map(letter => {
+    const pts = LETTER_VALUES[letter] || 0;
+    return `<div style="width:28px;height:32px;background:var(--gold);border:2px solid var(--gold-dark);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:var(--green);position:relative;">
+      ${letter}<span style="position:absolute;bottom:1px;right:2px;font-size:7px;font-weight:700;opacity:0.7;">${pts}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderDraftTileGrid() {
+  const grid = document.getElementById('draftTileGrid');
+  const isSel = t => draftSelected.some(s => s.id === t.id);
+  grid.innerHTML = draftTiles.slice(0, 10)
+    .map(t => gridTileHTML(t, isSel(t), 'tapDraftTile'))
+    .join('');
+  const extra = draftTiles[10];
+  renderExtraTileBtn('draftExtraTileBtn', extra, extra ? isSel(extra) : false, tapDraftTile);
+}
+
+function tapDraftTile(id) {
+  const tile = draftTiles.find(t => t.id === id);
+  if (!tile) return;
+  const idx = draftSelected.findIndex(s => s.id === id);
+  if (idx >= 0) draftSelected.splice(idx, 1);
+  else draftSelected.push(tile);
+  renderDraftTileGrid();
+  renderDraftWord();
+}
+
+function renderDraftWord() {
+  renderWordAsTiles(document.getElementById('draftWordDisplay'), draftSelected);
+  document.getElementById('draftBackspaceBtn').classList.toggle('show', draftSelected.length > 0);
+  const word = draftSelected.map(s => s.letter).join('');
+  const valEl = document.getElementById('draftWordValue');
+  if (word.length > 0) {
+    const pts = scoreWord(word);
+    valEl.textContent = `${pts} PT${pts !== 1 ? 'S' : ''}`;
+    valEl.classList.add('show');
+  } else {
+    valEl.classList.remove('show');
+  }
+}
+
+function submitDraftWord() {
+  const word = draftSelected.map(s => s.letter).join('');
+  if (word.length < 2) { showDraftMessage('Need at least 2 letters!', 'error'); return; }
+  if (!isValidWord(word)) { showDraftMessage(`"${word}" isn't valid. Try again!`, 'error'); return; }
+  const pts = scoreWord(word);
+  showDraftResult(word, pts);
+}
+
+function showDraftMessage(text, type) {
+  const el = document.getElementById('draftMessage');
+  el.textContent = text;
+  el.className = `message show ${type}`;
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+async function showDraftResult(word, pts) {
+  document.getElementById('draftResultTitle').textContent = 'DRAFT';
+  document.getElementById('draftResultScore').textContent = pts;
+  document.getElementById('draftResultWord').textContent = word;
+
+  // Stats
+  const statsEl = document.getElementById('draftResultStats');
+  if (sbClient && currentUser) {
+    const { data } = await sbClient.from('draft_results').select('score, word').eq('user_id', currentUser.id).order('score', { ascending: false });
+    const best = data?.[0]?.score ?? pts;
+    const played = data?.length ?? 1;
+    const avg = data?.length ? (data.reduce((s, r) => s + r.score, 0) / data.length).toFixed(0) : pts;
+    statsEl.innerHTML = `
+      <div class="account-stats-row"><span>THIS SCORE</span><span>${pts}</span></div>
+      <div class="account-stats-row"><span>BEST SCORE</span><span>${Math.max(best, pts)}</span></div>
+      <div class="account-stats-row"><span>GAMES PLAYED</span><span>${played + 1}</span></div>
+      <div class="account-stats-row"><span>AVERAGE</span><span>${avg}</span></div>`;
+    // Save
+    await sbClient.from('draft_results').insert({ user_id: currentUser.id, score: pts, word });
+  } else {
+    statsEl.innerHTML = `<div class="account-stats-row"><span>YOUR SCORE</span><span>${pts}</span></div>
+      <div style="font-size:10px;opacity:0.5;text-align:center;margin-top:8px;">Sign in to save your scores</div>`;
+  }
+
+  document.getElementById('draftResultOverlay').classList.add('show');
+}
+
+// Draft button wiring
+document.getElementById('draftBackspaceBtn')?.addEventListener('click', () => {
+  draftSelected.pop();
+  renderDraftTileGrid();
+  renderDraftWord();
+});
+document.getElementById('draftShuffleBtn')?.addEventListener('click', () => {
+  // Clear selection: shuffling moves letters between the grid and the 11th slot,
+  // so a part-built word would be confusing to look at afterwards.
+  draftSelected = [];
+  shuffleInPlace(draftTiles);
+  renderDraftTileGrid();
+  renderDraftWord();
+});
+document.getElementById('draftSubmitBtn')?.addEventListener('click', submitDraftWord);
+document.getElementById('draftWordDisplay')?.addEventListener('click', () => {
+  if (draftSelected.length > 0) { draftSelected = []; renderDraftTileGrid(); renderDraftWord(); }
+});
+document.getElementById('draftBackBtn')?.addEventListener('click', () => {
+  showScreen('welcome');
+  startWelcomeLabelTicker();
+});
+document.getElementById('draftPlayAgainBtn')?.addEventListener('click', () => {
+  document.getElementById('draftResultOverlay').classList.remove('show');
+  startDraft();
+});
+document.getElementById('draftResultCloseBtn')?.addEventListener('click', () => {
+  document.getElementById('draftResultOverlay').classList.remove('show');
+  showScreen('welcome');
+});
+document.getElementById('draftShareBtn')?.addEventListener('click', async () => {
+  const word = document.getElementById('draftResultWord').textContent;
+  const pts = document.getElementById('draftResultScore').textContent;
+  const text = `I scored ${pts} points with "${word}" on Elevensies Draft! playelevensies.com`;
+  try { await navigator.clipboard.writeText(text); document.getElementById('draftShareBtn').textContent = 'COPIED!'; setTimeout(() => { document.getElementById('draftShareBtn').textContent = 'SHARE'; }, 2000); } catch(e) {}
+});
+document.getElementById('moreGamesDraftBtn')?.addEventListener('click', () => {
+  moreGamesOverlay.classList.remove('show');
+  document.getElementById('draftEntryOverlay').classList.add('show');
+});
+document.getElementById('draftPlayBtn')?.addEventListener('click', () => {
+  document.getElementById('draftEntryOverlay').classList.remove('show');
+  startDraft();
+});
+document.getElementById('draftEntryCloseBtn')?.addEventListener('click', () => {
+  document.getElementById('draftEntryOverlay').classList.remove('show');
+});
+
+// ===== LINKS MODE =====
+let linksWords = [];        // { word, pts, startLetter, endLetter }
+let linksWordNum = 0;       // 0-10
+let linksTiles = [];
+let linksSelected = [];
+let linksTotalScore = 0;
+let linksCurrentStartLetter = null;
+
+function startLinks() {
+  linksWords = [];
+  linksWordNum = 0;
+  linksTiles = [];
+  linksSelected = [];
+  linksTotalScore = 0;
+  linksCurrentStartLetter = null;
+  showScreen('links');
+  startLinksRound();
+}
+
+function startLinksRound() {
+  linksSelected = [];
+  // Generate rack — if we have a required start letter, ensure it's included
+  let rack = generateLinksRack(linksCurrentStartLetter);
+  linksTiles = rack.map((letter, i) => ({ id: i, letter }));
+
+  document.getElementById('linksWordLabel').textContent = `WORD ${linksWordNum + 1} OF 11`;
+  document.getElementById('linksTotalScore').textContent = linksTotalScore;
+
+  if (linksCurrentStartLetter) {
+    document.getElementById('linksStartLetter').textContent = `MUST START WITH: ${linksCurrentStartLetter}`;
+    document.getElementById('linksStartLetter').style.color = 'var(--gold)';
+    document.getElementById('linksStatusLine').textContent = `START WITH ${linksCurrentStartLetter}`;
+  } else {
+    document.getElementById('linksStartLetter').textContent = 'ANY STARTING LETTER';
+    document.getElementById('linksStartLetter').style.color = 'rgba(240,192,32,0.5)';
+    document.getElementById('linksStatusLine').textContent = 'START WITH ANY LETTER';
+  }
+
+  renderLinksChain();
+  renderLinksTiles();
+  renderLinksWord();
+}
+
+function generateLinksRack(mustInclude) {
+  const pool = [...LETTER_POOL];
+  const rack = [];
+  // Add required letter first
+  if (mustInclude) {
+    const idx = pool.findIndex(l => l === mustInclude);
+    if (idx >= 0) rack.push(pool.splice(idx, 1)[0]);
+    else rack.push(mustInclude);
+  }
+  // Fill rest randomly
+  while (rack.length < 11) {
+    const idx = Math.floor(Math.random() * pool.length);
+    rack.push(pool.splice(idx, 1)[0]);
+  }
+  // Shuffle
+  for (let i = rack.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rack[i], rack[j]] = [rack[j], rack[i]];
+  }
+  return rack;
+}
+
+function renderLinksChain() {
+  const chain = document.getElementById('linksChain');
+  if (linksWords.length === 0) { chain.innerHTML = '<span style="font-size:10px;opacity:0.3;letter-spacing:0.1em;">YOUR CHAIN WILL APPEAR HERE</span>'; return; }
+  chain.innerHTML = linksWords.map((w, i) =>
+    `<span style="font-size:11px;font-weight:700;letter-spacing:0.06em;color:var(--gold);">${w.word}</span>${i < linksWords.length - 1 ? '<span style="opacity:0.3;margin:0 2px;">›</span>' : ''}`
+  ).join('');
+}
+
+function renderLinksTiles() {
+  const grid = document.getElementById('linksTileGrid');
+  const isSel = t => linksSelected.some(s => s.id === t.id);
+  // Highlight the tile that satisfies the required starting letter
+  const reqStyle = t =>
+    (linksCurrentStartLetter && t.letter === linksCurrentStartLetter
+      && linksSelected.length === 0 && !isSel(t))
+      ? 'border:3px solid var(--green-dark);' : '';
+
+  grid.innerHTML = linksTiles.slice(0, 10)
+    .map(t => gridTileHTML(t, isSel(t), 'tapLinksTile', reqStyle(t)))
+    .join('');
+
+  const extra = linksTiles[10];
+  renderExtraTileBtn(
+    'linksExtraTileBtn',
+    extra,
+    extra ? isSel(extra) : false,
+    tapLinksTile,
+    extra ? reqStyle(extra) : ''
+  );
+}
+
+function tapLinksTile(id) {
+  const tile = linksTiles.find(t => t.id === id);
+  if (!tile) return;
+  const idx = linksSelected.findIndex(s => s.id === id);
+  if (idx >= 0) linksSelected.splice(idx, 1);
+  else linksSelected.push(tile);
+  renderLinksTiles();
+  renderLinksWord();
+}
+
+function renderLinksWord() {
+  renderWordAsTiles(document.getElementById('linksWordDisplay'), linksSelected);
+  document.getElementById('linksBackspaceBtn').classList.toggle('show', linksSelected.length > 0);
+  const word = linksSelected.map(s => s.letter).join('');
+  const valEl = document.getElementById('linksWordValue');
+  if (word.length > 0) {
+    const pts = scoreWord(word);
+    valEl.textContent = `${pts} PT${pts !== 1 ? 'S' : ''}`;
+    valEl.classList.add('show');
+  } else { valEl.classList.remove('show'); }
+}
+
+function showLinksMessage(text, type) {
+  const el = document.getElementById('linksMessage');
+  el.textContent = text;
+  el.className = `message show ${type}`;
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function submitLinksWord() {
+  const word = linksSelected.map(s => s.letter).join('');
+  if (word.length < 2) { showLinksMessage('Need at least 2 letters!', 'error'); return; }
+
+  // Check starts with required letter
+  if (linksCurrentStartLetter && word[0] !== linksCurrentStartLetter) {
+    showLinksMessage(`Word must start with ${linksCurrentStartLetter}!`, 'error'); return;
+  }
+  if (!isValidWord(word)) { showLinksMessage(`"${word}" isn't valid. Try again!`, 'error'); return; }
+
+  const pts = scoreWord(word);
+  const endLetter = word[word.length - 1];
+
+  linksWords.push({ word, pts });
+  linksTotalScore += pts;
+  linksCurrentStartLetter = endLetter;
+  linksWordNum++;
+
+  const msgEl = document.getElementById('linksMessage');
+  msgEl.textContent = `✓ ${word} · ${pts} PTS · NEXT STARTS WITH ${endLetter}`;
+  msgEl.className = 'message show success';
+
+  if (linksWordNum >= 11) {
+    setTimeout(() => showLinksResult(), 1000);
+  } else {
+    setTimeout(() => startLinksRound(), 1000);
+  }
+}
+
+async function showLinksResult() {
+  document.getElementById('linksResultScore').textContent = linksTotalScore;
+
+  const wordsEl = document.getElementById('linksResultWords');
+  wordsEl.innerHTML = linksWords.map(w =>
+    `<div class="account-stats-row"><span>${w.word}</span><span>${w.pts} pts</span></div>`
+  ).join('');
+
+  if (sbClient && currentUser) {
+    await sbClient.from('links_results').insert({
+      user_id: currentUser.id,
+      total_score: linksTotalScore,
+      words: linksWords.map(w => w.word),
+    });
+  }
+
+  document.getElementById('linksResultOverlay').classList.add('show');
+}
+
+// Links button wiring
+document.getElementById('linksBackspaceBtn')?.addEventListener('click', () => {
+  linksSelected.pop();
+  renderLinksTiles();
+  renderLinksWord();
+});
+document.getElementById('linksShuffleBtn')?.addEventListener('click', () => {
+  linksSelected = [];
+  shuffleInPlace(linksTiles);
+  renderLinksTiles();
+  renderLinksWord();
+});
+document.getElementById('linksSubmitBtn')?.addEventListener('click', submitLinksWord);
+document.getElementById('linksWordDisplay')?.addEventListener('click', () => {
+  if (linksSelected.length > 0) { linksSelected = []; renderLinksTiles(); renderLinksWord(); }
+});
+document.getElementById('linksBackBtn')?.addEventListener('click', () => {
+  showScreen('welcome');
+  startWelcomeLabelTicker();
+});
+document.getElementById('linksPlayAgainBtn')?.addEventListener('click', () => {
+  document.getElementById('linksResultOverlay').classList.remove('show');
+  startLinks();
+});
+document.getElementById('linksResultCloseBtn')?.addEventListener('click', () => {
+  document.getElementById('linksResultOverlay').classList.remove('show');
+  showScreen('welcome');
+});
+document.getElementById('linksShareBtn')?.addEventListener('click', async () => {
+  const text = `I scored ${linksTotalScore} points on Elevensies Links! ${linksWords.map(w=>w.word).join(' › ')} playelevensies.com`;
+  try { await navigator.clipboard.writeText(text); document.getElementById('linksShareBtn').textContent = 'COPIED!'; setTimeout(() => { document.getElementById('linksShareBtn').textContent = 'SHARE'; }, 2000); } catch(e) {}
+});
+document.getElementById('moreGamesLinksBtn')?.addEventListener('click', () => {
+  moreGamesOverlay.classList.remove('show');
+  document.getElementById('linksEntryOverlay').classList.add('show');
+});
+document.getElementById('linksPlayBtn')?.addEventListener('click', () => {
+  document.getElementById('linksEntryOverlay').classList.remove('show');
+  startLinks();
+});
+document.getElementById('linksEntryCloseBtn')?.addEventListener('click', () => {
+  document.getElementById('linksEntryOverlay').classList.remove('show');
+});
 
 // Global push capability flag — set on page load
 let pushCapable = false;
@@ -9262,6 +10021,37 @@ function renderWordAsTiles(el, letters, placeholder = 'ELEVENSIES', showPts = tr
   el.classList.add('filled');
 }
 
+// ===== Shared 11-tile layout helpers (Draft + Links) =====
+// 10 tiles render in the .tile-grid (5 + 5); the 11th renders into the middle
+// slot of the .action-row, matching Survival's layout.
+
+function gridTileHTML(tile, isSelected, handlerName, extraStyle) {
+  extraStyle = extraStyle || '';
+  return `<button class="tile${isSelected ? ' selected' : ''}" style="${extraStyle}" onclick="${handlerName}(${tile.id})">${tile.letter}<span class="pts">${LETTER_VALUES[tile.letter] || 0}</span></button>`;
+}
+
+function renderExtraTileBtn(btnId, tile, isSelected, handler, extraStyle) {
+  extraStyle = extraStyle || '';
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (!tile) { btn.style.display = 'none'; return; }
+  btn.style.display = '';
+  btn.className = 'action-btn joker-btn chosen' + (isSelected ? ' selected' : '');
+  btn.style.cssText = 'position:relative;font-size:26px;' + extraStyle;
+  btn.innerHTML = `${tile.letter}<span style="position:absolute;bottom:3px;right:4px;font-size:9px;font-weight:700;opacity:0.75;line-height:1;">${LETTER_VALUES[tile.letter] || 0}</span>`;
+  btn.onclick = () => handler(tile.id);
+}
+
+// Proper Fisher-Yates. sort(() => Math.random() - 0.5) is biased and leaves
+// tiles near their original positions more often than it should.
+function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 async function openToolsOverlay() {
   document.getElementById('toolsOverlay').classList.add('show');
   updateToolsInstallSection();
@@ -9454,6 +10244,18 @@ menuBtn.addEventListener('click', async () => {
     document.getElementById('menuHowToBtn').dataset.target = 'about-anagram';
     document.getElementById('menuHowToIcon').src = '/icons/anagram.png';
     document.getElementById('menuIngameStatsBtn').dataset.target = 'anagram-stats';
+  } else if (screen === 'draft') {
+    menuTitle.textContent = 'DRAFT';
+    howToLabel.textContent = 'HOW TO PLAY';
+    document.getElementById('menuHowToBtn').dataset.target = 'about-draft';
+    document.getElementById('menuHowToIcon').src = '/icons/draft.png';
+    document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
+  } else if (screen === 'links') {
+    menuTitle.textContent = 'LINKS';
+    howToLabel.textContent = 'HOW TO PLAY';
+    document.getElementById('menuHowToBtn').dataset.target = 'about-links';
+    document.getElementById('menuHowToIcon').src = '/icons/links.png';
+    document.getElementById('menuIngameStatsBtn').dataset.target = 'fullgame-stats';
   } else if (screen === 'game' && mode === 'practice') {
     menuTitle.textContent = 'PRACTICE';
     howToLabel.textContent = 'HOW TO PLAY';
@@ -9832,13 +10634,13 @@ document.getElementById('moreContactBtn').addEventListener('click', () => {
 document.getElementById('menuHowToBtn').addEventListener('click', () => {
   mainMenuOverlay.classList.remove('show');
   const target = document.getElementById('menuHowToBtn').dataset.target;
-  const map = {
-    'about-fullgame': 'aboutFullGameOverlay',
-    'about-practice': 'aboutPracticeOverlay',
-    'about-anagram': 'aboutAnagramOverlay',
-    'about-eliminator': 'aboutEliminatorOverlay',
-  };
-  if (map[target]) document.getElementById(map[target])?.classList.add('show');
+  // Reset each carousel to step 0 so it doesn't reopen halfway through
+  if (target === 'about-draft') { showDraftHowToStep(0); document.getElementById('aboutDraftOverlay').classList.add('show'); return; }
+  if (target === 'about-links') { showLinksHowToStep(0); document.getElementById('aboutLinksOverlay').classList.add('show'); return; }
+  if (target === 'about-anagram') { showAnagramHowToStep(0); document.getElementById('aboutAnagramOverlay').classList.add('show'); return; }
+  if (target === 'about-practice') { showPracticeHowToStep(0); document.getElementById('aboutPracticeOverlay').classList.add('show'); return; }
+  if (target === 'about-eliminator') { showElimHowToStep(0); document.getElementById('eliminatorHowToOverlay').classList.add('show'); return; }
+  if (target === 'about-fullgame') { openHowTo(); return; }
 });
 document.getElementById('menuIngameStatsBtn').addEventListener('click', async () => {
   mainMenuOverlay.classList.remove('show');
@@ -10902,6 +11704,82 @@ document.getElementById('anagramHowToSkip')?.addEventListener('click', () => {
 });
 document.querySelectorAll('.anagram-dot').forEach(dot => {
   dot.addEventListener('click', () => showAnagramHowToStep(parseInt(dot.dataset.step)));
+});
+
+// ===== Draft How-To =====
+let draftHowToStep = 0;
+const DRAFT_HOW_TO_STEPS = 3;
+
+function showDraftHowToStep(n) {
+  draftHowToStep = n;
+  document.querySelectorAll('.draft-step').forEach((el, i) => {
+    el.style.display = i === n ? 'flex' : 'none';
+  });
+  document.querySelectorAll('.draft-dot').forEach((el, i) => {
+    el.classList.toggle('active', i === n);
+  });
+  const prev = document.getElementById('draftHowToPrev');
+  const next = document.getElementById('draftHowToNext');
+  const skip = document.getElementById('draftHowToSkip');
+  if (prev) prev.style.display = n === 0 ? 'none' : '';
+  if (skip) skip.style.display = n === 0 ? '' : 'none';
+  if (next) next.textContent = n === DRAFT_HOW_TO_STEPS - 1 ? 'GOT IT' : 'NEXT';
+}
+
+document.getElementById('draftHowToNext')?.addEventListener('click', () => {
+  if (draftHowToStep < DRAFT_HOW_TO_STEPS - 1) showDraftHowToStep(draftHowToStep + 1);
+  else document.getElementById('aboutDraftOverlay').classList.remove('show');
+});
+document.getElementById('draftHowToPrev')?.addEventListener('click', () => {
+  if (draftHowToStep > 0) showDraftHowToStep(draftHowToStep - 1);
+});
+document.getElementById('draftHowToSkip')?.addEventListener('click', () => {
+  document.getElementById('aboutDraftOverlay').classList.remove('show');
+});
+document.querySelectorAll('.draft-dot').forEach(dot => {
+  dot.addEventListener('click', () => showDraftHowToStep(parseInt(dot.dataset.step)));
+});
+document.getElementById('draftEntryHowToBtn')?.addEventListener('click', () => {
+  showDraftHowToStep(0);
+  document.getElementById('aboutDraftOverlay').classList.add('show');
+});
+
+// ===== Links How-To =====
+let linksHowToStep = 0;
+const LINKS_HOW_TO_STEPS = 3;
+
+function showLinksHowToStep(n) {
+  linksHowToStep = n;
+  document.querySelectorAll('.links-step').forEach((el, i) => {
+    el.style.display = i === n ? 'flex' : 'none';
+  });
+  document.querySelectorAll('.links-dot').forEach((el, i) => {
+    el.classList.toggle('active', i === n);
+  });
+  const prev = document.getElementById('linksHowToPrev');
+  const next = document.getElementById('linksHowToNext');
+  const skip = document.getElementById('linksHowToSkip');
+  if (prev) prev.style.display = n === 0 ? 'none' : '';
+  if (skip) skip.style.display = n === 0 ? '' : 'none';
+  if (next) next.textContent = n === LINKS_HOW_TO_STEPS - 1 ? 'GOT IT' : 'NEXT';
+}
+
+document.getElementById('linksHowToNext')?.addEventListener('click', () => {
+  if (linksHowToStep < LINKS_HOW_TO_STEPS - 1) showLinksHowToStep(linksHowToStep + 1);
+  else document.getElementById('aboutLinksOverlay').classList.remove('show');
+});
+document.getElementById('linksHowToPrev')?.addEventListener('click', () => {
+  if (linksHowToStep > 0) showLinksHowToStep(linksHowToStep - 1);
+});
+document.getElementById('linksHowToSkip')?.addEventListener('click', () => {
+  document.getElementById('aboutLinksOverlay').classList.remove('show');
+});
+document.querySelectorAll('.links-dot').forEach(dot => {
+  dot.addEventListener('click', () => showLinksHowToStep(parseInt(dot.dataset.step)));
+});
+document.getElementById('linksEntryHowToBtn')?.addEventListener('click', () => {
+  showLinksHowToStep(0);
+  document.getElementById('aboutLinksOverlay').classList.add('show');
 });
 
 // ===== H2H How-To =====
