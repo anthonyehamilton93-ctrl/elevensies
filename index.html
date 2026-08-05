@@ -1882,6 +1882,9 @@
     <div style="display:flex;gap:4px;" id="draftProgress"></div>
   </div>
 
+  <!-- Words played so far (play phase only) -->
+  <div id="draftWordsChain" style="display:none;width:352px;max-width:100%;min-height:22px;margin-bottom:6px;flex-wrap:wrap;gap:4px;align-items:center;"></div>
+
   <!-- Word section -->
   <div class="word-section" id="draftWordSection" style="display:none;">
     <div class="word-display-row">
@@ -1889,8 +1892,8 @@
       <button class="backspace-btn" id="draftBackspaceBtn"></button>
     </div>
     <div class="word-value" id="draftWordValue" style="opacity:0;">&nbsp;</div>
-    <div class="score-line" style="opacity:0;">&nbsp;</div>
-    <div class="turns-line" id="draftStatusLine">BUILD YOUR BEST WORD</div>
+    <div class="score-line"><span id="draftTotalScore">0</span> POINTS</div>
+    <div class="turns-line" id="draftStatusLine">WORD 1 OF 11</div>
   </div>
 
   <div class="message" id="draftMessage"></div>
@@ -2088,7 +2091,7 @@
         <div style="width:56px;height:48px;display:flex;align-items:center;justify-content:center;">
           <img src="/icons/draft.png" style="height:48px;width:auto;">
         </div>
-        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">PICK YOUR LETTERS.<br>PLAY YOUR BEST WORD.</div>
+        <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.5;margin-bottom:4px;">PICK 11 LETTERS.<br>PLAY YOUR BEST 11 WORDS.</div>
         <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:11px;letter-spacing:0.12em;padding:9px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">DRAFT</div>
       </button>
 
@@ -2111,7 +2114,7 @@
   <div class="modal" style="text-align:center;">
     <div class="modal-title">DRAFT<span style="font-size:8px;font-weight:900;letter-spacing:0.12em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 5px;margin-left:8px;vertical-align:middle;">BETA</span></div>
     <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.8;margin-bottom:20px;">
-      Pick your letters, one at a time.<br>11 picks, 3 choices each.<br>Then play your best word.
+      Pick your letters, one at a time.<br>11 picks, 3 choices each.<br>Then play 11 words from your rack.
     </div>
     <button class="auth-submit-btn" id="draftPlayBtn" style="margin-bottom:10px;">LET'S PLAY</button>
     <button class="cancel-btn" id="draftEntryHowToBtn" style="margin-bottom:6px;">HOW TO PLAY</button>
@@ -2124,8 +2127,9 @@
   <div class="modal" style="text-align:center;">
     <div class="modal-title" id="draftResultTitle">DRAFT</div>
     <div style="font-size:64px;font-weight:900;color:var(--gold);line-height:1;margin:16px 0 4px;" id="draftResultScore">0</div>
-    <div style="font-size:13px;letter-spacing:0.1em;opacity:0.6;margin-bottom:8px;">POINTS</div>
-    <div style="font-size:22px;font-weight:900;letter-spacing:0.12em;color:var(--gold);margin-bottom:16px;" id="draftResultWord"></div>
+    <div style="font-size:13px;letter-spacing:0.1em;opacity:0.6;margin-bottom:8px;">TOTAL POINTS</div>
+    <div style="font-size:14px;font-weight:900;letter-spacing:0.12em;color:var(--gold);margin-bottom:12px;" id="draftResultWord"></div>
+    <div class="account-stats" id="draftResultWords" style="margin-bottom:12px;"></div>
     <div class="account-stats" id="draftResultStats" style="margin-bottom:16px;"></div>
     <button class="auth-submit-btn" id="draftPlayAgainBtn" style="margin-bottom:10px;">PLAY AGAIN</button>
     <button class="cancel-btn" id="draftShareBtn" style="margin-bottom:6px;">SHARE</button>
@@ -2883,7 +2887,7 @@
         <button onclick="document.getElementById('aboutHomepageOverlay').classList.remove('show');document.getElementById('draftEntryOverlay').classList.add('show');" style="background:transparent;border:2px solid var(--gold-dark);padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:inherit;position:relative;">
           <div style="position:absolute;top:6px;right:6px;font-size:7px;font-weight:900;letter-spacing:0.12em;color:var(--gold);border:1px solid var(--gold);background:rgba(240,192,32,0.12);padding:2px 5px;line-height:1;">BETA</div>
           <img src="/icons/draft.png" style="height:48px;width:auto;">
-          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">PICK YOUR LETTERS.<br>PLAY YOUR BEST WORD.</div>
+          <div style="font-size:9px;letter-spacing:0.05em;color:var(--gold);opacity:0.6;text-align:center;line-height:1.4;margin-bottom:4px;">PICK 11 LETTERS.<br>PLAY YOUR BEST 11 WORDS.</div>
           <div style="width:100%;background:var(--gold);color:var(--green);font-family:inherit;font-weight:900;font-size:10px;letter-spacing:0.12em;padding:7px 0;text-align:center;border:2px solid var(--gold-dark);box-sizing:border-box;">DRAFT</div>
         </button>
 
@@ -3209,7 +3213,7 @@
         <div class="how-to-step draft-step" id="draftStep0" style="position:absolute;inset:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
           <div style="font-size:13px;letter-spacing:0.2em;color:var(--gold);margin-bottom:8px;font-weight:700;">DRAFT</div>
           <div style="font-size:24px;font-weight:900;letter-spacing:0.04em;margin-bottom:12px;line-height:1.3;">BUILD YOUR<br>OWN RACK.</div>
-          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">11 picks, 3 letters to choose from<br>each time. Then play one word.</div>
+          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.65;line-height:1.7;margin-bottom:20px;">11 picks, 3 letters to choose from<br>each time. Then play 11 words.</div>
           <div style="display:flex;justify-content:center;gap:6px;">
             <div class="how-to-tile">S<span class="how-to-pts">1</span></div>
             <div class="how-to-tile how-to-tile-sel">T<span class="how-to-pts">1</span></div>
@@ -3237,7 +3241,7 @@
 
         <!-- Step 2: Play your word -->
         <div class="how-to-step draft-step" id="draftStep2" style="position:absolute;inset:0;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;">
-          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:12px;">THEN PLAY YOUR BEST WORD</div>
+          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:12px;">THEN MINE YOUR RACK</div>
           <div style="display:grid;grid-template-columns:repeat(5,40px);gap:4px;justify-content:center;margin-bottom:4px;">
             <div class="how-to-tile how-to-tile-sel" style="width:40px;height:40px;font-size:15px;">Q<span class="how-to-pts">10</span></div>
             <div class="how-to-tile how-to-tile-sel" style="width:40px;height:40px;font-size:15px;">U<span class="how-to-pts">1</span></div>
@@ -3253,8 +3257,8 @@
           <div style="display:flex;justify-content:center;margin-bottom:10px;">
             <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">S<span class="how-to-pts">1</span></div>
           </div>
-          <div style="font-size:22px;font-weight:900;color:var(--gold);letter-spacing:0.1em;margin-bottom:2px;">QUART · 14 PTS</div>
-          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.7;">One word from your 11 tiles.<br>Play as many times as you like.</div>
+          <div style="font-size:13px;font-weight:900;color:var(--gold);letter-spacing:0.08em;margin-bottom:4px;">QUART 14 · TRIO 4 · RATIO 5 · ZONE 13</div>
+          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.7;line-height:1.7;">Your tiles stay put — reuse them for<br>all <strong style="color:var(--gold);">11 words</strong>. No repeats. Stop early<br>with FINISH if you get stuck.</div>
         </div>
 
       </div>
@@ -9108,22 +9112,36 @@ async function handleRemindToggle(id) {
 // ===== DRAFT MODE =====
 let draftPicks = [];       // letters chosen so far
 let draftSelected = [];    // selected tiles for word building
-let draftTiles = [];       // tile objects from rack
+let draftTiles = [];       // tile objects from rack — reused for every word
 let draftPickStep = 0;     // 0-10
+let draftWords = [];       // { word, pts } played this round
+let draftTotal = 0;        // running total
+let draftPlayed = new Set(); // words already used — no repeats
+let draftPhase = 'pick';   // 'pick' | 'play'
+const DRAFT_MAX_WORDS = 11;
 
 function startDraft() {
   draftPicks = [];
   draftSelected = [];
   draftTiles = [];
   draftPickStep = 0;
+  draftWords = [];
+  draftTotal = 0;
+  draftPlayed = new Set();
+  draftPhase = 'pick';
 
   // Reset to the picking phase — PLAY AGAIN comes back through here
   document.getElementById('draftChoiceSection').style.display = '';
   document.getElementById('draftWordSection').style.display = 'none';
   document.getElementById('draftTileGrid').style.display = 'none';
   document.getElementById('draftActionRow').style.display = 'none';
+  document.getElementById('draftWordsChain').style.display = 'none';
   document.getElementById('draftMessage').className = 'message';
-  document.getElementById('draftBackBtn').style.display = '';
+  document.getElementById('draftTotalScore').textContent = '0';
+  document.getElementById('draftStatusLine').textContent = `WORD 1 OF ${DRAFT_MAX_WORDS}`;
+  const backBtn = document.getElementById('draftBackBtn');
+  backBtn.style.display = '';
+  backBtn.textContent = 'BACK';
 
   showScreen('draft');
   renderDraftPick();
@@ -9165,17 +9183,22 @@ function pickDraftLetter(letter) {
   draftPicks.push(letter);
   draftPickStep++;
   if (draftPickStep >= 11) {
-    // Switch to play phase
+    // Switch to play phase — the 11 tiles stay put and get reused for
+    // every word, so the rack you drafted is the rack you mine.
+    draftPhase = 'play';
     document.getElementById('draftChoiceSection').style.display = 'none';
     document.getElementById('draftWordSection').style.display = '';
     document.getElementById('draftTileGrid').style.display = 'grid';
     document.getElementById('draftActionRow').style.display = '';
-    document.getElementById('draftPickLabel').textContent = 'PLAY YOUR BEST WORD';
+    document.getElementById('draftWordsChain').style.display = 'flex';
+    document.getElementById('draftPickLabel').textContent = 'YOUR RACK';
+    document.getElementById('draftBackBtn').textContent = 'FINISH';
     document.getElementById('draftProgress').innerHTML = Array.from({length:11}, () =>
       `<div style="width:8px;height:8px;background:var(--gold)"></div>`
     ).join('');
     draftTiles = draftPicks.map((letter, i) => ({ id: i, letter }));
     draftSelected = [];
+    renderDraftChain();
     renderDraftTileGrid();
     renderDraftWord();
   } else {
@@ -9230,12 +9253,44 @@ function renderDraftWord() {
   }
 }
 
+function renderDraftChain() {
+  const chain = document.getElementById('draftWordsChain');
+  if (!draftWords.length) {
+    chain.innerHTML = '<span style="font-size:10px;opacity:0.3;letter-spacing:0.1em;">YOUR WORDS WILL APPEAR HERE</span>';
+    return;
+  }
+  chain.innerHTML = draftWords.map(w =>
+    `<span style="font-size:11px;font-weight:700;letter-spacing:0.06em;color:var(--gold);background:rgba(240,192,32,0.1);padding:2px 6px;">${w.word}<span style="opacity:0.5;font-weight:400;"> ${w.pts}</span></span>`
+  ).join('');
+}
+
 function submitDraftWord() {
+  if (draftPhase !== 'play') return;
   const word = draftSelected.map(s => s.letter).join('');
   if (word.length < 2) { showDraftMessage('Need at least 2 letters!', 'error'); return; }
+  if (draftPlayed.has(word)) { showDraftMessage(`You've already played "${word}".`, 'error'); return; }
   if (!isValidWord(word)) { showDraftMessage(`"${word}" isn't valid. Try again!`, 'error'); return; }
+
   const pts = scoreWord(word);
-  showDraftResult(word, pts);
+  draftWords.push({ word, pts });
+  draftPlayed.add(word);
+  draftTotal += pts;
+  draftSelected = [];
+
+  document.getElementById('draftTotalScore').textContent = draftTotal;
+  showDraftMessage(`✓ ${word} · ${pts} PTS`, 'success');
+  renderDraftChain();
+  renderDraftTileGrid();
+  renderDraftWord();
+
+  if (draftWords.length >= DRAFT_MAX_WORDS) {
+    document.getElementById('draftStatusLine').textContent = 'ALL 11 WORDS PLAYED';
+    draftPhase = 'done';
+    setTimeout(showDraftResult, 900);
+    return;
+  }
+  document.getElementById('draftStatusLine').textContent =
+    `WORD ${draftWords.length + 1} OF ${DRAFT_MAX_WORDS}`;
 }
 
 function showDraftMessage(text, type) {
@@ -9245,27 +9300,54 @@ function showDraftMessage(text, type) {
   setTimeout(() => el.classList.remove('show'), 2000);
 }
 
-async function showDraftResult(word, pts) {
-  document.getElementById('draftResultTitle').textContent = 'DRAFT';
-  document.getElementById('draftResultScore').textContent = pts;
-  document.getElementById('draftResultWord').textContent = word;
+function finishDraft() {
+  if (draftPhase !== 'play') return;
+  if (!draftWords.length) {
+    showDraftMessage('Play at least one word first!', 'error');
+    return;
+  }
+  draftPhase = 'done';
+  showDraftResult();
+}
 
-  // Stats
+async function showDraftResult() {
+  const total = draftTotal;
+  const bestWord = draftWords.reduce((b, w) => (w.pts > (b?.pts ?? -1) ? w : b), null);
+
+  document.getElementById('draftResultTitle').textContent = 'DRAFT';
+  document.getElementById('draftResultScore').textContent = total;
+  document.getElementById('draftResultWord').textContent =
+    `${draftWords.length} WORD${draftWords.length !== 1 ? 'S' : ''}`;
+
+  // Words played, best first
+  document.getElementById('draftResultWords').innerHTML = [...draftWords]
+    .sort((a, b) => b.pts - a.pts)
+    .map(w => `<div class="account-stats-row"><span>${w.word}</span><span>${w.pts} pts</span></div>`)
+    .join('');
+
   const statsEl = document.getElementById('draftResultStats');
   if (sbClient && currentUser) {
-    const { data } = await sbClient.from('draft_results').select('score, word').eq('user_id', currentUser.id).order('score', { ascending: false });
-    const best = data?.[0]?.score ?? pts;
-    const played = data?.length ?? 1;
-    const avg = data?.length ? (data.reduce((s, r) => s + r.score, 0) / data.length).toFixed(0) : pts;
+    const { data } = await sbClient.from('draft_results')
+      .select('score').eq('user_id', currentUser.id).order('score', { ascending: false });
+    const prevBest = data?.[0]?.score ?? 0;
+    const played = (data?.length ?? 0) + 1;
+    const avg = data?.length
+      ? Math.round((data.reduce((s, r) => s + r.score, 0) + total) / played)
+      : total;
     statsEl.innerHTML = `
-      <div class="account-stats-row"><span>THIS SCORE</span><span>${pts}</span></div>
-      <div class="account-stats-row"><span>BEST SCORE</span><span>${Math.max(best, pts)}</span></div>
-      <div class="account-stats-row"><span>GAMES PLAYED</span><span>${played + 1}</span></div>
+      <div class="account-stats-row"><span>THIS SCORE</span><span>${total}</span></div>
+      <div class="account-stats-row"><span>BEST SCORE</span><span>${Math.max(prevBest, total)}</span></div>
+      <div class="account-stats-row"><span>BEST WORD</span><span>${bestWord ? `${bestWord.word} (${bestWord.pts})` : '—'}</span></div>
+      <div class="account-stats-row"><span>GAMES PLAYED</span><span>${played}</span></div>
       <div class="account-stats-row"><span>AVERAGE</span><span>${avg}</span></div>`;
-    // Save
-    await sbClient.from('draft_results').insert({ user_id: currentUser.id, score: pts, word });
+    await sbClient.from('draft_results').insert({
+      user_id: currentUser.id,
+      score: total,
+      word: bestWord ? bestWord.word : '',
+      words: draftWords.map(w => w.word),
+    });
   } else {
-    statsEl.innerHTML = `<div class="account-stats-row"><span>YOUR SCORE</span><span>${pts}</span></div>
+    statsEl.innerHTML = `<div class="account-stats-row"><span>YOUR SCORE</span><span>${total}</span></div>
       <div style="font-size:10px;opacity:0.5;text-align:center;margin-top:8px;">Sign in to save your scores</div>`;
   }
 
@@ -9291,6 +9373,7 @@ document.getElementById('draftWordDisplay')?.addEventListener('click', () => {
   if (draftSelected.length > 0) { draftSelected = []; renderDraftTileGrid(); renderDraftWord(); }
 });
 document.getElementById('draftBackBtn')?.addEventListener('click', () => {
+  if (draftPhase === 'play') { finishDraft(); return; }
   showScreen('welcome');
   startWelcomeLabelTicker();
 });
@@ -9303,9 +9386,11 @@ document.getElementById('draftResultCloseBtn')?.addEventListener('click', () => 
   showScreen('welcome');
 });
 document.getElementById('draftShareBtn')?.addEventListener('click', async () => {
-  const word = document.getElementById('draftResultWord').textContent;
   const pts = document.getElementById('draftResultScore').textContent;
-  const text = `I scored ${pts} points with "${word}" on Elevensies Draft! playelevensies.com`;
+  const best = draftWords.reduce((b, w) => (w.pts > (b?.pts ?? -1) ? w : b), null);
+  const text = `I scored ${pts} points from ${draftWords.length} words on Elevensies Draft`
+    + (best ? ` — best was ${best.word} (${best.pts})` : '')
+    + `! playelevensies.com`;
   try { await navigator.clipboard.writeText(text); document.getElementById('draftShareBtn').textContent = 'COPIED!'; setTimeout(() => { document.getElementById('draftShareBtn').textContent = 'SHARE'; }, 2000); } catch(e) {}
 });
 document.getElementById('moreGamesDraftBtn')?.addEventListener('click', () => {
