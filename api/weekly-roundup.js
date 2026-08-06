@@ -264,111 +264,93 @@ export default async function handler(req, res) {
   const previewEmail = req.body?.preview_email || null;
 
   try {
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const allResults = await dbAll('/game_results?select=user_id,total_score,best_word,best_word_score,played_at,avg_points_per_word&game_status=eq.completed');
-    const weekResults = allResults.filter(r => r.played_at > oneWeekAgo);
-
-    const profiles = await dbAll('/profiles?select=id,display_name,badges,email_unsubscribed');
-    const profileMap = {};
-    profiles.forEach(p => { profileMap[p.id] = p; });
-
-    // Calculate streak and avg word score per user from game results
-    const streakMap = {};
-    const avgWordMap = {};
-    const datesByUser = {};
-    for (const r of allResults) {
-      if (!datesByUser[r.user_id]) datesByUser[r.user_id] = new Set();
-      datesByUser[r.user_id].add(r.played_at.slice(0, 10));
+    // Everything the email needs is aggregated in Postgres — one row per
+    // player instead of every game ever played. See elevensies_roundup().
+    const rpc = await fetch(`${SUPABASE_URL}/rest/v1/rpc/elevensies_roundup`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+    });
+    if (!rpc.ok) {
+      const detail = await rpc.text();
+      console.error('elevensies_roundup failed:', rpc.status, detail);
+      return res.status(500).json({ error: 'Aggregation failed', detail });
     }
-    for (const [uid, datesSet] of Object.entries(datesByUser)) {
-      const dates = [...datesSet].sort().reverse();
-      const now = new Date();
-      const today = now.toISOString().slice(0, 10);
-      const yest = new Date(now - 86400000).toISOString().slice(0, 10);
-      if (dates[0] !== today && dates[0] !== yest) { streakMap[uid] = 0; continue; }
-      let streak = 1;
-      for (let i = 1; i < dates.length; i++) {
-        const diff = Math.round((new Date(dates[i-1]) - new Date(dates[i])) / 86400000);
-        if (diff === 1) streak++;
-        else break;
-      }
-      streakMap[uid] = streak;
+    const players = await rpc.json();
+    if (!Array.isArray(players)) {
+      console.error('elevensies_roundup returned unexpected shape:', players);
+      return res.status(500).json({ error: 'Aggregation returned no rows' });
     }
 
-    // Avg word score per user
-    const wordTotals = {};
-    const wordCounts = {};
-    for (const r of allResults) {
-      if (r.avg_points_per_word) {
-        if (!wordTotals[r.user_id]) { wordTotals[r.user_id] = 0; wordCounts[r.user_id] = 0; }
-        wordTotals[r.user_id] += r.avg_points_per_word;
-        wordCounts[r.user_id]++;
-      }
-    }
-    for (const uid of Object.keys(wordTotals)) {
-      avgWordMap[uid] = wordTotals[uid] / wordCounts[uid];
-    }
+    const playerMap = {};
+    players.forEach(p => { playerMap[p.user_id] = p; });
 
     const users = await listAllAuthUsers();
     const confirmedUsers = users.filter(u => u.email && u.email_confirmed_at);
     if (confirmedUsers.length === 0) return res.status(200).json({ message: 'No recipients' });
 
-    // All-time leaderboard
-    const lbMap = {};
-    for (const r of allResults) {
-      if (!lbMap[r.user_id]) lbMap[r.user_id] = { total: 0, count: 0, best: 0 };
-      lbMap[r.user_id].total += r.total_score;
-      lbMap[r.user_id].count++;
-      if (r.total_score > lbMap[r.user_id].best) lbMap[r.user_id].best = r.total_score;
-    }
-    const fullRanked = Object.entries(lbMap)
-      .map(([id, u]) => ({ id, name: profileMap[id]?.display_name || 'Player', avg: u.total / u.count, best: u.best }))
-      .sort((a, b) => b.best - a.best);
-    const top11 = fullRanked.slice(0, 11);
+    // Top 11 all-time, ranked by best score
+    const top11 = players
+      .filter(p => p.rank && p.rank <= 11)
+      .sort((a, b) => a.rank - b.rank)
+      .map(p => ({
+        id: p.user_id,
+        name: p.display_name || 'Player',
+        avg: Number(p.avg_score),
+        best: p.best_score,
+      }));
 
-    // Global best word this week
-    const globalBestThisWeek = weekResults.reduce((b, r) => (r.best_word_score || 0) > (b?.best_word_score || 0) ? r : b, null);
-    const globalBestWord = globalBestThisWeek?.best_word
-      ? { word: globalBestThisWeek.best_word, score: globalBestThisWeek.best_word_score, playerName: profileMap[globalBestThisWeek.user_id]?.display_name || 'a player' }
+    const totalUsers = players.filter(p => p.games_played > 0).length;
+    const totalGamesPlayed = players.reduce((s, p) => s + (p.week_count || 0), 0);
+
+    // Best word played by anyone this week
+    const globalBestRow = players.reduce(
+      (b, p) => ((p.week_best_score || 0) > (b?.week_best_score || 0) ? p : b), null);
+    const globalBestWord = globalBestRow?.week_best_word
+      ? {
+          word: globalBestRow.week_best_word,
+          score: globalBestRow.week_best_score,
+          playerName: globalBestRow.display_name || 'a player',
+        }
       : null;
 
-    const totalGamesPlayed = weekResults.length;
-
     const emails = confirmedUsers
-      .filter(user => !profileMap[user.id]?.email_unsubscribed)
+      .filter(user => !playerMap[user.id]?.email_unsubscribed)
       .filter(user => previewEmail ? user.email === previewEmail : true)
       .map(user => {
-        const profile = profileMap[user.id];
-        const name = profile?.display_name || null;
+        const p = playerMap[user.id] || {};
+        const name = p.display_name || null;
 
-        const myWeekScores = weekResults
-          .filter(r => r.user_id === user.id)
-          .sort((a, b) => new Date(a.played_at) - new Date(b.played_at));
-
-        const myBestThisWeek = myWeekScores.reduce((b, r) => (r.best_word_score || 0) > (b?.best_word_score || 0) ? r : b, null);
-        const myBestWord = myBestThisWeek?.best_word
-          ? { word: myBestThisWeek.best_word, score: myBestThisWeek.best_word_score }
+        const myWeekScores = Array.isArray(p.week_games) ? p.week_games : [];
+        const myBestWord = p.week_best_word
+          ? { word: p.week_best_word, score: p.week_best_score }
           : null;
 
-        const rankIndex = fullRanked.findIndex(r => r.id === user.id);
-        const userRank = rankIndex >= 0 ? rankIndex + 1 : null;
+        const userRank = p.rank || null;
 
         let lbRows = top11.map((r, i) => ({ ...r, rank: i + 1, isYou: r.id === user.id }));
         if (userRank && userRank > 11) {
           lbRows.push({ rank: '···', name: '', avg: 0, best: 0, isYou: false });
-          lbRows.push({ ...fullRanked[rankIndex], rank: userRank, isYou: true });
+          lbRows.push({
+            id: user.id,
+            name: name || 'Player',
+            avg: Number(p.avg_score),
+            best: p.best_score,
+            rank: userRank,
+            isYou: true,
+          });
         }
 
         // Badges — always show all, regardless of whether they played this week
-        const storedBadges = Array.isArray(profile?.badges)
-          ? profile.badges.map(id => ({ id, streak: null }))
-          : [];
-        const userStreak = streakMap[user.id] || 0;
-        if (userStreak > 0) storedBadges.push({ id: 'streak', streak: userStreak });
-        const avgWord = avgWordMap[user.id] || 0;
-        const hasWrd = storedBadges.some(b => b.id === 'wordsmith');
-        if (avgWord >= 11 && !hasWrd) storedBadges.push({ id: 'wordsmith', streak: null });
-        const badges = storedBadges;
+        const badges = (p.badges || []).map(id => ({ id, streak: null }));
+        if ((p.streak || 0) > 0) badges.push({ id: 'streak', streak: p.streak });
+        if (Number(p.avg_word) >= 11 && !badges.some(b => b.id === 'wordsmith')) {
+          badges.push({ id: 'wordsmith', streak: null });
+        }
 
         return {
           from: FROM_EMAIL,
@@ -382,7 +364,7 @@ export default async function handler(req, res) {
             leaderboard: lbRows,
             userRank,
             badges,
-            totalUsers: fullRanked.length,
+            totalUsers,
             totalGamesPlayed,
           }),
         };
