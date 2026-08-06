@@ -1803,6 +1803,7 @@
   <!-- Anagram result overlay -->
   <div class="overlay" id="anagramResultOverlay">
     <div class="modal">
+      <div style="text-align:center;margin-bottom:8px;"><img src="/icons/anagram.png" style="height:36px;width:auto;opacity:0.9;"></div>
       <div class="modal-title" id="anagramResultTitle">SOLVED!</div>
       <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;" id="anagramResultBody"></div>
       <button class="auth-submit-btn" id="anagramResultCloseBtn" style="margin-bottom:10px;">DONE</button>
@@ -2169,6 +2170,7 @@
 <!-- Draft result overlay -->
 <div class="overlay" id="draftResultOverlay">
   <div class="modal" style="text-align:center;">
+<div style="text-align:center;margin-bottom:8px;"><img src="/icons/draft.png" style="height:36px;width:auto;opacity:0.9;"></div>
     <div class="modal-title" id="draftResultTitle">DRAFT</div>
     <div style="font-size:64px;font-weight:900;color:var(--gold);line-height:1;margin:16px 0 4px;" id="draftResultScore">0</div>
     <div style="font-size:13px;letter-spacing:0.1em;opacity:0.6;margin-bottom:8px;">TOTAL POINTS</div>
@@ -2197,6 +2199,7 @@
 <!-- Links result overlay -->
 <div class="overlay" id="linksResultOverlay">
   <div class="modal" style="text-align:center;">
+    <div style="text-align:center;margin-bottom:8px;"><img src="/icons/links.png" style="height:36px;width:auto;opacity:0.9;"></div>
     <div class="modal-title">LINKS</div>
     <div style="font-size:64px;font-weight:900;color:var(--gold);line-height:1;margin:16px 0 4px;" id="linksResultScore">0</div>
     <div style="font-size:13px;letter-spacing:0.1em;opacity:0.6;margin-bottom:16px;">TOTAL POINTS</div>
@@ -2298,6 +2301,7 @@
 <!-- Eliminator result overlay -->
 <div class="overlay" id="eliminatorResultOverlay">
   <div class="modal" style="text-align:center;">
+<div style="text-align:center;margin-bottom:8px;"><img src="/icons/eliminator.png" style="height:36px;width:auto;opacity:0.9;"></div>
     <div class="modal-title" id="elimResultTitle">ELIMINATED</div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:16px;opacity:0.85;" id="elimResultBody"></div>
 
@@ -3539,6 +3543,7 @@
 <!-- Full Game Stats overlay (stats + badges + milestones + leaderboard) -->
 <div class="overlay" id="fullGameStatsOverlay">
   <div class="modal">
+    <div style="text-align:center;margin-bottom:8px;"><img id="statsModeIcon" src="/icons/full.png" style="height:36px;width:auto;opacity:0.9;"></div>
     <div class="modal-title" id="fullGameStatsTitle">FULL GAME</div>
     <!-- Survival mode sub-picker — only shown for survival stats -->
     <div id="statsSurvivalPicker" style="display:none;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
@@ -3794,6 +3799,7 @@
 <!-- Game over -->
 <div class="overlay" id="gameoverOverlay">
   <div class="modal gameover-modal" style="text-align:center;">
+    <div style="text-align:center;margin-bottom:8px;"><img id="gameoverModeIcon" src="/icons/full.png" style="height:36px;width:auto;opacity:0.9;"></div>
     <div class="gameover-title" id="gameoverTitle">YOUR SCORE</div>
     <div class="gameover-score" id="finalScore">0</div>
     <div class="gameover-label">TOTAL POINTS</div>
@@ -4379,9 +4385,11 @@ async function showAccountPanel() {
 }
 
 // ===== Full Game Stats overlay =====
-function resetStatsOverlay(title) {
+function resetStatsOverlay(title, iconSrc) {
   const overlay = document.getElementById('fullGameStatsOverlay');
   overlay.querySelector('#fullGameStatsTitle').textContent = title;
+  const icon = document.getElementById('statsModeIcon');
+  if (icon) icon.src = iconSrc || '/icons/stats.png';
 
   // Reset all tab active states
   ['statsTabStats','statsTabLb','statsTabLeagues'].forEach(id => {
@@ -4418,7 +4426,7 @@ async function openFullGameStats() {
   const overlay = document.getElementById('fullGameStatsOverlay');
   const loggedOut = document.getElementById('fullGameStatsLoggedOut');
 
-  resetStatsOverlay('FULL GAME');
+  resetStatsOverlay('FULL GAME', '/icons/full.png');
   document.getElementById('statsTabStats').classList.add('active');
   document.getElementById('statsTabStatsContent').style.display = '';
   document.getElementById('statsTabStats').parentElement.style.display = '';
@@ -4933,7 +4941,7 @@ async function authFetch(path, body) {
 }
 
 async function openLeaguesTab() {
-  resetStatsOverlay('LEAGUES');
+  resetStatsOverlay('LEAGUES', '/icons/stats.png');
   document.getElementById('statsTabLeagues').classList.add('active');
   document.getElementById('statsTabLeaguesContent').style.display = '';
   document.getElementById('fullGameStatsOverlay').classList.add('show');
@@ -5254,7 +5262,7 @@ async function openAnagramStats() {
   const overlay = document.getElementById('fullGameStatsOverlay');
   const loggedOut = document.getElementById('fullGameStatsLoggedOut');
 
-  resetStatsOverlay('ANAGRAM');
+  resetStatsOverlay('ANAGRAM', '/icons/anagram.png');
   document.getElementById('statsTabStats').classList.add('active');
   document.getElementById('statsTabStatsContent').style.display = '';
   document.getElementById('statsOverlayHistorySection').style.display = '';
@@ -8198,6 +8206,8 @@ async function showGameOver() {
     document.getElementById('savingOverlay').classList.add('show');
   }
   document.getElementById('gameoverTitle').textContent = 'YOUR SCORE';
+  const goIcon = document.getElementById('gameoverModeIcon');
+  if (goIcon) goIcon.src = gameMode === 'practice' ? '/icons/practice.png' : '/icons/full.png';
   finalScore.textContent = totalScore;
   renderWordChips(finalHistory, history);
   finalRating.textContent =
@@ -8419,178 +8429,269 @@ function newGame() {
 // Draws a branded score card (1080x1080, social-media friendly) onto the
 // hidden canvas, then uses the Web Share API if available (mobile-friendly,
 // shares directly to apps) or falls back to a plain download.
+// ===== Share cards =====
+// One template for every mode: wordmark, mode chip with its icon, hero number,
+// mode-specific middle, three stats, footer. Always 1080x1080 so social
+// platforms crop it predictably.
+
+const SHARE_W = 1080, SHARE_H = 1080;
+const SHARE_GOLD = '#f0c020';
+const SHARE_GREEN = '#1a6b3c';
+const SHARE_GREEN_DARK = '#155c33';
+const _shareImgCache = {};
+
+function loadShareImage(src) {
+  if (_shareImgCache[src] !== undefined) return Promise.resolve(_shareImgCache[src]);
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => { _shareImgCache[src] = img; resolve(img); };
+    img.onerror = () => { _shareImgCache[src] = null; resolve(null); };
+    img.src = src;
+  });
+}
+
+async function shareGetName() {
+  if (!sbClient || !currentUser) return null;
+  const { data } = await sbClient.from('profiles').select('display_name').eq('id', currentUser.id).single();
+  return data?.display_name || null;
+}
+
+function shareDateLabel() {
+  return new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+}
+
+// Highest score this player has recorded in a given mode
+async function sharePersonalBest(table, col) {
+  if (!sbClient || !currentUser) return null;
+  const { data } = await sbClient.from(table).select(col)
+    .eq('user_id', currentUser.id).order(col, { ascending: false }).limit(1);
+  return data?.[0]?.[col] ?? null;
+}
+
+// Our own row from the leaderboard — gives streak and all-time best in one call
+async function shareOwnLeaderboardRow() {
+  if (!sbClient || !currentUser) return null;
+  const { data } = await sbClient.rpc('elevensies_leaderboard', { p_mode: 'best' });
+  if (!Array.isArray(data)) return null;
+  return data.find(r => r.user_id === currentUser.id) || null;
+}
+
+function shareBegin() {
+  shareCanvas.width = SHARE_W;
+  shareCanvas.height = SHARE_H;
+  const ctx = shareCanvas.getContext('2d');
+  ctx.fillStyle = SHARE_GREEN;
+  ctx.fillRect(0, 0, SHARE_W, SHARE_H);
+  return ctx;
+}
+
+async function drawShareHeader(ctx, modeLabel, iconSrc, name) {
+  ctx.textAlign = 'center';
+  ctx.fillStyle = SHARE_GOLD;
+  ctx.font = '900 46px Jost';
+  ctx.fillText('E L E V E N S I E S', SHARE_W / 2, 84);
+
+  const icon = iconSrc ? await loadShareImage(iconSrc) : null;
+  ctx.font = '900 22px Jost';
+  const textW = ctx.measureText(modeLabel).width;
+  const iconW = icon ? 30 : 0;
+  const padX = 20, gap = icon ? 12 : 0, chipH = 46;
+  const chipW = padX * 2 + iconW + gap + textW;
+  const chipX = SHARE_W / 2 - chipW / 2, chipY = 110;
+
+  ctx.strokeStyle = 'rgba(240,192,32,0.5)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(chipX, chipY, chipW, chipH);
+  if (icon) ctx.drawImage(icon, chipX + padX, chipY + 8, 30, 30);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = SHARE_GOLD;
+  ctx.fillText(modeLabel, chipX + padX + iconW + gap, chipY + 31);
+
+  ctx.textAlign = 'center';
+  const meta = [name ? name.toUpperCase() : null, shareDateLabel()].filter(Boolean).join(' · ');
+  ctx.font = '700 22px Jost';
+  ctx.globalAlpha = 0.6;
+  ctx.fillText(meta, SHARE_W / 2, 202);
+  ctx.globalAlpha = 1;
+
+  return 232;
+}
+
+function drawShareHero(ctx, y, big, label, size) {
+  size = size || 130;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = SHARE_GOLD;
+  ctx.font = `900 ${size}px Jost`;
+  const baseline = y + size * 0.78;
+  ctx.fillText(String(big), SHARE_W / 2, baseline);
+  ctx.font = '700 22px Jost';
+  ctx.globalAlpha = 0.6;
+  ctx.fillText(label, SHARE_W / 2, baseline + 36);
+  ctx.globalAlpha = 1;
+  return baseline + 62;
+}
+
+// The word as real game tiles — the most recognisable thing about Elevensies
+function drawShareTiles(ctx, y, word, label) {
+  if (!word) return y;
+  const letters = word.toUpperCase().split('');
+  ctx.textAlign = 'center';
+  if (label) {
+    ctx.font = '700 18px Jost';
+    ctx.fillStyle = SHARE_GOLD;
+    ctx.globalAlpha = 0.45;
+    ctx.fillText(label, SHARE_W / 2, y);
+    ctx.globalAlpha = 1;
+  }
+  const size = Math.max(40, Math.min(72, Math.floor(780 / letters.length) - 8));
+  const gap = 7;
+  const totalW = letters.length * size + (letters.length - 1) * gap;
+  let x = SHARE_W / 2 - totalW / 2;
+  const top = y + 18;
+  letters.forEach(l => {
+    ctx.fillStyle = SHARE_GOLD;
+    ctx.fillRect(x, top, size, size);
+    ctx.strokeStyle = '#c9a010';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x + 1.5, top + 1.5, size - 3, size - 3);
+    ctx.fillStyle = SHARE_GREEN;
+    ctx.font = `900 ${Math.round(size * 0.46)}px Jost`;
+    ctx.textAlign = 'center';
+    ctx.fillText(l, x + size / 2, top + size * 0.66);
+    ctx.font = `700 ${Math.round(size * 0.21)}px Jost`;
+    ctx.textAlign = 'right';
+    ctx.globalAlpha = 0.75;
+    ctx.fillText(String(LETTER_VALUES[l] || 0), x + size - 7, top + size - 8);
+    ctx.globalAlpha = 1;
+    x += size + gap;
+  });
+  ctx.textAlign = 'center';
+  return top + size + 20;
+}
+
+// Two columns of chips, matching the in-game words-played panel
+function drawShareChips(ctx, y, words, limit, title) {
+  let list = (words || [])
+    .map(w => ({ word: w.word, score: w.score ?? w.pts ?? 0 }))
+    .filter(w => w.word);
+  const total = list.length;
+  if (limit && list.length > limit) {
+    list = [...list].sort((a, b) => b.score - a.score).slice(0, limit);
+  }
+  if (!list.length) return y;
+
+  const margin = 90;
+  ctx.font = '700 18px Jost';
+  ctx.fillStyle = SHARE_GOLD;
+  ctx.globalAlpha = 0.5;
+  ctx.textAlign = 'left';
+  ctx.fillText(title || 'WORDS PLAYED', margin, y);
+  ctx.textAlign = 'right';
+  ctx.fillText(limit && total > limit ? `BEST ${list.length} OF ${total}` : String(total), SHARE_W - margin, y);
+  ctx.globalAlpha = 1;
+
+  const colGap = 16;
+  const colW = (SHARE_W - margin * 2 - colGap) / 2;
+  const rowH = 44, chipH = 37;
+  const top = y + 18;
+
+  list.forEach((w, i) => {
+    const col = i % 2, row = Math.floor(i / 2);
+    const cx = margin + col * (colW + colGap);
+    const cy = top + row * rowH;
+    ctx.fillStyle = 'rgba(240,192,32,0.12)';
+    ctx.fillRect(cx, cy, colW, chipH);
+    ctx.strokeStyle = 'rgba(240,192,32,0.35)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cx + 1, cy + 1, colW - 2, chipH - 2);
+    ctx.fillStyle = SHARE_GOLD;
+    ctx.font = '700 25px Jost';
+    ctx.textAlign = 'left';
+    ctx.fillText(w.word, cx + 16, cy + 26);
+    ctx.font = '700 21px Jost';
+    ctx.globalAlpha = 0.55;
+    ctx.textAlign = 'right';
+    ctx.fillText(String(w.score), cx + colW - 16, cy + 26);
+    ctx.globalAlpha = 1;
+  });
+  ctx.textAlign = 'center';
+  return top + Math.ceil(list.length / 2) * rowH + 12;
+}
+
+function drawShareStats(ctx, stats) {
+  const baseY = SHARE_H - 186;
+  const colW = SHARE_W / stats.length;
+  ctx.textAlign = 'center';
+  stats.forEach((s, i) => {
+    const cx = colW * i + colW / 2;
+    ctx.fillStyle = SHARE_GOLD;
+    ctx.globalAlpha = 1;
+    ctx.font = '900 44px Jost';
+    ctx.fillText(String(s.value), cx, baseY);
+    ctx.font = '700 18px Jost';
+    ctx.globalAlpha = 0.5;
+    ctx.fillText(s.label, cx, baseY + 32);
+    ctx.globalAlpha = 1;
+  });
+}
+
+function drawShareFooter(ctx) {
+  ctx.fillStyle = SHARE_GOLD;
+  ctx.fillRect(0, SHARE_H - 96, SHARE_W, 96);
+  ctx.fillStyle = SHARE_GREEN_DARK;
+  ctx.font = '900 38px Jost';
+  ctx.textAlign = 'center';
+  ctx.fillText('playelevensies.com', SHARE_W / 2, SHARE_H - 34);
+}
+
+// Hands the finished canvas to the share sheet, falling back to copying the
+// text and then to a download.
+async function shareCanvasImage(filename, text, btn) {
+  const blob = await new Promise(r => shareCanvas.toBlob(r, 'image/png'));
+  const file = new File([blob], filename, { type: 'image/png' });
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], text }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    if (btn) {
+      const original = btn.textContent;
+      btn.textContent = 'COPIED!';
+      setTimeout(() => { btn.textContent = original; }, 2000);
+    }
+  } catch (e) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function generateShareImage(overrideScore, overrideHistory, earnedBadges) {
   await document.fonts.ready;
 
-  const gold = '#f0c020';
-  const goldDark = '#c9a010';
-  const green = '#1a6b3c';
-  const greenDark = '#155c33';
+  const score = overrideScore !== undefined ? overrideScore : totalScore;
+  const words = (overrideHistory !== undefined ? overrideHistory : history).slice();
+  const best = words.reduce((b, h) => (h.score > (b ? b.score : -1) ? h : b), null);
+  const avgWord = words.length ? (score / words.length).toFixed(1) : '—';
 
-  const shareScore = overrideScore !== undefined ? overrideScore : totalScore;
-  // Chronological order — history is already in play order
-  const shareHistory = (overrideHistory !== undefined ? overrideHistory : history).slice();
-  const badges = earnedBadges || [];
+  const [name, own] = await Promise.all([shareGetName(), shareOwnLeaderboardRow()]);
 
-  const wordsPlayed = shareHistory.length;
-  const avg = wordsPlayed ? (shareScore / wordsPlayed) : 0;
-  const best = shareHistory.reduce((b, h) => (h.score > (b ? b.score : -1) ? h : b), null);
+  const ctx = shareBegin();
+  let y = await drawShareHeader(ctx, 'FULL GAME', '/icons/full.png', name);
+  y = drawShareHero(ctx, y, score, 'POINTS');
+  if (best) y = drawShareTiles(ctx, y + 6, best.word, 'BEST WORD');
+  drawShareChips(ctx, y + 14, words, 11);
+  drawShareStats(ctx, [
+    { value: avgWord, label: 'AVG / WORD' },
+    { value: own?.streak ? own.streak : '—', label: 'DAY STREAK' },
+    { value: own?.best_score ? Math.max(own.best_score, score) : score, label: 'PERSONAL BEST' },
+  ]);
+  drawShareFooter(ctx);
 
-  // Get nickname from profile
-  let nickname = null;
-  if (sbClient && currentUser) {
-    const { data: prof } = await sbClient.from('profiles').select('display_name').eq('id', currentUser.id).single();
-    nickname = prof?.display_name || null;
-  }
-
-  const perColumn = Math.ceil(wordsPlayed / 2) || 1;
-  const lineHeight = 50;
-  const listStartY = 700;
-  const listHeight = perColumn * lineHeight;
-
-  const W = 1080;
-  const H = Math.max(1080, listStartY + listHeight + 160);
-
-  shareCanvas.width = W;
-  shareCanvas.height = H;
-  const ctx = shareCanvas.getContext('2d');
-
-  // Background
-  ctx.fillStyle = green;
-  ctx.fillRect(0, 0, W, H);
-
-  // Logo wordmark
-  ctx.fillStyle = gold;
-  ctx.textAlign = 'center';
-  ctx.font = '900 56px Jost';
-  ctx.fillText('E L E V E N S I E S', W / 2, 110);
-
-  // Nickname — small, below logo
-  if (nickname) {
-    ctx.font = '700 26px Jost';
-    ctx.fillStyle = gold;
-    ctx.globalAlpha = 0.65;
-    ctx.fillText(nickname.toUpperCase(), W / 2, 148);
-    ctx.globalAlpha = 1;
-  }
-
-  // Divider
-  ctx.strokeStyle = gold;
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - 220, nickname ? 172 : 155);
-  ctx.lineTo(W / 2 + 220, nickname ? 172 : 155);
-  ctx.stroke();
-
-  // Total score (big)
-  ctx.fillStyle = gold;
-  ctx.font = '900 160px Jost';
-  ctx.fillText(String(shareScore), W / 2, 370);
-  ctx.font = '900 32px Jost';
-  ctx.globalAlpha = 0.85;
-  ctx.fillText('TOTAL POINTS', W / 2, 420);
-  ctx.globalAlpha = 1;
-
-  // Stats row
-  const dateLabel = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
-  const stats = [
-    { label: 'DATE', value: dateLabel },
-    { label: 'AVG PTS / WORD', value: avg.toFixed(1) },
-    { label: 'BEST WORD', value: best ? `${best.word} (${best.score})` : '—' }
-  ];
-
-  const statY = 530;
-  const colWidth = W / 3;
-  stats.forEach((s, i) => {
-    const cx = colWidth * i + colWidth / 2;
-    ctx.font = '900 40px Jost';
-    ctx.fillStyle = gold;
-    ctx.fillText(s.value, cx, statY);
-    ctx.font = '700 20px Jost';
-    ctx.globalAlpha = 0.7;
-    ctx.fillText(s.label, cx, statY + 34);
-    ctx.globalAlpha = 1;
-  });
-
-  // Divider
-  ctx.strokeStyle = goldDark;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - 260, 610);
-  ctx.lineTo(W / 2 + 260, 610);
-  ctx.stroke();
-
-  // Word list — chronological (already in order)
-  ctx.font = '700 28px Jost';
-  const col1X = W / 2 - 260;
-  const col2X = W / 2 + 20;
-  const colTextWidth = 240;
-
-  shareHistory.forEach((h, i) => {
-    const col = i < perColumn ? 0 : 1;
-    const row = i < perColumn ? i : i - perColumn;
-    const x = col === 0 ? col1X : col2X;
-    const y = listStartY + row * lineHeight;
-    ctx.textAlign = 'left';
-    ctx.fillStyle = gold;
-    ctx.globalAlpha = 0.95;
-    ctx.fillText(h.word, x, y);
-    ctx.textAlign = 'right';
-    ctx.fillText(`${h.score}`, x + colTextWidth, y);
-  });
-  ctx.globalAlpha = 1;
-
-  // Badges — styled like game-over screen: border + semi-transparent fill + abbr + name
-  if (badges.length > 0) {
-    const badgeW = 80;
-    const badgeH = 72;
-    const badgeGap = 10;
-    const totalBadgeW = badges.length * badgeW + (badges.length - 1) * badgeGap;
-    let bx = W / 2 - totalBadgeW / 2;
-    const by = H - 170;
-
-    ctx.font = '700 18px Jost';
-    ctx.fillStyle = gold;
-    ctx.globalAlpha = 0.65;
-    ctx.textAlign = 'center';
-    ctx.fillText('BADGES EARNED TODAY', W / 2, by - 14);
-    ctx.globalAlpha = 1;
-
-    const badgeImgPromises = badges.map(b => new Promise(resolve => {
-      const img = new Image();
-      const name = b.id === 'streak' ? 'No-Streak' : b.name.charAt(0).toUpperCase() + b.name.slice(1).toLowerCase();
-      img.onload = () => resolve({ img, b });
-      img.onerror = () => resolve({ img: null, b });
-      img.src = `/icons/badges/${name}.png`;
-    }));
-    const badgeImgs = await Promise.all(badgeImgPromises);
-    badgeImgs.forEach(({ img, b }) => {
-      ctx.fillStyle = gold;
-      ctx.fillRect(bx, by, badgeW, badgeH);
-      if (img) ctx.drawImage(img, bx, by, badgeW, badgeH);
-      // Show streak number overlay
-      if (b.id === 'streak' && b.dynamic) {
-        ctx.font = '900 20px Jost'; ctx.fillStyle = green; ctx.textAlign = 'center';
-        ctx.fillText(b.dynamic({ streak: b._streakVal || 0 }), bx + badgeW / 2, by + badgeH / 2 + 7);
-      }
-      ctx.font = '700 11px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 0.7;
-      ctx.fillText(b.name, bx + badgeW / 2, by + badgeH + 14);
-      ctx.globalAlpha = 1;
-      bx += badgeW + badgeGap;
-    });
-  }
-
-  // Footer
-  ctx.fillStyle = gold;
-  ctx.fillRect(0, H - 80, W, 80);
-  ctx.fillStyle = greenDark;
-  ctx.font = '900 32px Jost';
-  ctx.textAlign = 'center';
-  ctx.fillText('playelevensies.com', W / 2, H - 28);
-
-  return new Promise(resolve => {
-    shareCanvas.toBlob(blob => resolve(blob), 'image/png');
-  });
+  return new Promise(resolve => shareCanvas.toBlob(blob => resolve(blob), 'image/png'));
 }
 
 async function generateStatsImage(name, games, streak, best, avg, bestWord, earnedBadges) {
@@ -8693,129 +8794,63 @@ async function generateStatsImage(name, games, streak, best, avg, bestWord, earn
 }
 
 async function shareAnagramResult(solved, word) {
-  // Build a share image — word kept secret, shows display name and stats
-  let statsData = { solved: 0, streak: 0, best: 0 };
-  if (sbClient && currentUser) {
-    const s = await loadAnagramStats();
-    if (s) statsData = s;
-  }
-
-  let nickname = null;
-  if (sbClient && currentUser) {
-    const { data: prof } = await sbClient.from('profiles').select('display_name').eq('id', currentUser.id).single();
-    nickname = prof?.display_name || null;
-  }
-
-  const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
   await document.fonts.ready;
 
-  const gold = '#f0c020';
-  const green = '#1a6b3c';
-  const greenDark = '#155c33';
-  const W = 1080, H = 1080;
-  shareCanvas.width = W;
-  shareCanvas.height = H;
-  const ctx = shareCanvas.getContext('2d');
+  let stats = { solved: 0, streak: 0, best: 0 };
+  if (sbClient && currentUser) {
+    const s = await loadAnagramStats();
+    if (s) stats = s;
+  }
+  const name = await shareGetName();
 
-  // Background
-  ctx.fillStyle = green;
-  ctx.fillRect(0, 0, W, H);
+  const ctx = shareBegin();
+  let y = await drawShareHeader(ctx, 'ANAGRAM', '/icons/anagram.png', name);
 
-  // Logo
-  ctx.fillStyle = gold;
+  // The word itself is never shown — sharing shouldn't spoil the puzzle
   ctx.textAlign = 'center';
-  ctx.font = '900 52px Jost';
-  ctx.fillText('E L E V E N S I E S', W / 2, 110);
+  ctx.fillStyle = SHARE_GOLD;
+  ctx.font = '900 104px Jost';
+  ctx.fillText(solved ? 'SOLVED' : 'ATTEMPTED', SHARE_W / 2, y + 150);
 
-  // Nickname
-  if (nickname) {
-    ctx.font = '700 26px Jost';
-    ctx.globalAlpha = 0.65;
-    ctx.fillText(nickname.toUpperCase(), W / 2, 155);
-    ctx.globalAlpha = 1;
-  }
-
-  // Divider under header
-  ctx.strokeStyle = 'rgba(240,192,32,0.4)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  const divY1 = nickname ? 178 : 148;
-  ctx.moveTo(W / 2 - 220, divY1);
-  ctx.lineTo(W / 2 + 220, divY1);
-  ctx.stroke();
-
-  // Result — two lines. Everything below is positioned off this baseline:
-  // result (resultY, +108), date (+168), stats (+308), CTA (+508).
-  const resultY = divY1 + 130;
-
-  ctx.font = '900 96px Jost';
-  ctx.fillStyle = gold;
-  ctx.fillText(solved ? 'ANAGRAM' : 'ANAGRAM', W / 2, resultY);
-  ctx.fillText(solved ? 'SOLVED' : 'ATTEMPTED', W / 2, resultY + 108);
-
-  // Date
-  ctx.font = '700 32px Jost';
-  ctx.globalAlpha = 0.55;
-  ctx.fillText(date, W / 2, resultY + 168);
+  ctx.font = '700 26px Jost';
+  ctx.globalAlpha = 0.6;
+  ctx.fillText(solved ? "TODAY'S 11-LETTER WORD" : "TODAY'S PUZZLE", SHARE_W / 2, y + 200);
   ctx.globalAlpha = 1;
 
-  // Stats
-  const statY = resultY + 308;
-  const statItems = [
-    { label: 'SOLVED', value: String(statsData.solved || 0) },
-    { label: 'STREAK', value: String(statsData.streak || 0) },
-    { label: 'BEST',   value: String(statsData.best || 0) },
-  ];
-  const colW = W / 3;
-  statItems.forEach((s, i) => {
-    const cx = colW * i + colW / 2;
-    ctx.font = '900 100px Jost';
-    ctx.fillStyle = gold;
-    ctx.fillText(s.value, cx, statY);
-    ctx.font = '700 26px Jost';
-    ctx.globalAlpha = 0.55;
-    ctx.fillText(s.label, cx, statY + 52);
-    ctx.globalAlpha = 1;
-  });
+  // Blanked-out tiles standing in for the hidden answer
+  const hiddenTop = y + 250;
+  const size = 58, gap = 7;
+  const totalW = 11 * size + 10 * gap;
+  let x = SHARE_W / 2 - totalW / 2;
+  for (let i = 0; i < 11; i++) {
+    ctx.strokeStyle = 'rgba(240,192,32,0.4)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x + 1.5, hiddenTop + 1.5, size - 3, size - 3);
+    ctx.fillStyle = 'rgba(240,192,32,0.10)';
+    ctx.fillRect(x + 3, hiddenTop + 3, size - 6, size - 6);
+    ctx.fillStyle = 'rgba(240,192,32,0.45)';
+    ctx.font = '900 26px Jost';
+    ctx.fillText('?', x + size / 2, hiddenTop + size * 0.66);
+    x += size + gap;
+  }
 
-  // Divider below stats
-  ctx.strokeStyle = 'rgba(240,192,32,0.35)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - 280, statY + 110);
-  ctx.lineTo(W / 2 + 280, statY + 110);
-  ctx.stroke();
-
-  // CTA
-  ctx.font = '700 34px Jost';
-  ctx.fillStyle = gold;
+  ctx.fillStyle = SHARE_GOLD;
+  ctx.font = '700 30px Jost';
   ctx.globalAlpha = 0.75;
-  ctx.fillText(solved ? 'CAN YOU BEAT MY STREAK?' : 'CAN YOU SOLVE TODAY\'S ANAGRAM?', W / 2, statY + 200);
+  ctx.fillText(solved ? 'CAN YOU BEAT MY STREAK?' : "CAN YOU SOLVE IT?", SHARE_W / 2, hiddenTop + size + 76);
   ctx.globalAlpha = 1;
 
-  // Footer bar
-  ctx.fillStyle = gold;
-  ctx.fillRect(0, H - 96, W, 96);
-  ctx.fillStyle = greenDark;
-  ctx.font = '900 38px Jost';
-  ctx.fillText('playelevensies.com', W / 2, H - 30);
+  drawShareStats(ctx, [
+    { value: stats.solved || 0, label: 'SOLVED' },
+    { value: stats.streak || 0, label: 'STREAK' },
+    { value: stats.best || 0, label: 'BEST STREAK' },
+  ]);
+  drawShareFooter(ctx);
 
-  const blob = await new Promise(r => shareCanvas.toBlob(r, 'image/png'));
-
-  const linkText = solved
-    ? `I solved today's Elevensies Anagram! Can you? playelevensies.com`
-    : `Can you solve today's Elevensies Anagram? playelevensies.com`;
-
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'elevensies-anagram.png', { type: 'image/png' })] })) {
-    try {
-      await navigator.share({ files: [new File([blob], 'elevensies-anagram.png', { type: 'image/png' })], text: linkText });
-      return;
-    } catch (e) {}
-  }
-  // Fallback — copy text link
-  await navigator.clipboard.writeText(linkText);
-  const btn = document.getElementById('anagramShareRevealBtn');
-  if (btn) { btn.textContent = 'COPIED!'; setTimeout(() => { btn.textContent = 'SHARE'; }, 2000); }
+  const text = solved
+    ? "I solved today's Elevensies Anagram! Can you? playelevensies.com"
+    : "Can you solve today's Elevensies Anagram? playelevensies.com";
+  await shareCanvasImage('elevensies-anagram.png', text, document.getElementById('anagramShareRevealBtn'));
 }
 
 async function handleShare(overrideScore, overrideHistory, earnedBadges) {
@@ -9451,14 +9486,7 @@ document.getElementById('draftResultCloseBtn')?.addEventListener('click', () => 
   showScreen('welcome');
   startWelcomeLabelTicker();
 });
-document.getElementById('draftShareBtn')?.addEventListener('click', async () => {
-  const pts = document.getElementById('draftResultScore').textContent;
-  const best = draftWords.reduce((b, w) => (w.pts > (b?.pts ?? -1) ? w : b), null);
-  const text = `I scored ${pts} points from ${draftWords.length} words on Elevensies Draft`
-    + (best ? ` — best was ${best.word} (${best.pts})` : '')
-    + `! playelevensies.com`;
-  try { await navigator.clipboard.writeText(text); document.getElementById('draftShareBtn').textContent = 'COPIED!'; setTimeout(() => { document.getElementById('draftShareBtn').textContent = 'SHARE'; }, 2000); } catch(e) {}
-});
+document.getElementById('draftShareBtn')?.addEventListener('click', shareDraftResult);
 document.getElementById('moreGamesDraftBtn')?.addEventListener('click', () => {
   moreGamesOverlay.classList.remove('show');
   document.getElementById('draftEntryOverlay').classList.add('show');
@@ -9769,10 +9797,7 @@ document.getElementById('linksResultCloseBtn')?.addEventListener('click', () => 
   showScreen('welcome');
   startWelcomeLabelTicker();
 });
-document.getElementById('linksShareBtn')?.addEventListener('click', async () => {
-  const text = `I scored ${linksTotalScore} points on Elevensies Links! ${linksWords.map(w=>w.word).join(' › ')} playelevensies.com`;
-  try { await navigator.clipboard.writeText(text); document.getElementById('linksShareBtn').textContent = 'COPIED!'; setTimeout(() => { document.getElementById('linksShareBtn').textContent = 'SHARE'; }, 2000); } catch(e) {}
-});
+document.getElementById('linksShareBtn')?.addEventListener('click', shareLinksResult);
 document.getElementById('moreGamesLinksBtn')?.addEventListener('click', () => {
   moreGamesOverlay.classList.remove('show');
   document.getElementById('linksEntryOverlay').classList.add('show');
@@ -11774,7 +11799,7 @@ async function openSimpleModeStats(opts) {
     const overlay = document.getElementById('fullGameStatsOverlay');
     const loggedOut = document.getElementById('fullGameStatsLoggedOut');
 
-    resetStatsOverlay(opts.title);
+    resetStatsOverlay(opts.title, opts.icon);
     document.getElementById('statsSurvivalPicker').style.display = 'none';
     document.getElementById('statsTabStatsContent').style.display = '';
 
@@ -11839,6 +11864,7 @@ async function openSimpleModeStats(opts) {
 function openDraftStats() {
   return openSimpleModeStats({
     title: 'DRAFT',
+    icon: '/icons/draft.png',
     table: 'draft_results',
     columns: 'score, word, words',
     scoreCol: 'score',
@@ -11848,6 +11874,7 @@ function openDraftStats() {
 function openLinksStats() {
   return openSimpleModeStats({
     title: 'LINKS',
+    icon: '/icons/links.png',
     table: 'links_results',
     columns: 'total_score, words',
     scoreCol: 'total_score',
@@ -11864,7 +11891,7 @@ async function openEliminatorStats(mode = 'unlimited') {
     document.getElementById('statsSurvivalUnlimited')?.classList.toggle('active', mode === 'unlimited');
     document.getElementById('statsSurvivalPlay11')?.classList.toggle('active', mode === 'play_to_11');
 
-    resetStatsOverlay(title);
+    resetStatsOverlay(title, '/icons/eliminator.png');
     document.getElementById('statsTabStatsContent').style.display = '';
 
     overlay.classList.add('show');
@@ -11934,125 +11961,88 @@ async function openEliminatorStats(mode = 'unlimited') {
 }
 
 async function shareEliminatorResult(score, totalTimeMs, totalPoints) {
-  const secsPerRound = score > 0 ? (totalTimeMs / score / 1000).toFixed(1) : '—';
-  const avgPts = score > 0 ? (totalPoints / score).toFixed(1) : '—';
-  const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
-  const isPerfect = elimMode === 'play_to_11' && score >= 11;
-
-  let nickname = null;
-  if (sbClient && currentUser) {
-    const { data: prof } = await sbClient.from('profiles').select('display_name').eq('id', currentUser.id).single();
-    nickname = prof?.display_name || null;
-  }
-
   await document.fonts.ready;
-  const gold = '#f0c020'; const green = '#1a6b3c'; const greenDark = '#155c33';
-  const W = 1080, H = 1080;
-  shareCanvas.width = W; shareCanvas.height = H;
-  const ctx = shareCanvas.getContext('2d');
-  ctx.fillStyle = green; ctx.fillRect(0, 0, W, H);
-  ctx.textAlign = 'center';
 
-  let y = 80;
-  ctx.font = '900 48px Jost'; ctx.fillStyle = gold;
-  ctx.fillText('ELEVENSIES', W/2, y); y += 44;
+  const isPerfect = elimMode === 'play_to_11' && score >= 11;
+  const secsPerRound = score > 0 ? (totalTimeMs / score / 1000).toFixed(1) + 's' : '—';
+  const avgPts = score > 0 ? (totalPoints / score).toFixed(1) : '—';
+  const name = await shareGetName();
+  const modeLabel = elimMode === 'play_to_11' ? 'SURVIVAL · PLAY TO 11' : 'SURVIVAL · UNLIMITED';
+  const best = elimHistory.reduce((b, h) => (h.pts > (b?.pts ?? -1) ? h : b), null);
 
-  if (nickname) {
-    ctx.font = '700 24px Jost'; ctx.globalAlpha = 0.6;
-    ctx.fillText(nickname.toUpperCase(), W/2, y); y += 30;
-    ctx.globalAlpha = 1;
-  }
+  const ctx = shareBegin();
+  let y = await drawShareHeader(ctx, modeLabel, '/icons/eliminator.png', name);
 
-  ctx.strokeStyle = 'rgba(240,192,32,0.35)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(W/2-200, y+8); ctx.lineTo(W/2+200, y+8); ctx.stroke();
-  y += 30;
-
-  const modeLabel = elimMode === 'play_to_11' ? 'PLAY TO 11' : 'UNLIMITED';
-  ctx.font = '700 22px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 0.55;
-  ctx.fillText(`SURVIVAL · ${modeLabel}`, W/2, y); y += 30;
-  ctx.globalAlpha = 1;
-
-  ctx.font = '900 112px Jost'; ctx.fillStyle = gold;
   if (isPerfect) {
-    ctx.fillText('PERFECT!', W/2, y + 100); y += 130;
+    y = drawShareHero(ctx, y, 'PERFECT', 'ALL 11 ROUNDS SURVIVED', 88);
   } else {
-    ctx.fillText('SURVIVED', W/2, y + 100); y += 120;
-    ctx.font = '900 80px Jost';
-    ctx.fillText(`${score} ROUND${score !== 1 ? 'S' : ''}`, W/2, y); y += 90;
+    y = drawShareHero(ctx, y, score, `ROUND${score !== 1 ? 'S' : ''} SURVIVED`);
   }
 
-  ctx.font = '700 24px Jost'; ctx.globalAlpha = 0.5;
-  ctx.fillText(date, W/2, y); y += 20;
-  ctx.globalAlpha = 1;
+  if (best) y = drawShareTiles(ctx, y + 4, best.word, 'BEST WORD');
+  drawShareChips(ctx, y + 14, elimHistory, 11);
 
-  ctx.strokeStyle = 'rgba(240,192,32,0.2)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(80, y+14); ctx.lineTo(W-80, y+14); ctx.stroke();
-  y += 36;
+  drawShareStats(ctx, [
+    { value: totalPoints, label: 'TOTAL POINTS' },
+    { value: secsPerRound, label: 'SECS / ROUND' },
+    { value: avgPts, label: 'AVG PTS / ROUND' },
+  ]);
+  drawShareFooter(ctx);
 
-  if (elimHistory.length > 0) {
-    const best11 = [...elimHistory].sort((a, b) => b.pts - a.pts).slice(0, 11);
-    const rowH = 48;
-    const colW = (W - 160) / 2;
-    const col1X = 80, col2X = 80 + colW + 20;
-    const leftCol = best11.slice(0, 6);
-    const rightCol = best11.slice(6);
-    ctx.font = '700 26px Jost';
-    leftCol.forEach((h, i) => {
-      const wy = y + i * rowH;
-      ctx.fillStyle = gold; ctx.globalAlpha = 1;
-      ctx.textAlign = 'left'; ctx.fillText(h.word, col1X, wy);
-      ctx.globalAlpha = 0.55; ctx.textAlign = 'right';
-      ctx.fillText(`${h.pts}`, col1X + colW - 10, wy);
-    });
-    rightCol.forEach((h, i) => {
-      const wy = y + i * rowH;
-      ctx.fillStyle = gold; ctx.globalAlpha = 1;
-      ctx.textAlign = 'left'; ctx.fillText(h.word, col2X, wy);
-      ctx.globalAlpha = 0.55; ctx.textAlign = 'right';
-      ctx.fillText(`${h.pts}`, col2X + colW - 10, wy);
-    });
-    ctx.globalAlpha = 1; ctx.textAlign = 'center';
-    y += Math.ceil(best11.length / 2) * rowH + 20;
-  }
-
-  ctx.strokeStyle = 'rgba(240,192,32,0.3)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(W/2-260, y); ctx.lineTo(W/2+260, y); ctx.stroke();
-  y += 36;
-
-  const statItems = [
-    { label: 'TOTAL PTS', value: String(totalPoints) },
-    { label: 'SECS/ROUND', value: secsPerRound + 's' },
-    { label: 'AVG PTS', value: avgPts },
-  ];
-  const colW2 = W / 3;
-  statItems.forEach((s, i) => {
-    const cx = colW2 * i + colW2 / 2;
-    ctx.font = '900 52px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 1;
-    ctx.fillText(s.value, cx, y + 52);
-    ctx.font = '700 20px Jost'; ctx.globalAlpha = 0.5;
-    ctx.fillText(s.label, cx, y + 82);
-  });
-  ctx.globalAlpha = 1; y += 110;
-
-  ctx.font = '700 28px Jost'; ctx.fillStyle = gold; ctx.globalAlpha = 0.7;
-  ctx.fillText('CAN YOU BEAT ME?', W/2, y + 20);
-  ctx.globalAlpha = 1;
-
-  ctx.fillStyle = gold; ctx.fillRect(0, H - 86, W, 86);
-  ctx.fillStyle = greenDark; ctx.font = '900 34px Jost';
-  ctx.fillText('playelevensies.com', W/2, H - 28);
-
-  const blob = await new Promise(r => shareCanvas.toBlob(r, 'image/png'));
-  const linkText = isPerfect
-    ? `I got a PERFECT score on Elevensies Survival! playelevensies.com`
+  const text = isPerfect
+    ? 'I got a PERFECT score on Elevensies Survival! playelevensies.com'
     : `I survived ${score} round${score !== 1 ? 's' : ''} of Elevensies Survival! playelevensies.com`;
+  await shareCanvasImage('elevensies-survival.png', text, document.getElementById('elimShareBtn'));
+}
 
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'survival.png', { type: 'image/png' })] })) {
-    try { await navigator.share({ files: [new File([blob], 'survival.png', { type: 'image/png' })], text: linkText }); return; } catch(e) {}
-  }
-  await navigator.clipboard.writeText(linkText);
-  const btn = document.getElementById('elimShareBtn');
-  if (btn) { btn.textContent = 'COPIED!'; setTimeout(() => { btn.textContent = 'SHARE'; }, 2000); }
+// ===== Draft & Links share cards =====
+
+async function shareDraftResult() {
+  await document.fonts.ready;
+  const total = draftTotal;
+  const best = draftWords.reduce((b, w) => (w.pts > (b?.pts ?? -1) ? w : b), null);
+  const avgWord = draftWords.length ? (total / draftWords.length).toFixed(1) : '—';
+  const [name, pb] = await Promise.all([shareGetName(), sharePersonalBest('draft_results', 'score')]);
+
+  const ctx = shareBegin();
+  let y = await drawShareHeader(ctx, 'DRAFT', '/icons/draft.png', name);
+  y = drawShareHero(ctx, y, total, `POINTS FROM ${draftWords.length} WORD${draftWords.length !== 1 ? 'S' : ''}`);
+  if (best) y = drawShareTiles(ctx, y + 6, best.word, 'BEST WORD');
+  drawShareChips(ctx, y + 14, draftWords, 11);
+  drawShareStats(ctx, [
+    { value: avgWord, label: 'AVG / WORD' },
+    { value: best ? best.pts : '—', label: 'BEST WORD' },
+    { value: Math.max(pb || 0, total), label: 'PERSONAL BEST' },
+  ]);
+  drawShareFooter(ctx);
+
+  const text = `I scored ${total} points on Elevensies Draft! playelevensies.com`;
+  await shareCanvasImage('elevensies-draft.png', text, document.getElementById('draftShareBtn'));
+}
+
+async function shareLinksResult() {
+  await document.fonts.ready;
+  const total = linksTotalScore;
+  const best = linksWords.reduce((b, w) => (w.pts > (b?.pts ?? -1) ? w : b), null);
+  const longest = linksWords.reduce((b, w) => (w.word.length > (b?.word.length ?? -1) ? w : b), null);
+  const avgWord = linksWords.length ? (total / linksWords.length).toFixed(1) : '—';
+  const [name, pb] = await Promise.all([shareGetName(), sharePersonalBest('links_results', 'total_score')]);
+
+  const ctx = shareBegin();
+  let y = await drawShareHeader(ctx, 'LINKS', '/icons/links.png', name);
+  y = drawShareHero(ctx, y, total, linksWords.length >= 11 ? 'POINTS · CHAIN COMPLETE' : `POINTS FROM ${linksWords.length} WORD${linksWords.length !== 1 ? 'S' : ''}`);
+  if (best) y = drawShareTiles(ctx, y + 6, best.word, 'BEST WORD');
+  // Chain order matters here, so these stay in the order they were played
+  drawShareChips(ctx, y + 14, linksWords, null, 'THE CHAIN');
+  drawShareStats(ctx, [
+    { value: avgWord, label: 'AVG / WORD' },
+    { value: longest ? longest.word.length : '—', label: 'LONGEST WORD' },
+    { value: Math.max(pb || 0, total), label: 'PERSONAL BEST' },
+  ]);
+  drawShareFooter(ctx);
+
+  const text = `I scored ${total} points on Elevensies Links! playelevensies.com`;
+  await shareCanvasImage('elevensies-links.png', text, document.getElementById('linksShareBtn'));
 }
 
 document.getElementById('elimShareBtn').addEventListener('click', () => {
