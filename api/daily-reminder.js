@@ -401,17 +401,20 @@ export default async function handler(req, res) {
   console.log('PUSH RESULT:', JSON.stringify({ ...pushResult, queryErrors: dbErrors }));
 
   // Send emails
-  const offsetFilter = isUK
-    ? `utc_offset=in.(0,60)&utc_offset=not.is.null`
-    : `utc_offset=eq.${targetOffset}`;
+  // Match the offset exactly, the same way push does. The old version treated
+  // 0 and 60 as one group, so both UK jobs emailed every UK player — one at
+  // the right time and one an hour out, in whichever season.
+  const offsetFilter = `utc_offset=eq.${targetOffset}`;
 
   const eligibleProfiles = await dbAll(`/profiles?select=id,display_name,reminders_unsubscribed,utc_offset&${offsetFilter}`);
   if (!eligibleProfiles?.length) {
     return res.status(200).json({ message: `No profiles at offset ${targetOffset}`, ...pushResult });
   }
 
+  // Profiles with no offset recorded default to GMT, so they're picked up by
+  // exactly one job rather than by both UK jobs.
   let allProfiles = eligibleProfiles;
-  if (isUK) {
+  if (targetOffset === 0) {
     const nullOffsets = await dbAll('/profiles?select=id,display_name,reminders_unsubscribed,utc_offset&utc_offset=is.null');
     allProfiles = [...eligibleProfiles, ...(nullOffsets || [])];
   }
