@@ -8351,7 +8351,8 @@ async function showGameOver() {
       bestWord: bestPossible ? (foundIt ? displayWord : bestPossible.word) : '',
       bestWordPts: bestPossible ? (foundIt ? myBestScore : bestPossible.score) + ' PTS' : '',
       bestWordLabel: bestPossible ? (missed ? 'YOU MISSED THIS ONE' : foundIt ? 'YOU GOT THE BEST POSSIBLE WORD! 🎉' : 'BEST POSSIBLE WORD') : '',
-      bestWordMissed: missed
+      bestWordMissed: missed,
+      date: todayString()
     }));
   }
 
@@ -8776,7 +8777,10 @@ async function shareAnagramResult(solved, word) {
   ctx.lineTo(W / 2 + 220, divY1);
   ctx.stroke();
 
-  // Result — two lines
+  // Result — two lines. Everything below is positioned off this baseline:
+  // result (resultY, +108), date (+168), stats (+308), CTA (+508).
+  const resultY = divY1 + 130;
+
   ctx.font = '900 96px Jost';
   ctx.fillStyle = gold;
   ctx.fillText(solved ? 'ANAGRAM' : 'ANAGRAM', W / 2, resultY);
@@ -9218,15 +9222,43 @@ function startDraft() {
   }, 50);
 }
 
+// Value bands, so a set of three offers is always a real decision rather
+// than three interchangeable 1-pointers or three unplayable 10-pointers.
+function letterBand(l) {
+  const v = LETTER_VALUES[l] || 0;
+  if (v <= 1) return 'low';
+  if (v <= 4) return 'mid';
+  return 'high';
+}
+
 function getDraftChoices() {
-  // Pick 3 random letters from pool
-  const pool = [...LETTER_POOL];
-  const choices = [];
-  for (let i = 0; i < 3; i++) {
-    const idx = Math.floor(Math.random() * pool.length);
-    choices.push(pool.splice(idx, 1)[0]);
+  // Drawn from the weighted pool so common letters still come up more often,
+  // but with three rules: no repeats, at least two different value bands, and
+  // a vowel guaranteed if the rack is short of them.
+  const needVowel = countVowels(draftPicks) < 2 && draftPicks.length >= 4;
+
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const pool = [...LETTER_POOL];
+    const choices = [];
+    while (choices.length < 3 && pool.length) {
+      const idx = Math.floor(Math.random() * pool.length);
+      const letter = pool.splice(idx, 1)[0];
+      if (choices.includes(letter)) continue; // never offer the same letter twice
+      choices.push(letter);
+    }
+    if (choices.length < 3) continue;
+
+    const bands = new Set(choices.map(letterBand));
+    if (bands.size < 2) continue;
+    if (needVowel && !choices.some(l => VOWELS.has(l))) continue;
+
+    return choices;
   }
-  return choices;
+
+  // Fallback — one from each band, still all different letters
+  const byBand = { low: [], mid: [], high: [] };
+  for (const l of ALPHABET) byBand[letterBand(l)].push(l);
+  return ['low', 'mid', 'high'].map(b => byBand[b][Math.floor(Math.random() * byBand[b].length)]);
 }
 
 function renderDraftPick() {
@@ -10387,17 +10419,27 @@ lobbyDetailsBtn.addEventListener('click', async () => {
   document.getElementById('newBadgesSection').style.display = 'none';
   document.getElementById('bestWordSection').style.display = 'none';
 
-  // Try localStorage first (games played this session)
+  // Try localStorage first (games played this session). Only trust it if it's
+  // from today — otherwise a result cached on a previous day would win over
+  // the game actually played today, possibly on another device.
   let saved = JSON.parse(localStorage.getItem('elevensies_last_result') || 'null');
+  if (saved && saved.date !== todayString()) {
+    localStorage.removeItem('elevensies_last_result');
+    saved = null;
+  }
 
-  // Fallback: fetch today's game from Supabase
+  // Fallback: fetch today's game from Supabase, using the same window the
+  // lobby score uses so the two can never disagree
   if (!saved && sbClient && currentUser) {
+    const winStart = new Date(); winStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
+    const winEnd = new Date(); winEnd.setHours(FULL_GAME_HOUR_END, 0, 0, 0);
     const { data } = await sbClient
       .from('game_results')
       .select('total_score, history, avg_points_per_word')
       .eq('user_id', currentUser.id)
       .eq('game_status', 'completed')
-      .gte('played_at', todayString() + 'T00:00:00')
+      .gte('played_at', winStart.toISOString())
+      .lte('played_at', winEnd.toISOString())
       .order('played_at', { ascending: false })
       .limit(1);
     if (data && data.length > 0) {
@@ -10430,8 +10472,9 @@ lobbyDetailsBtn.addEventListener('click', async () => {
     document.getElementById('bestWordPts').textContent = saved.bestWordPts;
   }
 
-  // Show new badges if any were earned this session
-  const savedBadges = JSON.parse(localStorage.getItem('elevensies_session_badges') || '[]');
+  // Show new badges if any were earned this session — but only for today's
+  // game, for the same reason as the result above
+  const savedBadges = saved ? JSON.parse(localStorage.getItem('elevensies_session_badges') || '[]') : [];
   if (savedBadges.length > 0) showNewBadges(savedBadges);
 
   shareBtn.textContent = 'SHARE RESULT';
