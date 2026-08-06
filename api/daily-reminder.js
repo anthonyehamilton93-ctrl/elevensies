@@ -9,6 +9,9 @@ const CRON_SECRET = process.env.CRON_SECRET;
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
+// Tracks any query that failed, so a broken filter can't fail silently.
+const dbErrors = [];
+
 async function db(path, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
     headers: {
@@ -21,7 +24,15 @@ async function db(path, options = {}) {
     ...options,
   });
   if (options.method === 'DELETE') return res.ok;
-  return res.json();
+
+  const body = await res.json().catch(() => null);
+  if (!res.ok || (body && !Array.isArray(body) && body.message)) {
+    const detail = { path, status: res.status, message: body?.message || 'unknown' };
+    dbErrors.push(detail);
+    console.error('DB QUERY FAILED:', JSON.stringify(detail));
+    return [];
+  }
+  return body;
 }
 
 // ===== Scaling helpers =====
@@ -262,6 +273,38 @@ export default async function handler(req, res) {
     }
   }
 
+  // ---- Dry run: report what the 11am job would do, send nothing ----
+  if (req.query?.dryrun) {
+    const off = req.query.offset !== undefined ? Number(req.query.offset) : 60;
+    const subs = await dbAll('/push_subscriptions?select=id,user_id,subscription');
+    const ids = subs.map(s => s.user_id);
+    const profs = await dbByIds('/profiles?select=id,utc_offset', 'id', ids);
+    const offsetMap = {};
+    profs.forEach(p => { offsetMap[p.id] = p.utc_offset; });
+
+    const rows = subs.map(s => {
+      const o = offsetMap[s.user_id];
+      const nullFallback = (o === null || o === undefined) && (off === 0 || off === 60);
+      return {
+        user_id: s.user_id,
+        utc_offset: o === undefined ? 'NO PROFILE ROW' : o,
+        offset_type: typeof o,
+        has_endpoint: !!(s.subscription && s.subscription.endpoint),
+        would_receive: nullFallback || Number(o) === Number(off),
+      };
+    });
+
+    return res.status(200).json({
+      testingOffset: off,
+      totalSubscribers: subs.length,
+      profilesFound: profs.length,
+      wouldReceive: rows.filter(r => r.would_receive).length,
+      vapidConfigured: !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY),
+      queryErrors: dbErrors,
+      subscribers: rows,
+    });
+  }
+
   // ---- Push-only route ----
   if (req.query?.push) {
     const explicitOffset = req.query.offset !== undefined ? Number(req.query.offset) : null;
@@ -355,6 +398,7 @@ export default async function handler(req, res) {
 
   // Send push notifications
   const pushResult = await sendPushToTimezone(targetOffset).catch(err => ({ error: err.message, pushSent: 0 }));
+  console.log('PUSH RESULT:', JSON.stringify({ ...pushResult, queryErrors: dbErrors }));
 
   // Send emails
   const offsetFilter = isUK
