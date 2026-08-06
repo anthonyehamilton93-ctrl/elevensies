@@ -2311,6 +2311,9 @@
       <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;margin-top:4px;">ROUNDS SURVIVED</div>
     </div>
 
+    <!-- The word that was there to be found on the losing round -->
+    <div id="elimMissedWord" style="display:none;margin-bottom:16px;padding:12px;border:1px solid var(--gold-dark);text-align:center;"></div>
+
     <!-- Stats -->
     <div class="account-stats" id="elimResultStats" style="margin-bottom:16px;"></div>
 
@@ -3756,8 +3759,22 @@
   <div class="modal">
     <div class="modal-title" id="leagueDetailName">LEAGUE</div>
 
-    <!-- Leaderboard immediately below title -->
-    <div id="leagueDetailBoard" style="margin-bottom:16px;"></div>
+    <div style="font-size:10px;letter-spacing:0.12em;opacity:0.5;text-align:center;margin-bottom:12px;" id="leagueSeasonMeta"></div>
+
+    <div class="lb-tabs" style="margin-bottom:12px;">
+      <button class="lb-tab active" id="leagueTabSeason">SEASON</button>
+      <button class="lb-tab" id="leagueTabAllTime">ALL TIME</button>
+      <button class="lb-tab" id="leagueTabHonours">HONOURS</button>
+    </div>
+
+    <!-- Season points table -->
+    <div id="leagueSeasonPanel" style="margin-bottom:16px;"></div>
+
+    <!-- All-time board -->
+    <div id="leagueDetailBoard" style="margin-bottom:16px;display:none;"></div>
+
+    <!-- Past seasons -->
+    <div id="leagueHonoursPanel" style="margin-bottom:16px;display:none;"></div>
 
     <!-- Password & share dropdown -->
     <div class="expand-section" style="margin-bottom:4px;">
@@ -3769,6 +3786,12 @@
           <div style="font-size:10px;letter-spacing:0.12em;opacity:0.4;margin-bottom:4px;">PASSWORD</div>
           <div id="leagueDetailCode" style="font-size:16px;font-weight:900;letter-spacing:0.2em;color:var(--gold);margin-bottom:12px;cursor:pointer;" title="Tap to copy"></div>
           <button class="cancel-btn" id="leagueShareBtn" style="font-size:10px;padding:6px 16px;margin:0;">SHARE INVITE</button>
+        </div>
+        <div id="leagueStartWrap" style="display:none;border-top:1px solid rgba(240,192,32,0.12);margin-top:12px;padding-top:12px;text-align:center;">
+          <div style="font-size:10px;letter-spacing:0.12em;opacity:0.4;margin-bottom:6px;">SEASON START DATE</div>
+          <input id="leagueStartInput" type="date" style="background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;padding:8px 12px;outline:none;margin-bottom:8px;">
+          <button class="cancel-btn" id="leagueStartSaveBtn" style="font-size:10px;padding:6px 16px;margin:0 auto;display:block;">SAVE START DATE</button>
+          <div id="leagueStartMsg" style="font-size:10px;letter-spacing:0.06em;margin-top:6px;min-height:14px;opacity:0.7;"></div>
         </div>
       </div>
     </div>
@@ -4988,7 +5011,7 @@ async function openLeagueDetail(leagueId) {
   overlay.classList.add('show');
   try {
     const [leagueRes, membersRes] = await Promise.all([
-      sbClient.from('leagues').select('id,name,join_code,created_by').eq('id', leagueId).single(),
+      sbClient.from('leagues').select('id,name,join_code,created_by,season_start_date,season_number').eq('id', leagueId).single(),
       sbClient.from('league_members').select('user_id,joined_at').eq('league_id', leagueId),
     ]);
     const league = leagueRes.data;
@@ -5155,6 +5178,18 @@ async function openLeagueDetail(leagueId) {
     }
 
     renderLeagueBoard('best');
+    switchLeagueTab('season');
+    await renderLeagueSeason(leagueId);
+
+    // Only the admin can move the start date, and only before it arrives
+    const startWrap = document.getElementById('leagueStartWrap');
+    if (isAdmin && league.season_start_date && new Date(league.season_start_date + 'T00:00:00') > new Date()) {
+      startWrap.style.display = '';
+      document.getElementById('leagueStartInput').value = league.season_start_date;
+      document.getElementById('leagueStartMsg').textContent = '';
+    } else {
+      startWrap.style.display = 'none';
+    }
 
     document.getElementById('leagueDetailMembersList').innerHTML = members.map(m => {
       const name = profileMap[m.user_id] || 'PLAYER';
@@ -5167,6 +5202,119 @@ async function openLeagueDetail(leagueId) {
     }).join('');
 
   } catch(e) { console.error('League detail error:', e); }
+}
+
+// ===== League seasons =====
+// Everyone who plays scores 1 point that day; the top three get 3, 2 and 1
+// on top. Computed live in Postgres — see elevensies_league_season().
+
+let currentLeagueSeason = null;
+
+function switchLeagueTab(tab) {
+  const panels = {
+    season: 'leagueSeasonPanel',
+    alltime: 'leagueDetailBoard',
+    honours: 'leagueHonoursPanel',
+  };
+  const tabs = { season: 'leagueTabSeason', alltime: 'leagueTabAllTime', honours: 'leagueTabHonours' };
+  Object.keys(panels).forEach(k => {
+    const panel = document.getElementById(panels[k]);
+    const btn = document.getElementById(tabs[k]);
+    if (panel) panel.style.display = k === tab ? '' : 'none';
+    if (btn) btn.classList.toggle('active', k === tab);
+  });
+  if (tab === 'honours' && currentLeagueDetail) renderLeagueHonours(currentLeagueDetail.id);
+}
+
+async function renderLeagueSeason(leagueId) {
+  const panel = document.getElementById('leagueSeasonPanel');
+  const meta = document.getElementById('leagueSeasonMeta');
+  panel.innerHTML = '<div class="lb-loading">LOADING…</div>';
+
+  const { data, error } = await sbClient.rpc('elevensies_league_season', { p_league_id: leagueId });
+  if (error || !data) {
+    console.error('League season error:', error);
+    panel.innerHTML = '<div class="lb-empty">COULD NOT LOAD SEASON</div>';
+    return;
+  }
+  currentLeagueSeason = data;
+
+  if (data.length === 0) {
+    panel.innerHTML = '<div class="lb-empty">NO MEMBERS YET</div>';
+    return;
+  }
+
+  const s = data[0];
+  const notStarted = new Date(s.season_start + 'T00:00:00') > new Date();
+  const startLabel = new Date(s.season_start + 'T12:00:00')
+    .toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase();
+  meta.textContent = notStarted
+    ? `SEASON ${s.season_number} STARTS ${startLabel}`
+    : `SEASON ${s.season_number} · ${s.days_remaining} DAY${s.days_remaining !== 1 ? 'S' : ''} LEFT`;
+
+  const GRID = '16px minmax(0,1fr) 34px 30px 34px 34px';
+  panel.innerHTML = `
+    <div class="lb-row lb-header" style="cursor:default;grid-template-columns:${GRID};">
+      <span></span><span></span>
+      <span class="lb-games" style="text-align:center;">PLD</span>
+      <span class="lb-games" style="text-align:center;">WON</span>
+      <span class="lb-games" style="text-align:center;">TDY</span>
+      <span class="lb-score">PTS</span>
+    </div>` +
+    data.map(r => {
+      const isYou = r.user_id === currentUser.id;
+      return `<div class="lb-row${isYou ? ' lb-you' : ''}" style="grid-template-columns:${GRID};cursor:pointer;" data-uid="${r.user_id}">
+        <span class="lb-rank">${r.rank}</span>
+        <span class="lb-name"><span class="lb-name-text">${r.display_name}${isYou ? ' ★' : ''}</span>${
+          r.eligible ? '' : '<span style="font-size:7px;letter-spacing:0.06em;opacity:0.45;border:1px solid rgba(240,192,32,0.3);padding:1px 3px;flex-shrink:0;">NEXT</span>'
+        }</span>
+        <span class="lb-games" style="text-align:center;">${r.days_played}</span>
+        <span class="lb-games" style="text-align:center;">${r.days_won || '—'}</span>
+        <span class="lb-games" style="text-align:center;${r.today_score != null ? 'color:var(--gold);' : 'opacity:0.3;'}">${r.today_score != null ? r.today_score : '—'}</span>
+        <span class="lb-score">${r.points}</span>
+      </div>`;
+    }).join('') +
+    `<div style="font-size:9px;letter-spacing:0.06em;opacity:0.4;text-align:center;padding-top:10px;line-height:1.6;">
+      PLAY = 1 PT · 1ST = 4 · 2ND = 3 · 3RD = 2<br>
+      TODAY'S POINTS AREN'T FINAL UNTIL EVERY PLAYER'S WINDOW CLOSES
+      ${data.some(r => !r.eligible) ? '<br>NEXT = JOINED MID-SEASON, ELIGIBLE FROM THE NEXT ONE' : ''}
+    </div>`;
+
+  panel.querySelectorAll('[data-uid]').forEach(row => {
+    row.addEventListener('click', () => openPlayerProfile(row.dataset.uid));
+  });
+}
+
+async function renderLeagueHonours(leagueId) {
+  const panel = document.getElementById('leagueHonoursPanel');
+  panel.innerHTML = '<div class="lb-loading">LOADING…</div>';
+  const { data, error } = await sbClient.rpc('elevensies_league_honours', { p_league_id: leagueId });
+  if (error) {
+    panel.innerHTML = '<div class="lb-empty">COULD NOT LOAD HONOURS</div>';
+    return;
+  }
+  if (!data || data.length === 0) {
+    panel.innerHTML = '<div class="lb-empty">NO SEASONS FINISHED YET — THE FIRST ONE IS UNDER WAY</div>';
+    return;
+  }
+
+  // Win counts across every completed season
+  const wins = {};
+  data.forEach(s => (s.winner_names || []).forEach(n => { wins[n] = (wins[n] || 0) + 1; }));
+  const table = Object.entries(wins).sort((a, b) => b[1] - a[1]);
+
+  panel.innerHTML =
+    `<div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;margin-bottom:8px;">LEAGUE WINS</div>` +
+    table.map(([n, w]) => `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;letter-spacing:0.06em;border-bottom:1px solid rgba(240,192,32,0.08);">
+      <span>${n}</span><span style="color:var(--gold);font-weight:900;">${w}</span></div>`).join('') +
+    `<div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;margin:16px 0 8px;">PAST SEASONS</div>` +
+    data.map(s => {
+      const d = new Date(s.end_date + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase();
+      const who = (s.winner_names || []).length ? s.winner_names.join(' & ') : 'NO WINNER';
+      return `<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px;letter-spacing:0.05em;border-bottom:1px solid rgba(240,192,32,0.08);">
+        <span style="opacity:0.5;">SEASON ${s.season_number} · ${d}</span>
+        <span style="color:var(--gold);font-weight:700;">${who}</span></div>`;
+    }).join('');
 }
 
 async function removeMemberFromLeague(leagueId, userId) {
@@ -8486,35 +8634,47 @@ function shareBegin() {
 }
 
 async function drawShareHeader(ctx, modeLabel, iconSrc, name) {
+  // The mode is the headline — at a glance these cards must not be mistaken
+  // for one another. The wordmark sits above it, smaller.
   ctx.textAlign = 'center';
   ctx.fillStyle = SHARE_GOLD;
-  ctx.font = '900 46px Jost';
-  ctx.fillText('E L E V E N S I E S', SHARE_W / 2, 84);
+  ctx.globalAlpha = 0.7;
+  ctx.font = '900 28px Jost';
+  ctx.fillText('E L E V E N S I E S', SHARE_W / 2, 62);
+  ctx.globalAlpha = 1;
 
   const icon = iconSrc ? await loadShareImage(iconSrc) : null;
-  ctx.font = '900 22px Jost';
-  const textW = ctx.measureText(modeLabel).width;
-  const iconW = icon ? 30 : 0;
-  const padX = 20, gap = icon ? 12 : 0, chipH = 46;
-  const chipW = padX * 2 + iconW + gap + textW;
-  const chipX = SHARE_W / 2 - chipW / 2, chipY = 110;
+  // Long labels like "SURVIVAL · PLAY TO 11" step down a size to stay on one line
+  let labelSize = modeLabel.length > 16 ? 30 : 38;
+  ctx.font = `900 ${labelSize}px Jost`;
+  let textW = ctx.measureText(modeLabel).width;
+  const iconSize = 44;
+  const padX = 26, gap = icon ? 16 : 0, chipH = 74;
+  let chipW = padX * 2 + (icon ? iconSize : 0) + gap + textW;
+  if (chipW > SHARE_W - 120) {
+    labelSize = 26;
+    ctx.font = `900 ${labelSize}px Jost`;
+    textW = ctx.measureText(modeLabel).width;
+    chipW = padX * 2 + (icon ? iconSize : 0) + gap + textW;
+  }
+  const chipX = SHARE_W / 2 - chipW / 2, chipY = 86;
 
-  ctx.strokeStyle = 'rgba(240,192,32,0.5)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(chipX, chipY, chipW, chipH);
-  if (icon) ctx.drawImage(icon, chipX + padX, chipY + 8, 30, 30);
-  ctx.textAlign = 'left';
+  // Solid gold block — reads instantly, even as a thumbnail
   ctx.fillStyle = SHARE_GOLD;
-  ctx.fillText(modeLabel, chipX + padX + iconW + gap, chipY + 31);
+  ctx.fillRect(chipX, chipY, chipW, chipH);
+  if (icon) ctx.drawImage(icon, chipX + padX, chipY + (chipH - iconSize) / 2, iconSize, iconSize);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = SHARE_GREEN;
+  ctx.fillText(modeLabel, chipX + padX + (icon ? iconSize : 0) + gap, chipY + chipH / 2 + labelSize * 0.36);
 
   ctx.textAlign = 'center';
   const meta = [name ? name.toUpperCase() : null, shareDateLabel()].filter(Boolean).join(' · ');
   ctx.font = '700 22px Jost';
   ctx.globalAlpha = 0.6;
-  ctx.fillText(meta, SHARE_W / 2, 202);
+  ctx.fillText(meta, SHARE_W / 2, 200);
   ctx.globalAlpha = 1;
 
-  return 232;
+  return 230;
 }
 
 function drawShareHero(ctx, y, big, label, size) {
@@ -10703,6 +10863,25 @@ document.getElementById('statsModeLinks')?.addEventListener('click', async () =>
 document.getElementById('leagueDetailCloseBtn').addEventListener('click', () => {
   document.getElementById('leagueDetailOverlay').classList.remove('show');
 });
+document.getElementById('leagueTabSeason')?.addEventListener('click', () => switchLeagueTab('season'));
+document.getElementById('leagueTabAllTime')?.addEventListener('click', () => switchLeagueTab('alltime'));
+document.getElementById('leagueTabHonours')?.addEventListener('click', () => switchLeagueTab('honours'));
+
+document.getElementById('leagueStartSaveBtn')?.addEventListener('click', async () => {
+  if (!currentLeagueDetail) return;
+  const val = document.getElementById('leagueStartInput').value;
+  const msg = document.getElementById('leagueStartMsg');
+  if (!val) { msg.textContent = 'PICK A DATE'; return; }
+  msg.textContent = 'SAVING…';
+  const { data, error } = await sbClient.rpc('elevensies_set_league_start', {
+    p_league_id: currentLeagueDetail.id,
+    p_date: val,
+  });
+  if (error) { msg.textContent = 'COULD NOT SAVE'; return; }
+  if (data !== 'ok') { msg.textContent = String(data).toUpperCase(); return; }
+  msg.textContent = 'SAVED ✓';
+  await openLeagueDetail(currentLeagueDetail.id);
+});
 document.getElementById('fullGameStatsCloseBtn').addEventListener('click', () => {
   document.getElementById('fullGameStatsOverlay').classList.remove('show');
 });
@@ -11283,6 +11462,29 @@ function getElimRack() {
   return { rackLetters: ['B','O','X','E','R','S','H','I','P'], bonus: 'W' };
 }
 
+// Best word available on a given rack — used to show players what would have
+// saved them on the round they went out.
+function findBestElimWord(letters) {
+  if (!letters || !letters.length || !SCRABBLE_WORDS.size) return null;
+  const freq = {};
+  for (const l of letters) freq[l] = (freq[l] || 0) + 1;
+  const maxLen = letters.length;
+  let best = null;
+  for (const word of SCRABBLE_WORDS) {
+    if (word.length < 2 || word.length > maxLen) continue;
+    const need = {};
+    let ok = true;
+    for (const ch of word) {
+      need[ch] = (need[ch] || 0) + 1;
+      if (need[ch] > (freq[ch] || 0)) { ok = false; break; }
+    }
+    if (!ok) continue;
+    const sc = scoreWord(word);
+    if (!best || sc > best.score) best = { word, score: sc };
+  }
+  return best;
+}
+
 // Eliminator state
 let elimCurrentRound = 0;
 let elimSelected = [];
@@ -11296,6 +11498,7 @@ let elimPlaying = false;
 let elimCurrentRack = null;
 let elimHistory = []; // { word, pts } per round
 let elimMode = 'unlimited'; // 'unlimited' | 'play_to_11'
+let elimMissedWord = null;  // what they could have played on the losing round
 
 async function startEliminator(mode = 'unlimited') {
   if (!sbClient || !currentUser) {
@@ -11311,6 +11514,7 @@ async function startEliminator(mode = 'unlimited') {
   elimTotalTimeMs = 0;
   elimTotalPoints = 0;
   elimHistory = [];
+  elimMissedWord = null;
   elimPlaying = true;
   const elimLoadStart = Date.now();
   const loadingLabel = document.getElementById('anagramLoadingOverlay')?.querySelector('.loader-label');
@@ -11474,6 +11678,13 @@ function onElimEliminated() {
   elimPlaying = false;
   clearInterval(elimTimerInterval);
   document.getElementById('elimTimer').style.color = '';
+  // Work out what was there to be found on the round that ended the run
+  elimMissedWord = null;
+  if (elimCurrentRack) {
+    const all = [...elimCurrentRack.rackLetters, elimCurrentRack.bonus];
+    const best = findBestElimWord(all);
+    if (best && best.score >= 11) elimMissedWord = best;
+  }
   showEliminatorResult(elimCurrentRound, elimTotalTimeMs, elimTotalPoints);
 }
 
@@ -11742,6 +11953,18 @@ function showEliminatorResult(score, totalTimeMs, totalPoints, perfect = false) 
         : score === 0
         ? 'Eliminated on round 1. Better luck next time!'
         : `Survived ${score} round${score !== 1 ? 's' : ''}. Eliminated on round ${score + 1}.`;
+
+      const missedEl = document.getElementById('elimMissedWord');
+      if (missedEl) {
+        if (!perfect && elimMissedWord) {
+          missedEl.style.display = '';
+          missedEl.innerHTML = `<div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;margin-bottom:6px;">YOU COULD HAVE PLAYED</div>
+            <div style="font-size:26px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">${elimMissedWord.word}</div>
+            <div style="font-size:11px;letter-spacing:0.1em;opacity:0.65;margin-top:2px;">${elimMissedWord.score} PTS</div>`;
+        } else {
+          missedEl.style.display = 'none';
+        }
+      }
 
   const secsPerRound = score > 0 ? (totalTimeMs / score / 1000).toFixed(1) + 's' : '—';
   const avgPts = score > 0 ? (totalPoints / score).toFixed(1) : '—';
