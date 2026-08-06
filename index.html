@@ -846,6 +846,24 @@
     box-sizing: border-box;
     margin-bottom: 8px;
   }
+  /* Draws the eye to WHAT'S NEW until the player has opened it once */
+  @keyframes newPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(240,192,32,0.45); }
+    50%      { box-shadow: 0 0 0 9px rgba(240,192,32,0); }
+  }
+  .pulse-new {
+    animation: newPulse 1.9s ease-out infinite;
+    border-color: var(--gold) !important;
+    color: var(--gold) !important;
+  }
+  .new-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--gold);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
   @keyframes sqPulse {
     0%, 100% { opacity: 0.12; }
     50% { opacity: 1; }
@@ -2521,7 +2539,7 @@
 
     <!-- What's new -->
     <div style="margin-bottom:16px;">
-      <button class="auth-submit-btn" id="briefingWhatsNewBtn" style="font-size:11px;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);">WHAT'S NEW ›</button>
+      <button class="auth-submit-btn" id="briefingWhatsNewBtn" style="font-size:11px;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);">WHAT'S NEW ›<span class="new-dot" id="whatsNewDot" style="display:none;"></span></button>
     </div>
 
     <button class="auth-submit-btn" id="briefingCloseBtn">LET'S PLAY</button>
@@ -2532,17 +2550,17 @@
 <div class="overlay" id="whatsNewOverlay" style="z-index:2000;">
   <div class="modal" style="text-align:center;">
     <div class="modal-title">WHAT'S NEW</div>
-    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:8px;opacity:0.85;">
-      <strong style="color:var(--gold);">MINI LEAGUES</strong><br>
-      Create a private league with friends and compete on your own Top 11. Find it in STATS → LEAGUES.
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:12px;opacity:0.85;">
+      <strong style="color:var(--gold);">LEAGUE SEASONS</strong><br>
+      Mini leagues now run in 11-day seasons. Play each day to score points — the day's top three get a bonus. Win the season and it goes on your record, then a fresh one begins. Your league admin sets the start date. See STATS → LEAGUES.
     </div>
-    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:8px;opacity:0.85;">
-      <strong style="color:var(--gold);">SURVIVAL</strong><br>
-      A new unlimited mode — find a word scoring 11+ points before the clock runs out.
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:12px;opacity:0.85;">
+      <strong style="color:var(--gold);">DRAFT</strong> <span style="font-size:8px;border:1px solid var(--gold);padding:1px 4px;letter-spacing:0.1em;">BETA</span><br>
+      Build your own rack — 11 picks, three letters to choose from each time — then play 11 words from it.
     </div>
     <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
-      <strong style="color:var(--gold);">PLAYER PROFILES</strong><br>
-      Tap any player on the Top 11 to see their stats and badges.
+      <strong style="color:var(--gold);">LINKS</strong> <span style="font-size:8px;border:1px solid var(--gold);padding:1px 4px;letter-spacing:0.1em;">BETA</span><br>
+      Eleven words in a chain, each starting with the last letter of the one before.
     </div>
     <button class="cancel-btn" id="whatsNewCloseBtn">CLOSE</button>
   </div>
@@ -3615,6 +3633,7 @@
         <button class="auth-submit-btn" id="createLeagueBtn" style="margin:0;font-size:11px;">+ CREATE</button>
         <button class="auth-submit-btn" id="joinLeagueBtn" style="margin:0;font-size:11px;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);">JOIN</button>
       </div>
+      <button class="cancel-btn" id="leaguesHowItWorksBtn" style="width:100%;font-size:10px;padding:8px 0;margin-top:8px;">HOW LEAGUES WORK</button>
     </div>
 
     <button class="cancel-btn" id="fullGameStatsCloseBtn">CLOSE</button>
@@ -3726,6 +3745,53 @@
   </div>
 </div>
 
+<!-- How leagues work -->
+<div class="overlay" id="leaguesHowOverlay" style="z-index:2500;">
+  <div class="modal">
+    <div style="text-align:center;margin-bottom:8px;"><img src="/icons/stats.png" style="height:36px;width:auto;opacity:0.9;"></div>
+    <div class="modal-title">HOW LEAGUES WORK</div>
+    <div style="font-size:12px;letter-spacing:0.05em;line-height:1.8;opacity:0.85;">
+
+      <p style="margin:0 0 14px;">A league is a private table between you and whoever you share the password with. Every league runs in <strong style="color:var(--gold);">11-day seasons</strong>.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;color:var(--gold);">SCORING</div>
+      <p style="margin:0 0 8px;">Each day, everyone in the league who plays the Full Game scores points based on where they finish that day.</p>
+      <div style="background:var(--green-dark);padding:12px;margin-bottom:14px;font-size:11px;line-height:2;letter-spacing:0.04em;">
+        <div><strong style="color:var(--gold);">4+ players</strong> — 4, 3, 2, then 1 for everyone else</div>
+        <div><strong style="color:var(--gold);">3 players</strong> — 3, 2, 1</div>
+        <div><strong style="color:var(--gold);">2 players</strong> — 3, 1</div>
+      </div>
+      <p style="margin:0 0 14px;">Turning up always scores. Miss a day and you get nothing — a Lifeline protects your streak, not your league points. Tied scores share the higher award.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;color:var(--gold);">SEASONS</div>
+      <p style="margin:0 0 8px;">The league admin picks the start date. After 11 days the table is settled, the winner takes a league win, and the next season begins the following day.</p>
+      <p style="margin:0 0 14px;">Join whenever you like — you'll score points straight away, but you can only win a season you were in before it started.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;color:var(--gold);">TIMEZONES</div>
+      <p style="margin:0 0 14px;">Days are counted in each player's own local time, so a league works across the world. Today's points aren't final until everyone's 11am window has closed.</p>
+
+      <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;margin-bottom:6px;color:var(--gold);">TIEBREAKS</div>
+      <p style="margin:0;">Level on points? Most days won, then highest single score, then whoever joined first.</p>
+
+    </div>
+    <button class="cancel-btn" id="leaguesHowCloseBtn" style="margin-top:16px;">GOT IT</button>
+  </div>
+</div>
+
+<!-- Season complete card -->
+<div class="overlay" id="seasonCompleteOverlay" style="z-index:2600;">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:10px;letter-spacing:0.2em;opacity:0.5;margin-bottom:4px;" id="seasonCompleteLeague">LEAGUE</div>
+    <div class="modal-title" id="seasonCompleteTitle">SEASON COMPLETE</div>
+    <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:6px;">WINNER</div>
+    <div style="font-size:30px;font-weight:900;letter-spacing:0.08em;color:var(--gold);margin-bottom:16px;" id="seasonCompleteWinner">—</div>
+    <div id="seasonCompleteTable" style="margin-bottom:14px;"></div>
+    <div id="seasonCompleteBest" style="display:none;border:1px solid var(--gold-dark);padding:12px;margin-bottom:16px;"></div>
+    <button class="auth-submit-btn" id="seasonCompleteShareBtn" style="margin-bottom:10px;">SHARE RESULT</button>
+    <button class="cancel-btn" id="seasonCompleteCloseBtn">CLOSE</button>
+  </div>
+</div>
+
 <!-- Create League overlay -->
 <div class="overlay" id="createLeagueOverlay">
   <div class="modal" style="text-align:center;">
@@ -3767,6 +3833,15 @@
       <button class="lb-tab" id="leagueTabHonours">HONOURS</button>
     </div>
 
+    <!-- Admin: set when the season begins. Only shown before it starts. -->
+    <div id="leagueStartWrap" style="display:none;border:1px solid var(--gold-dark);padding:14px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:10px;letter-spacing:0.14em;opacity:0.55;margin-bottom:8px;">SEASON START DATE</div>
+      <input id="leagueStartInput" type="date" style="background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:13px;letter-spacing:0.06em;padding:9px 12px;outline:none;margin-bottom:10px;">
+      <button class="cancel-btn" id="leagueStartSaveBtn" style="font-size:10px;padding:7px 16px;margin:0 auto;display:block;">SAVE START DATE</button>
+      <div id="leagueStartMsg" style="font-size:10px;letter-spacing:0.06em;margin-top:8px;min-height:14px;opacity:0.7;"></div>
+      <div style="font-size:9px;letter-spacing:0.06em;opacity:0.4;margin-top:8px;line-height:1.6;">Members who join before this date can win the season. Later joiners play on and are eligible for the next one.</div>
+    </div>
+
     <!-- Season points table -->
     <div id="leagueSeasonPanel" style="margin-bottom:16px;"></div>
 
@@ -3787,12 +3862,7 @@
           <div id="leagueDetailCode" style="font-size:16px;font-weight:900;letter-spacing:0.2em;color:var(--gold);margin-bottom:12px;cursor:pointer;" title="Tap to copy"></div>
           <button class="cancel-btn" id="leagueShareBtn" style="font-size:10px;padding:6px 16px;margin:0;">SHARE INVITE</button>
         </div>
-        <div id="leagueStartWrap" style="display:none;border-top:1px solid rgba(240,192,32,0.12);margin-top:12px;padding-top:12px;text-align:center;">
-          <div style="font-size:10px;letter-spacing:0.12em;opacity:0.4;margin-bottom:6px;">SEASON START DATE</div>
-          <input id="leagueStartInput" type="date" style="background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:12px;letter-spacing:0.06em;padding:8px 12px;outline:none;margin-bottom:8px;">
-          <button class="cancel-btn" id="leagueStartSaveBtn" style="font-size:10px;padding:6px 16px;margin:0 auto;display:block;">SAVE START DATE</button>
-          <div id="leagueStartMsg" style="font-size:10px;letter-spacing:0.06em;margin-top:6px;min-height:14px;opacity:0.7;"></div>
-        </div>
+
       </div>
     </div>
 
@@ -4858,9 +4928,22 @@ document.getElementById('fullGameStatsCloseBtn').addEventListener('click', () =>
   document.getElementById('statsSurvivalPicker').style.display = 'none';
 }, true);
 // ===== END FOOTER =====
+// Bump this whenever the What's New copy changes — everyone sees the glow again
+const WHATS_NEW_VERSION = 'league-seasons-2026-08';
+
+function updateWhatsNewGlow() {
+  const btn = document.getElementById('briefingWhatsNewBtn');
+  const dot = document.getElementById('whatsNewDot');
+  if (!btn) return;
+  const seen = localStorage.getItem('elv_whats_new_seen') === WHATS_NEW_VERSION;
+  btn.classList.toggle('pulse-new', !seen);
+  if (dot) dot.style.display = seen ? 'none' : '';
+}
+
 async function showDailyBriefing() {
   const overlay = document.getElementById('dailyBriefingOverlay');
   overlay.classList.add('show');
+  updateWhatsNewGlow();
 
   const now = new Date();
   const isBeforeWindow = now.getHours() < FULL_GAME_HOUR_START;
@@ -4943,6 +5026,8 @@ document.getElementById('briefingCloseBtn').addEventListener('click', () => {
   document.getElementById('dailyBriefingOverlay').classList.remove('show');
 });
 document.getElementById('briefingWhatsNewBtn').addEventListener('click', () => {
+  localStorage.setItem('elv_whats_new_seen', WHATS_NEW_VERSION);
+  updateWhatsNewGlow();
   document.getElementById('whatsNewOverlay').classList.add('show');
 });
 document.getElementById('whatsNewCloseBtn').addEventListener('click', () => {
@@ -5180,12 +5265,13 @@ async function openLeagueDetail(leagueId) {
     renderLeagueBoard('best');
     switchLeagueTab('season');
     await renderLeagueSeason(leagueId);
+    checkSeasonComplete(league);
 
     // Only the admin can move the start date, and only before it arrives
     const startWrap = document.getElementById('leagueStartWrap');
-    if (isAdmin && league.season_start_date && new Date(league.season_start_date + 'T00:00:00') > new Date()) {
+    if (isAdmin && (!league.season_start_date || new Date(league.season_start_date + 'T00:00:00') > new Date())) {
       startWrap.style.display = '';
-      document.getElementById('leagueStartInput').value = league.season_start_date;
+      document.getElementById('leagueStartInput').value = league.season_start_date || '';
       document.getElementById('leagueStartMsg').textContent = '';
     } else {
       startWrap.style.display = 'none';
@@ -5245,6 +5331,22 @@ async function renderLeagueSeason(leagueId) {
   }
 
   const s = data[0];
+
+  // No start date set yet — nothing is running
+  if (!s.season_start) {
+    const isAdmin = currentLeagueDetail && currentLeagueDetail.created_by === currentUser.id;
+    meta.textContent = 'NO SEASON SET';
+    panel.innerHTML = `<div style="border:1px dashed var(--gold-dark);padding:20px;text-align:center;">
+      <div style="font-size:13px;font-weight:900;letter-spacing:0.1em;color:var(--gold);margin-bottom:8px;">NO SEASON YET</div>
+      <div style="font-size:11px;letter-spacing:0.06em;opacity:0.6;line-height:1.7;">${
+        isAdmin
+          ? 'Pick a start date above once everyone has joined. The season runs for 11 days from that date.'
+          : 'The league admin hasn\'t set a start date yet. Everyone who joins before it begins can win the season.'
+      }</div>
+    </div>`;
+    return;
+  }
+
   const notStarted = new Date(s.season_start + 'T00:00:00') > new Date();
   const startLabel = new Date(s.season_start + 'T12:00:00')
     .toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase();
@@ -5285,6 +5387,130 @@ async function renderLeagueSeason(leagueId) {
   });
 }
 
+// ===== Season complete =====
+// The cron closes a season quietly at 03:00 UTC. Without this the table would
+// just be back to zeroes next time you looked, with no idea what happened —
+// so the finished season is shown once, the first time you open the league.
+
+let seasonCompleteData = null;
+
+// Rebuilds a finished season's table and opens its card. Used both for the
+// automatic first-look popup and for reopening any season from HONOURS.
+async function openSeasonCard(league, seasonRow) {
+  const { data: table } = await sbClient.rpc('elevensies_league_season', {
+    p_league_id: league.id,
+    p_start: seasonRow.start_date,
+  });
+  if (!Array.isArray(table) || table.length === 0) return false;
+
+  const played = table.filter(r => r.days_played > 0);
+  if (!played.length) return false; // nobody played — nothing worth showing
+
+  const best = played.reduce((b, r) =>
+    ((r.best_word_score || 0) > (b?.best_word_score || 0) ? r : b), null);
+
+  seasonCompleteData = { league, season: seasonRow, table: played, best };
+  showSeasonComplete();
+  return true;
+}
+
+async function checkSeasonComplete(league) {
+  if (!sbClient || !currentUser || !league) return;
+  try {
+    const { data: seasons } = await sbClient.rpc('elevensies_league_honours', { p_league_id: league.id });
+    if (!Array.isArray(seasons) || seasons.length === 0) return;
+
+    const last = seasons[0];
+    const seenKey = `elv_season_seen_${league.id}_${last.season_number}`;
+    if (localStorage.getItem(seenKey)) return;
+    localStorage.setItem(seenKey, '1');
+
+    await openSeasonCard(league, last);
+  } catch (err) {
+    console.error('Season complete check failed:', err);
+  }
+}
+
+function showSeasonComplete() {
+  const d = seasonCompleteData;
+  if (!d) return;
+  document.getElementById('seasonCompleteLeague').textContent = d.league.name;
+  document.getElementById('seasonCompleteTitle').textContent = `SEASON ${d.season.season_number} COMPLETE`;
+  document.getElementById('seasonCompleteWinner').textContent =
+    (d.season.winner_names || []).length ? d.season.winner_names.join(' & ') : 'NO WINNER';
+
+  document.getElementById('seasonCompleteTable').innerHTML = d.table.slice(0, 5).map(r => {
+    const isYou = r.user_id === currentUser.id;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12px;letter-spacing:0.05em;border-bottom:1px solid rgba(240,192,32,0.08);${isYou ? 'color:#a8ffb0;' : ''}">
+      <span><span style="opacity:0.45;margin-right:8px;">${r.rank}</span>${r.display_name}${isYou ? ' ★' : ''}</span>
+      <span style="color:var(--gold);font-weight:900;">${r.points}</span>
+    </div>`;
+  }).join('');
+
+  const bestEl = document.getElementById('seasonCompleteBest');
+  if (d.best && d.best.best_word) {
+    bestEl.style.display = '';
+    bestEl.innerHTML = `<div style="font-size:9px;letter-spacing:0.15em;opacity:0.5;margin-bottom:4px;">BEST WORD OF THE SEASON</div>
+      <div style="font-size:24px;font-weight:900;letter-spacing:0.1em;color:var(--gold);">${d.best.best_word}</div>
+      <div style="font-size:11px;letter-spacing:0.08em;opacity:0.65;margin-top:2px;">${d.best.best_word_score} PTS · ${d.best.display_name}</div>`;
+  } else {
+    bestEl.style.display = 'none';
+  }
+
+  document.getElementById('seasonCompleteOverlay').classList.add('show');
+}
+
+async function shareSeasonComplete() {
+  const d = seasonCompleteData;
+  if (!d) return;
+  await document.fonts.ready;
+
+  const winner = (d.season.winner_names || []).length ? d.season.winner_names.join(' & ') : 'NO WINNER';
+  const topScore = d.table.reduce((m, r) => Math.max(m, r.best_score || 0), 0);
+  const winnerRow = d.table.find(r => r.rank === 1);
+
+  const ctx = shareBegin();
+  let y = await drawShareHeader(ctx, 'MINI LEAGUE', '/icons/stats.png', d.league.name);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = SHARE_GOLD;
+  ctx.globalAlpha = 0.6;
+  ctx.font = '700 22px Jost';
+  ctx.fillText(`SEASON ${d.season.season_number} WINNER`, SHARE_W / 2, y + 26);
+  ctx.globalAlpha = 1;
+
+  // Winner's name steps down a size if it's long
+  let nameSize = winner.length > 14 ? 62 : 86;
+  ctx.font = `900 ${nameSize}px Jost`;
+  if (ctx.measureText(winner).width > SHARE_W - 140) {
+    nameSize = 46;
+    ctx.font = `900 ${nameSize}px Jost`;
+  }
+  ctx.fillText(winner.toUpperCase(), SHARE_W / 2, y + 26 + nameSize);
+  y = y + 26 + nameSize + 28;
+
+  if (d.best && d.best.best_word) {
+    y = drawShareTiles(ctx, y, d.best.best_word, 'BEST WORD OF THE SEASON');
+  }
+
+  // Final table, reusing the chip layout — name left, points right
+  drawShareChips(
+    ctx, y + 14,
+    d.table.map(r => ({ word: r.display_name, score: r.points })),
+    11, 'FINAL TABLE'
+  );
+
+  drawShareStats(ctx, [
+    { value: d.table.length, label: 'PLAYERS' },
+    { value: winnerRow ? winnerRow.days_won : '—', label: 'DAYS WON' },
+    { value: topScore || '—', label: 'TOP SCORE' },
+  ]);
+  drawShareFooter(ctx);
+
+  const text = `Season ${d.season.season_number} of my Elevensies league is done — ${winner} takes it! playelevensies.com`;
+  await shareCanvasImage('elevensies-league-season.png', text, document.getElementById('seasonCompleteShareBtn'));
+}
+
 async function renderLeagueHonours(leagueId) {
   const panel = document.getElementById('leagueHonoursPanel');
   panel.innerHTML = '<div class="lb-loading">LOADING…</div>';
@@ -5311,10 +5537,18 @@ async function renderLeagueHonours(leagueId) {
     data.map(s => {
       const d = new Date(s.end_date + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase();
       const who = (s.winner_names || []).length ? s.winner_names.join(' & ') : 'NO WINNER';
-      return `<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px;letter-spacing:0.05em;border-bottom:1px solid rgba(240,192,32,0.08);">
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:11px;letter-spacing:0.05em;border-bottom:1px solid rgba(240,192,32,0.08);cursor:pointer;" data-season="${s.season_number}">
         <span style="opacity:0.5;">SEASON ${s.season_number} · ${d}</span>
-        <span style="color:var(--gold);font-weight:700;">${who}</span></div>`;
+        <span><span style="color:var(--gold);font-weight:700;">${who}</span><span style="opacity:0.25;margin-left:6px;">›</span></span></div>`;
     }).join('');
+
+  // Any past season can be reopened and reshared
+  panel.querySelectorAll('[data-season]').forEach(row => {
+    row.addEventListener('click', async () => {
+      const season = data.find(s => String(s.season_number) === row.dataset.season);
+      if (season && currentLeagueDetail) await openSeasonCard(currentLeagueDetail, season);
+    });
+  });
 }
 
 async function removeMemberFromLeague(leagueId, userId) {
@@ -10862,6 +11096,16 @@ document.getElementById('statsModeLinks')?.addEventListener('click', async () =>
 });
 document.getElementById('leagueDetailCloseBtn').addEventListener('click', () => {
   document.getElementById('leagueDetailOverlay').classList.remove('show');
+});
+document.getElementById('leaguesHowItWorksBtn')?.addEventListener('click', () => {
+  document.getElementById('leaguesHowOverlay').classList.add('show');
+});
+document.getElementById('leaguesHowCloseBtn')?.addEventListener('click', () => {
+  document.getElementById('leaguesHowOverlay').classList.remove('show');
+});
+document.getElementById('seasonCompleteShareBtn')?.addEventListener('click', shareSeasonComplete);
+document.getElementById('seasonCompleteCloseBtn')?.addEventListener('click', () => {
+  document.getElementById('seasonCompleteOverlay').classList.remove('show');
 });
 document.getElementById('leagueTabSeason')?.addEventListener('click', () => switchLeagueTab('season'));
 document.getElementById('leagueTabAllTime')?.addEventListener('click', () => switchLeagueTab('alltime'));
