@@ -8000,17 +8000,11 @@ function renderLeaderboardRows(allUsers, container, mode) {
   }
   const userId = currentUser ? currentUser.id : null;
 
-  // Filter and sort based on mode
-  let ranked;
-  if (mode === 'avg') {
-    ranked = allUsers.filter(u => u.games_played >= 11).sort((a, b) => b.avg_score - a.avg_score);
-  } else {
-    ranked = [...allUsers].sort((a, b) => b.best_score - a.best_score);
-  }
-
-  const top11 = ranked.slice(0, 11);
+  // Rows arrive already ranked by the database
+  const ranked = [...allUsers].sort((a, b) => (a.rank || 0) - (b.rank || 0));
+  const top11 = ranked.filter(r => (r.rank || 99) <= 11);
   const userRankIndex = userId ? ranked.findIndex(r => r.user_id === userId) : -1;
-  const userInTop11 = userRankIndex !== -1 && userRankIndex < 11;
+  const userInTop11 = userRankIndex !== -1 && (ranked[userRankIndex].rank || 99) <= 11;
 
   const scoreLabel = mode === 'avg' ? 'AVG' : 'BEST';
 
@@ -8024,13 +8018,14 @@ function renderLeaderboardRows(allUsers, container, mode) {
 
   const rowHTML = (row, i) => {
     const isYou = row.user_id === userId;
+    const position = row.rank || (i + 1);
     const name = row.display_name || randomPlayerName();
     const scoreVal = mode === 'avg' ? Number(row.avg_score).toFixed(0) : row.best_score;
     const streak = row.streak > 0 ? row.streak : '—';
     const badgeCount = (row.badges || []).length;
     const todayVal = row.today_score !== null && row.today_score !== undefined ? row.today_score : '—';
     return `<div class="lb-row${isYou ? ' lb-you' : ''}" data-uid="${row.user_id}">
-      <span class="lb-rank">${i + 1}</span>
+      <span class="lb-rank">${position}</span>
       <span class="lb-name"><span class="lb-name-text">${name}${isYou ? ' ★' : ''}</span><span style="opacity:0.25;font-size:12px;flex-shrink:0;">›</span></span>
       ${pips(badgeCount)}
       <span class="lb-games">${row.games_played}</span>
@@ -8075,141 +8070,39 @@ async function loadLeaderboard(targetEl, mode) {
     if (targetEl) targetEl.innerHTML = el.innerHTML;
     return;
   }
-  const { data, error } = await sbClient
-    .from('game_results')
-    .select('user_id, total_score, game_status, played_at, avg_points_per_word, history');
 
-  console.log('Leaderboard raw rows:', data?.length, 'error:', error);
-  const freezeRows = (data || []).filter(r => r.game_status === 'freeze');
-  console.log('Freeze rows:', JSON.stringify(freezeRows, null, 2));
+  // Ranking happens in Postgres. We get back the top 11 plus our own row,
+  // already aggregated — rather than every game ever played by everyone.
+  const { data, error } = await sbClient.rpc('elevensies_leaderboard', { p_mode: renderMode });
 
   if (error || !data) {
+    console.error('Leaderboard error:', error);
     el.innerHTML = '<div class="lb-empty">COULD NOT LOAD LEADERBOARD</div>';
     return;
   }
 
-  const todayStr = todayString();
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+  const BADGE_ABBR = Object.fromEntries(BADGE_DEFS.map(b => [b.id, b.abbr]));
 
-  // Group by user
-  const map = {};
-  for (const row of data) {
-    if (!map[row.user_id]) map[row.user_id] = { user_id: row.user_id, total: 0, count: 0, best: 0, abandoned: 0, dates: [], freezeDates: [], wordTotal: 0, wordCount: 0, allDoubleDigit: false, today_score: null };
-    if (row.game_status === 'completed') {
-      map[row.user_id].total += row.total_score;
-      map[row.user_id].count++;
-      if (row.total_score > map[row.user_id].best) map[row.user_id].best = row.total_score;
-      if (row.avg_points_per_word) {
-        map[row.user_id].wordTotal += row.avg_points_per_word;
-        map[row.user_id].wordCount++;
-      }
-      if (!map[row.user_id].allDoubleDigit && Array.isArray(row.history) && row.history.length > 0) {
-        if (row.history.every(h => h.score >= 10)) map[row.user_id].allDoubleDigit = true;
-      }
-      // TODAY: show any score played on today's local date, but only after 11am opens
-      if (row.played_at) {
-        const now = new Date();
-        const todayWindowStart = new Date(now);
-        todayWindowStart.setHours(FULL_GAME_HOUR_START, 0, 0, 0);
-        if (now >= todayWindowStart) {
-          const playedDate = new Date(row.played_at);
-          const playedLocalDate = `${playedDate.getFullYear()}-${String(playedDate.getMonth()+1).padStart(2,'0')}-${String(playedDate.getDate()).padStart(2,'0')}`;
-          const todayLocal = todayString();
-          if (playedLocalDate === todayLocal) {
-            if (map[row.user_id].today_score === null || row.total_score > map[row.user_id].today_score) {
-              map[row.user_id].today_score = row.total_score;
-            }
-          }
-        }
-      }
-    }
-    // Add date for streak calculation for both completed and freeze rows
-    if ((row.game_status === 'completed' || row.game_status === 'freeze') && row.played_at) {
-      const d = new Date(row.played_at);
-      const local = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      map[row.user_id].dates.push(local);
-      if (row.game_status === 'freeze') map[row.user_id].freezeDates.push(local);
-    }
-    if (row.game_status === 'abandoned') map[row.user_id].abandoned++;
-  }
-
-  // Only rank users who have at least one completed game
-  const completedUsers = Object.values(map).filter(u => u.count > 0);
-  if (completedUsers.length === 0) {
-    el.innerHTML = '<div class="lb-empty">NO SCORES YET — BE THE FIRST!</div>';
-    return;
-  }
-
-  const userIds = completedUsers.map(u => u.user_id);
-
-  const { data: profiles } = await sbClient
-    .from('profiles')
-    .select('id, display_name, badges')
-    .in('id', userIds.slice(0, 200));
-
-  const nameMap = {};
-  const badgeMap = {};
-  if (profiles) profiles.forEach(p => {
-    nameMap[p.id] = p.display_name;
-    badgeMap[p.id] = Array.isArray(p.badges) ? p.badges : [];
-  });
-
-  // Local-date-aware streak calculation
-  function localDateStr(d) {
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  }
-  function calcStreak(dates, freezeDates) {
-    const unique = [...new Set(dates)].sort().reverse();
-    if (!unique.length) return 0;
-    const now = new Date();
-    const today = localDateStr(now);
-    const yest = new Date(now); yest.setDate(yest.getDate() - 1);
-    const yesterday = localDateStr(yest);
-    const windowClosed = now.getHours() >= FULL_GAME_HOUR_END;
-    const freezeSet = new Set(freezeDates || []);
-    const yesterdayWasFrozen = freezeSet.has(yesterday);
-    const streakAlive = unique[0] === today ||
-      (unique[0] === yesterday && (!windowClosed || yesterdayWasFrozen));
-    if (!streakAlive) return 0;
-    // Don't increment for freeze days — they bridge gaps without adding to count
-    let streak = freezeSet.has(unique[0]) ? 0 : 1;
-    let prev = new Date(unique[0] + 'T12:00:00');
-    for (let i = 1; i < unique.length; i++) {
-      const expected = new Date(prev); expected.setDate(expected.getDate() - 1);
-      if (unique[i] === localDateStr(expected)) {
-        if (!freezeSet.has(unique[i])) streak++;
-        prev = expected;
-      } else break;
-    }
-    return streak;
-  }
-
-  // Build full user list with both best score and avg score
-  const allUsers = completedUsers.map(u => {
-    const streak = calcStreak(u.dates, u.freezeDates);
-    const avgWord = u.wordCount > 0 ? u.wordTotal / u.wordCount : 0;
-    const BADGE_ABBR = Object.fromEntries(BADGE_DEFS.map(b => [b.id, b.abbr]));
-    const profileBadges = (badgeMap[u.user_id] || []).map(id => BADGE_ABBR[id] || id).filter(Boolean);
+  const allUsers = data.map(u => {
+    const profileBadges = (u.badges || []).map(id => BADGE_ABBR[id] || id).filter(Boolean);
     const gameBadges = [
-      streak > 0       ? 'STK' : null,
-      avgWord > 11     ? 'WRD' : null,
-      u.allDoubleDigit ? 'DBL' : null,
+      u.streak > 0            ? 'STK' : null,
+      Number(u.avg_word) > 11 ? 'WRD' : null,
+      u.all_double_digit      ? 'DBL' : null,
     ].filter(Boolean);
-    const badges = [...new Set([...gameBadges, ...profileBadges])];
     return {
       user_id: u.user_id,
-      display_name: nameMap[u.user_id] || null,
-      games_played: u.count,
-      abandoned: u.abandoned,
-      avg_score: u.total / u.count,
-      best_score: u.best,
-      streak,
-      badges,
+      display_name: u.display_name || null,
+      games_played: u.games_played,
+      avg_score: Number(u.avg_score),
+      best_score: u.best_score,
+      streak: u.streak,
+      badges: [...new Set([...gameBadges, ...profileBadges])],
       today_score: u.today_score,
+      rank: u.rank,
     };
   });
 
-  // Cache so tab switches don't re-fetch
   leaderboardCache = allUsers;
   renderLeaderboardRows(allUsers, el, renderMode);
   if (targetEl && targetEl !== leaderboardList) renderLeaderboardRows(allUsers, targetEl, renderMode);
@@ -8222,7 +8115,9 @@ function switchLbTab(mode) {
   lbMode = mode;
   document.getElementById('lbTabBest').classList.toggle('active', mode === 'best');
   document.getElementById('lbTabAvg').classList.toggle('active', mode === 'avg');
-  if (leaderboardCache) renderLeaderboardRows(leaderboardCache, leaderboardList, mode);
+  // Ranking is done server-side per mode now, so the other tab needs its own
+  // fetch rather than a re-sort of what we already have
+  loadLeaderboard(leaderboardList, mode);
 }
 
 async function showGameOver() {
