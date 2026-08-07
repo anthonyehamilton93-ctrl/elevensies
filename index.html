@@ -1751,7 +1751,7 @@
   <div class="word-section" id="anagramWordSection" style="padding-top:0;">
     <!-- Eleven fixed positions. Hints lock the correct letter into place. -->
     <div class="word-display-row" style="min-height:46px;">
-      <div id="anagramSlots" style="display:flex;gap:3px;justify-content:center;flex-wrap:nowrap;flex:1;"></div>
+      <div id="anagramSlots" style="display:flex;gap:3px;justify-content:center;flex-wrap:nowrap;flex:1;max-width:calc(100% - 44px);cursor:pointer;"></div>
       <button class="backspace-btn" id="anagramBackspaceBtn"></button>
     </div>
     <div class="turns-line" id="anagramStatusLine">FIND THE 11TH LETTER</div>
@@ -1768,7 +1768,7 @@
   </div>
 
   <div style="width:352px;max-width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;box-sizing:border-box;">
-    <button class="cancel-btn" id="anagramRevealBtn" style="margin:0;font-size:11px;padding:10px 0;">REVEAL A LETTER · −1</button>
+    <button class="cancel-btn" id="anagramRevealBtn" style="margin:0;font-size:11px;padding:10px 0;">REVEAL A LETTER</button>
     <button class="cancel-btn" id="anagramGiveUpBtn" style="margin:0;font-size:11px;padding:10px 0;color:#ff7c7c;border-color:rgba(255,124,124,0.35);">GIVE UP</button>
   </div>
 
@@ -1825,7 +1825,17 @@
     <button class="practice-back-btn visible" id="eliminatorBackBtn">QUIT</button>
   </div>
 
-  <!-- Anagram result overlay -->
+  <!-- Anagram: confirm a hint or giving up -->
+<div class="overlay" id="anagramConfirmOverlay" style="z-index:2700;">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-title" id="anagramConfirmTitle">REVEAL A LETTER?</div>
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;" id="anagramConfirmBody"></div>
+    <button class="auth-submit-btn" id="anagramConfirmYes" style="margin-bottom:10px;">YES</button>
+    <button class="cancel-btn" id="anagramConfirmNo">CANCEL</button>
+  </div>
+</div>
+
+<!-- Anagram result overlay -->
   <div class="overlay" id="anagramResultOverlay">
     <div class="modal">
       <div style="text-align:center;margin-bottom:8px;"><img src="/icons/anagram.png" style="height:36px;width:auto;opacity:0.9;"></div>
@@ -3388,10 +3398,14 @@
 
         <!-- Step 1: Mechanic -->
         <div class="how-to-step links-step" id="linksStep1" style="position:absolute;inset:0;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;">
-          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:12px;">FRESH TILES EVERY WORD</div>
-          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.8;margin-bottom:12px;">You played <strong style="color:var(--gold);">TIGER</strong> — so your next<br>word must start with <strong style="color:var(--gold);">R</strong>.</div>
+          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:10px;">FRESH TILES EVERY WORD</div>
+          <div style="font-size:12px;letter-spacing:0.07em;opacity:0.8;margin-bottom:10px;">You played <strong style="color:var(--gold);">TIGER</strong> — so your next<br>word starts with <strong style="color:var(--gold);">R</strong>.</div>
+          <div style="display:flex;justify-content:center;margin-bottom:4px;">
+            <div class="how-to-tile how-to-tile-sel" style="width:40px;height:40px;font-size:15px;">R<span class="how-to-pts">1</span></div>
+          </div>
+          <div style="font-size:10px;letter-spacing:0.1em;opacity:0.5;margin-bottom:10px;">PLACED FOR YOU, LOCKED IN</div>
           <div style="display:grid;grid-template-columns:repeat(5,40px);gap:4px;justify-content:center;margin-bottom:4px;">
-            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;border:3px solid var(--green-dark);">R<span class="how-to-pts">1</span></div>
+            <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;opacity:0.45;">R<span class="how-to-pts">1</span></div>
             <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">A<span class="how-to-pts">1</span></div>
             <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">V<span class="how-to-pts">4</span></div>
             <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">E<span class="how-to-pts">1</span></div>
@@ -3405,7 +3419,7 @@
           <div style="display:flex;justify-content:center;margin-bottom:10px;">
             <div class="how-to-tile" style="width:40px;height:40px;font-size:15px;">S<span class="how-to-pts">1</span></div>
           </div>
-          <div style="font-size:11px;letter-spacing:0.08em;opacity:0.6;">Your required letter is always there,<br>outlined in green.</div>
+          <div style="font-size:11px;letter-spacing:0.08em;opacity:0.6;">The letter you need is always in the rack —<br>we place it for you and lock it.</div>
         </div>
 
         <!-- Step 2: Scoring -->
@@ -7160,6 +7174,7 @@ let anagramMysteryLetter = null; // the letter the player picks to fill the 11th
 let anagramTiles = [];       // { id, letter } — the 10 given letters
 let anagramSlots = [];       // 11 positions: null | { letter, tileId, locked }
 let anagramHints = 0;        // letters revealed, each costing a point
+let anagramMissingIndex = -1; // where the hidden 11th letter belongs
 let anagramGaveUp = false;
 let anagramSolvedToday = false;
 const ANAGRAM_MAX_POINTS = 11;
@@ -7247,6 +7262,7 @@ async function startAnagram() {
   const letters = anagramWord.split('');
   const missingIndex = Math.floor(seededRandom(anagramWord + 'missing') * letters.length);
   const missingLetter = letters[missingIndex];
+  anagramMissingIndex = missingIndex;
   const given = letters.slice(0, missingIndex).concat(letters.slice(missingIndex + 1));
 
   // Shuffle the 10 given letters for display
@@ -7289,7 +7305,8 @@ function renderAnagram() {
   document.getElementById('anagramHintsUsed').textContent = anagramHints;
 
   // Eleven positions. Locked ones came from a hint and can't be moved.
-  const size = 28;
+  // Sized to fit eleven across without running under the backspace button
+  const size = 27;
   slotsEl.innerHTML = anagramSlots.map((s, i) => {
     if (!s) {
       return `<div style="width:${size}px;height:${Math.round(size * 1.15)}px;border:2px dashed rgba(240,192,32,0.3);box-sizing:border-box;flex-shrink:0;"></div>`;
@@ -7302,16 +7319,13 @@ function renderAnagram() {
       ${locked ? '' : 'cursor:pointer;'}">${s.letter}</div>`;
   }).join('');
 
-  // Tapping a letter you placed takes it back
-  slotsEl.querySelectorAll('[data-slot]').forEach(el => {
-    el.addEventListener('click', () => {
-      const i = parseInt(el.dataset.slot);
-      if (anagramSlots[i] && !anagramSlots[i].locked) {
-        anagramSlots[i] = null;
-        renderAnagram();
-      }
-    });
-  });
+  // Tapping the row clears everything you placed — revealed letters stay.
+  // Individual letters come back by tapping their tile in the rack.
+  slotsEl.onclick = () => {
+    if (!anagramSlots.some(s => s && !s.locked)) return;
+    anagramSlots = anagramSlots.map(s => (s && s.locked ? s : null));
+    renderAnagram();
+  };
 
   const placedByPlayer = anagramSlots.some(s => s && !s.locked);
   document.getElementById('anagramBackspaceBtn').classList.toggle('show', placedByPlayer);
@@ -7412,7 +7426,11 @@ function anagramRevealLetter() {
   const empties = anagramSlots.map((s, i) => (s ? null : i)).filter(i => i !== null);
   if (!empties.length) return;
 
-  const idx = empties[Math.floor(Math.random() * empties.length)];
+  // Finding the hidden 11th letter is the puzzle, so a hint never gives it
+  // away while there's anything else left to reveal.
+  const preferred = empties.filter(i => i !== anagramMissingIndex);
+  const pool = preferred.length ? preferred : empties;
+  const idx = pool[Math.floor(Math.random() * pool.length)];
   const letter = anagramWord[idx];
 
   const lockedTiles = new Set(anagramSlots.filter(s => s && s.locked).map(s => s.tileId));
@@ -9668,13 +9686,44 @@ document.getElementById('anagramBackspaceBtn').addEventListener('click', () => {
     }
   }
 });
-document.getElementById('anagramRevealBtn')?.addEventListener('click', anagramRevealLetter);
-document.getElementById('anagramGiveUpBtn')?.addEventListener('click', () => {
-  const btn = document.getElementById('anagramGiveUpBtn');
-  if (btn.dataset.confirm === '1') { anagramGiveUpNow(); return; }
-  btn.dataset.confirm = '1';
-  btn.textContent = 'SURE? 0 POINTS';
-  setTimeout(() => { btn.dataset.confirm = ''; btn.textContent = 'GIVE UP'; }, 4000);
+// Both of these cost you something, so neither happens on a stray tap
+let anagramConfirmAction = null;
+
+function showAnagramConfirm(kind) {
+  const overlay = document.getElementById('anagramConfirmOverlay');
+  const title = document.getElementById('anagramConfirmTitle');
+  const body = document.getElementById('anagramConfirmBody');
+  const yes = document.getElementById('anagramConfirmYes');
+
+  if (kind === 'reveal') {
+    const after = Math.max(0, anagramCurrentScore() - 1);
+    title.textContent = 'REVEAL A LETTER?';
+    body.innerHTML = `One letter will be placed in the right position.<br><br>`
+      + `This costs <strong style="color:var(--gold);">1 point</strong> — you'd have `
+      + `<strong style="color:var(--gold);">${after}</strong> left.`;
+    yes.textContent = 'REVEAL IT';
+    anagramConfirmAction = anagramRevealLetter;
+  } else {
+    title.textContent = 'GIVE UP?';
+    body.innerHTML = `The whole word will be revealed.<br><br>`
+      + `You'll score <strong style="color:var(--gold);">0 points</strong> and it won't count towards your streak.`;
+    yes.textContent = 'GIVE UP';
+    anagramConfirmAction = anagramGiveUpNow;
+  }
+  overlay.classList.add('show');
+}
+
+document.getElementById('anagramRevealBtn')?.addEventListener('click', () => showAnagramConfirm('reveal'));
+document.getElementById('anagramGiveUpBtn')?.addEventListener('click', () => showAnagramConfirm('giveup'));
+document.getElementById('anagramConfirmNo')?.addEventListener('click', () => {
+  anagramConfirmAction = null;
+  document.getElementById('anagramConfirmOverlay').classList.remove('show');
+});
+document.getElementById('anagramConfirmYes')?.addEventListener('click', () => {
+  document.getElementById('anagramConfirmOverlay').classList.remove('show');
+  const action = anagramConfirmAction;
+  anagramConfirmAction = null;
+  if (action) action();
 });
 document.getElementById('anagramShuffleBtn').addEventListener('click', shuffleAnagram);
 document.getElementById('anagramMysteryBtn').addEventListener('click', () => {
@@ -10119,13 +10168,20 @@ function startLinksRound() {
   let rack = generateLinksRack(linksCurrentStartLetter);
   linksTiles = rack.map((letter, i) => ({ id: i, letter }));
 
+  // The word has to begin with this letter, so place it and lock it. Nothing
+  // is lost — there was never a choice to make about the first tile.
+  if (linksCurrentStartLetter) {
+    const first = linksTiles.find(t => t.letter === linksCurrentStartLetter);
+    if (first) linksSelected.push({ ...first, locked: true });
+  }
+
   document.getElementById('linksWordLabel').textContent = `${linksWordNum + 1} OF 11`;
   document.getElementById('linksTotalScore').textContent = linksTotalScore;
   document.getElementById('linksProgressBar').style.width = `${(linksWordNum / 11) * 100}%`;
 
   if (linksCurrentStartLetter) {
     document.getElementById('linksStartLetter').textContent = `TURN · STARTS WITH ${linksCurrentStartLetter}`;
-    document.getElementById('linksStatusLine').textContent = `START WITH ${linksCurrentStartLetter}`;
+    document.getElementById('linksStatusLine').textContent = `${linksCurrentStartLetter} IS PLACED — BUILD FROM THERE`;
   } else {
     document.getElementById('linksStartLetter').textContent = 'TURN';
     document.getElementById('linksStatusLine').textContent = 'START WITH ANY LETTER';
@@ -10241,11 +10297,9 @@ function renderLinksChain() {
 function renderLinksTiles() {
   const grid = document.getElementById('linksTileGrid');
   const isSel = t => linksSelected.some(s => s.id === t.id);
-  // Highlight the tile that satisfies the required starting letter
-  const reqStyle = t =>
-    (linksCurrentStartLetter && t.letter === linksCurrentStartLetter
-      && linksSelected.length === 0 && !isSel(t))
-      ? 'border:3px solid var(--green-dark);' : '';
+  const isLocked = t => linksSelected.some(s => s.id === t.id && s.locked);
+  // The required letter is already placed and locked, so it just reads as used
+  const reqStyle = t => (isLocked(t) ? 'opacity:0.55;' : '');
 
   grid.innerHTML = linksTiles.slice(0, 10)
     .map(t => gridTileHTML(t, isSel(t), 'tapLinksTile', reqStyle(t)))
@@ -10265,15 +10319,19 @@ function tapLinksTile(id) {
   const tile = linksTiles.find(t => t.id === id);
   if (!tile) return;
   const idx = linksSelected.findIndex(s => s.id === id);
-  if (idx >= 0) linksSelected.splice(idx, 1);
-  else linksSelected.push(tile);
+  if (idx >= 0) {
+    if (linksSelected[idx].locked) return; // the required opening letter
+    linksSelected.splice(idx, 1);
+  } else {
+    linksSelected.push(tile);
+  }
   renderLinksTiles();
   renderLinksWord();
 }
 
 function renderLinksWord() {
   renderWordAsTiles(document.getElementById('linksWordDisplay'), linksSelected);
-  document.getElementById('linksBackspaceBtn').classList.toggle('show', linksSelected.length > 0);
+  document.getElementById('linksBackspaceBtn').classList.toggle('show', linksSelected.some(s => !s.locked));
   const word = linksSelected.map(s => s.letter).join('');
   const valEl = document.getElementById('linksWordValue');
   if (word.length > 0) {
@@ -10342,6 +10400,7 @@ async function showLinksResult() {
 
 // Links button wiring
 document.getElementById('linksBackspaceBtn')?.addEventListener('click', () => {
+  if (linksSelected.length && linksSelected[linksSelected.length - 1].locked) return;
   linksSelected.pop();
   renderLinksTiles();
   renderLinksWord();
@@ -10354,7 +10413,11 @@ document.getElementById('linksShuffleBtn')?.addEventListener('click', () => {
 });
 document.getElementById('linksSubmitBtn')?.addEventListener('click', submitLinksWord);
 document.getElementById('linksWordDisplay')?.addEventListener('click', () => {
-  if (linksSelected.length > 0) { linksSelected = []; renderLinksTiles(); renderLinksWord(); }
+  if (linksSelected.some(s => !s.locked)) {
+    linksSelected = linksSelected.filter(s => s.locked);
+    renderLinksTiles();
+    renderLinksWord();
+  }
 });
 document.getElementById('linksEndBtn')?.addEventListener('click', () => {
   if (!linksPlaying) return;
@@ -10888,9 +10951,13 @@ function renderWordAsTiles(el, letters, placeholder = 'ELEVENSIES', showPts = tr
   const tileH = Math.round(tileW * 1.1);
   const fontSize = Math.round(tileW * 0.44);
   const ptSize = Math.max(7, Math.round(tileW * 0.22));
-  el.innerHTML = letters.map(({ letter }) => {
+  el.innerHTML = letters.map(({ letter, locked }) => {
     const pts = LETTER_VALUES[letter] || 0;
-    return `<div style="display:flex;align-items:center;justify-content:center;width:${tileW}px;height:${tileH}px;background:var(--gold);border:2px solid var(--gold-dark);font-size:${fontSize}px;font-weight:900;color:var(--green);flex-shrink:0;position:relative;">
+    // Locked tiles are fixed in place — the anagram's revealed letters and
+    // the letter a Links word has to begin with.
+    const bg = locked ? 'var(--gold-dark)' : 'var(--gold)';
+    const border = locked ? '#fff' : 'var(--gold-dark)';
+    return `<div style="display:flex;align-items:center;justify-content:center;width:${tileW}px;height:${tileH}px;background:${bg};border:2px solid ${border};font-size:${fontSize}px;font-weight:900;color:var(--green);flex-shrink:0;position:relative;">
       ${letter}${showPts ? `<span style="position:absolute;bottom:1px;right:2px;font-size:${ptSize}px;font-weight:700;opacity:0.75;line-height:1;">${pts}</span>` : ''}
     </div>`;
   }).join('');
