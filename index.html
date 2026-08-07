@@ -1737,13 +1737,23 @@
   <!-- Anagram screen -->
   <div class="anagram-screen" id="anagramScreen" style="display:none; flex-direction:column; align-items:center; width:100%; flex:1;">
 
-  <div class="word-section" id="anagramWordSection">
-    <div class="word-display-row">
-      <div class="word-display" id="anagramWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
+  <div style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0 8px;box-sizing:border-box;">
+    <div style="text-align:left;">
+      <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;">HINTS USED</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);line-height:1.2;" id="anagramHintsUsed">0</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;">POINTS</div>
+      <div style="font-size:22px;font-weight:900;color:var(--gold);line-height:1.2;" id="anagramPoints">11</div>
+    </div>
+  </div>
+
+  <div class="word-section" id="anagramWordSection" style="padding-top:0;">
+    <!-- Eleven fixed positions. Hints lock the correct letter into place. -->
+    <div class="word-display-row" style="min-height:46px;">
+      <div id="anagramSlots" style="display:flex;gap:3px;justify-content:center;flex-wrap:nowrap;flex:1;"></div>
       <button class="backspace-btn" id="anagramBackspaceBtn"></button>
     </div>
-    <div class="word-value" id="anagramWordValue" style="opacity:0;">&nbsp;</div>
-    <div class="score-line" style="opacity:0;">&nbsp;</div>
     <div class="turns-line" id="anagramStatusLine">FIND THE 11TH LETTER</div>
   </div>
 
@@ -1755,6 +1765,11 @@
     <button class="action-btn wide" id="anagramShuffleBtn">SHUFFLE</button>
     <button class="action-btn joker-btn" id="anagramMysteryBtn">+</button>
     <button class="action-btn wide" id="anagramSubmitBtn">SUBMIT</button>
+  </div>
+
+  <div style="width:352px;max-width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;box-sizing:border-box;">
+    <button class="cancel-btn" id="anagramRevealBtn" style="margin:0;font-size:11px;padding:10px 0;">REVEAL A LETTER · −1</button>
+    <button class="cancel-btn" id="anagramGiveUpBtn" style="margin:0;font-size:11px;padding:10px 0;color:#ff7c7c;border-color:rgba(255,124,124,0.35);">GIVE UP</button>
   </div>
 
   <div class="alphabet-panel" id="anagramAlphabetPanel">
@@ -3160,15 +3175,16 @@
           <div style="font-size:11px;letter-spacing:0.08em;opacity:0.5;">TAP + TO PICK THE MISSING LETTER</div>
         </div>
 
-        <!-- Step 2: Streak -->
+        <!-- Step 2: Scoring -->
         <div class="how-to-step anagram-step" id="anagramStep2" style="position:absolute;inset:0;text-align:center;display:none;flex-direction:column;align-items:center;justify-content:center;">
-          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:20px;">BUILD YOUR STREAK</div>
-          <div style="line-height:1;"><img src="/icons/badges/No-Streak.png" style="width:64px;height:64px;object-fit:contain;margin-bottom:12px;"></div>
-          <div style="font-size:32px;font-weight:900;color:var(--gold);margin-bottom:16px;">7</div>
-          <div style="font-size:12px;letter-spacing:0.07em;line-height:1.8;opacity:0.8;text-align:left;padding:0 16px;">
-            Solve the anagram each day to build your streak.<br>
-            Get it wrong and try again — but once you submit the right word, that's your result for the day.<br>
-            Miss a day and your streak resets.
+          <div style="font-size:11px;letter-spacing:0.15em;opacity:0.5;margin-bottom:10px;">SCORING</div>
+          <div style="font-size:52px;font-weight:900;color:var(--gold);line-height:1;">11</div>
+          <div style="font-size:11px;letter-spacing:0.12em;opacity:0.5;margin-bottom:16px;">POINTS TO START</div>
+          <div style="font-size:12px;letter-spacing:0.07em;line-height:1.9;opacity:0.85;text-align:left;padding:0 14px;">
+            Solve it with no help and you keep all <strong style="color:var(--gold);">11</strong>.<br>
+            <strong style="color:var(--gold);">REVEAL A LETTER</strong> puts one letter in its right place and costs you a point.<br>
+            <strong style="color:var(--gold);">GIVE UP</strong> shows the word and scores nothing.<br>
+            Solve it however many hints it takes and your streak keeps going.
           </div>
         </div>
 
@@ -5668,10 +5684,11 @@ async function openAnagramStats() {
 
   // Reset row labels for anagram
   const rows = document.querySelectorAll('#statsOverlayStats .account-stats-row');
-  rows.forEach((r, i) => r.style.display = i < 3 ? '' : 'none');
+  rows.forEach((r, i) => r.style.display = i < 4 ? '' : 'none');
   if (rows[0]) rows[0].querySelector('span:first-child').textContent = 'SOLVED';
   if (rows[1]) rows[1].querySelector('span:first-child').textContent = 'CURRENT STREAK';
   if (rows[2]) rows[2].querySelector('span:first-child').textContent = 'BEST STREAK';
+  if (rows[3]) rows[3].querySelector('span:first-child').textContent = "TODAY'S POINTS";
 
   overlay.classList.add('show');
 
@@ -5682,7 +5699,7 @@ async function openAnagramStats() {
   }
   loggedOut.style.display = 'none';
 
-  ['statsOverlayGames','statsOverlayStreak','statsOverlayBest'].forEach(id => {
+  ['statsOverlayGames','statsOverlayStreak','statsOverlayBest','statsOverlayAvgWord'].forEach(id => {
     document.getElementById(id).textContent = '…';
   });
 
@@ -5691,6 +5708,8 @@ async function openAnagramStats() {
     document.getElementById('statsOverlayGames').textContent = stats.solved || '—';
     document.getElementById('statsOverlayStreak').textContent = stats.streak ? `${stats.streak}` : '—';
     document.getElementById('statsOverlayBest').textContent = stats.best ? `${stats.best}` : '—';
+    document.getElementById('statsOverlayAvgWord').textContent =
+      stats.todayScore != null ? `${stats.todayScore} / 11` : '—';
   }
 
   // Build previous words list — last 10 days from today only, with solved status
@@ -7138,9 +7157,23 @@ function leaveH2HGame() {
 let anagramWord = '';        // today's target 11-letter word
 let anagramGivenLetters = []; // the 10 letters shown to the player (target minus one, shuffled)
 let anagramMysteryLetter = null; // the letter the player picks to fill the 11th slot
-let anagramTiles = [];       // { id, letter, isMystery }
-let anagramSelected = [];    // selected tile ids, in click order
+let anagramTiles = [];       // { id, letter } — the 10 given letters
+let anagramSlots = [];       // 11 positions: null | { letter, tileId, locked }
+let anagramHints = 0;        // letters revealed, each costing a point
+let anagramGaveUp = false;
 let anagramSolvedToday = false;
+const ANAGRAM_MAX_POINTS = 11;
+
+function anagramGaveUv() { return anagramGaveUp; }
+
+function anagramCurrentScore() {
+  if (anagramGaveUp) return 0;
+  return Math.max(0, ANAGRAM_MAX_POINTS - anagramHints);
+}
+
+function anagramSlotOfTile(tileId) {
+  return anagramSlots.findIndex(s => s && s.tileId === tileId);
+}
 
 const ANAGRAM_SOLVED_KEY = 'elevensies_anagram_solved';
 
@@ -7223,9 +7256,11 @@ async function startAnagram() {
     [anagramGivenLetters[i], anagramGivenLetters[j]] = [anagramGivenLetters[j], anagramGivenLetters[i]];
   }
 
-  anagramTiles = anagramGivenLetters.map((l, i) => ({ id: i, letter: l, isMystery: false }));
+  anagramTiles = anagramGivenLetters.map((l, i) => ({ id: i, letter: l }));
   anagramMysteryLetter = null;
-  anagramSelected = [];
+  anagramSlots = new Array(11).fill(null);
+  anagramHints = 0;
+  anagramGaveUp = false;
   anagramTiles._missingLetter = missingLetter;
 
   const elapsed = Date.now() - anagramLoadStart;
@@ -7237,73 +7272,86 @@ async function startAnagram() {
 }
 
 function renderAnagram() {
-  // Check if it's past 11pm or already solved — show the reveal
+  // Past 11pm or already finished — show the reveal instead
   if (isAfterAnagramReveal() || anagramSolvedToday) {
     showAnagramReveal();
     return;
   }
 
   const grid = document.getElementById('anagramTileGrid');
-  const wordDisplay = document.getElementById('anagramWordDisplay');
+  const slotsEl = document.getElementById('anagramSlots');
   const mysteryBtn = document.getElementById('anagramMysteryBtn');
   const actionRow = document.getElementById('anagramActionRow');
   const panel = document.getElementById('anagramAlphabetPanel');
   const statusLine = document.getElementById('anagramStatusLine');
 
-  // Build word from selected tiles in click order
-  const wordLetters = anagramSelected.map(id => {
-    if (id === 'mystery') return { letter: anagramMysteryLetter || '?' };
-    const t = anagramTiles.find(t => t.id === id);
-    return t ? { letter: t.letter } : null;
-  }).filter(Boolean);
+  document.getElementById('anagramPoints').textContent = anagramCurrentScore();
+  document.getElementById('anagramHintsUsed').textContent = anagramHints;
 
-  renderWordAsTiles(wordDisplay, wordLetters, 'ELEVENSIES', false);
-  const word = wordLetters.map(l => l.letter).join('');
+  // Eleven positions. Locked ones came from a hint and can't be moved.
+  const size = 28;
+  slotsEl.innerHTML = anagramSlots.map((s, i) => {
+    if (!s) {
+      return `<div style="width:${size}px;height:${Math.round(size * 1.15)}px;border:2px dashed rgba(240,192,32,0.3);box-sizing:border-box;flex-shrink:0;"></div>`;
+    }
+    const locked = s.locked;
+    return `<div data-slot="${i}" style="width:${size}px;height:${Math.round(size * 1.15)}px;display:flex;align-items:center;justify-content:center;
+      background:${locked ? 'var(--gold-dark)' : 'var(--gold)'};
+      border:2px solid ${locked ? 'var(--green-dark)' : 'var(--gold-dark)'};
+      color:var(--green);font-size:14px;font-weight:900;box-sizing:border-box;flex-shrink:0;
+      ${locked ? '' : 'cursor:pointer;'}">${s.letter}</div>`;
+  }).join('');
 
-  // Show backspace when there are selected tiles
-  const backspaceBtn = document.getElementById('anagramBackspaceBtn');
-  backspaceBtn.classList.toggle('show', anagramSelected.length > 0);
+  // Tapping a letter you placed takes it back
+  slotsEl.querySelectorAll('[data-slot]').forEach(el => {
+    el.addEventListener('click', () => {
+      const i = parseInt(el.dataset.slot);
+      if (anagramSlots[i] && !anagramSlots[i].locked) {
+        anagramSlots[i] = null;
+        renderAnagram();
+      }
+    });
+  });
 
-  // Status line
-  if (anagramSolvedToday) {
-    statusLine.textContent = 'SOLVED! COME BACK TOMORROW';
-  } else if (!anagramMysteryLetter) {
+  const placedByPlayer = anagramSlots.some(s => s && !s.locked);
+  document.getElementById('anagramBackspaceBtn').classList.toggle('show', placedByPlayer);
+
+  const filled = anagramSlots.filter(Boolean).length;
+  if (!anagramMysteryLetter && filled < 10) {
     statusLine.textContent = 'TAP + TO FIND THE MISSING LETTER';
+  } else if (filled === 11) {
+    statusLine.textContent = 'READY — HIT SUBMIT';
   } else {
-    statusLine.textContent = `${anagramWord.length} LETTERS — USE THEM ALL`;
+    statusLine.textContent = `${11 - filled} LETTER${11 - filled !== 1 ? 'S' : ''} TO PLACE`;
   }
 
-  // Render tile grid — only the 10 given tiles (mystery stays in action row)
+  // Rack — a tile already sitting in a slot shows as used
   grid.innerHTML = anagramTiles.map(t => {
-    const isSelected = anagramSelected.includes(t.id);
-    return `<button class="tile${isSelected ? ' selected' : ''}" data-anagram-id="${t.id}">${t.letter}</button>`;
+    const at = anagramSlotOfTile(t.id);
+    const used = at >= 0;
+    const locked = used && anagramSlots[at].locked;
+    return `<button class="tile${used ? ' selected' : ''}" data-anagram-id="${t.id}"${locked ? ' style="opacity:0.55;"' : ''}>${t.letter}</button>`;
   }).join('');
 
   grid.querySelectorAll('.tile').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (anagramSolvedToday) return;
       const id = parseInt(btn.dataset.anagramId);
-      const idx = anagramSelected.indexOf(id);
-      if (idx >= 0) {
-        anagramSelected.splice(idx, 1);
-      } else {
-        anagramSelected.push(id);
-      }
-      renderAnagram();
+      anagramToggleTile(id);
     });
   });
 
-  // Mystery / + button — stays in action row, transforms into letter tile
-  // exactly like the joker button in the main game
+  // The + button behaves like the joker in the main game
   if (anagramMysteryLetter) {
+    const at = anagramSlotOfTile('mystery');
+    const locked = at >= 0 && anagramSlots[at].locked;
     actionRow.classList.remove('joker-gone');
     mysteryBtn.style.display = '';
-    const isSelected = anagramSelected.includes('mystery');
     mysteryBtn.classList.add('chosen');
-    mysteryBtn.classList.toggle('selected', isSelected);
+    mysteryBtn.classList.toggle('selected', at >= 0);
     mysteryBtn.innerHTML = anagramMysteryLetter;
+    mysteryBtn.style.opacity = locked ? '0.55' : '';
     panel.classList.remove('open');
-    // Show swap hint below the action row
+
     let swapHint = document.getElementById('anagramSwapHint');
     if (!swapHint) {
       swapHint = document.createElement('div');
@@ -7311,16 +7359,19 @@ function renderAnagram() {
       swapHint.style.cssText = 'display:flex;align-items:center;justify-content:center;margin-top:6px;margin-bottom:2px;';
       swapHint.innerHTML = '<button style="background:rgba(240,192,32,0.12);border:1px solid rgba(240,192,32,0.4);color:var(--gold);font-family:inherit;font-size:10px;font-weight:900;letter-spacing:0.12em;padding:6px 16px;cursor:pointer;">↺ SWAP BONUS TILE</button>';
       swapHint.addEventListener('click', () => {
+        const slot = anagramSlotOfTile('mystery');
+        if (slot >= 0 && anagramSlots[slot].locked) return; // revealed by a hint
+        if (slot >= 0) anagramSlots[slot] = null;
         anagramMysteryLetter = null;
-        anagramSelected = anagramSelected.filter(id => id !== 'mystery');
         renderAnagram();
       });
       actionRow.parentNode.insertBefore(swapHint, actionRow.nextSibling);
     }
-    swapHint.style.display = '';
+    swapHint.style.display = locked ? 'none' : '';
   } else {
     actionRow.classList.remove('joker-gone');
     mysteryBtn.style.display = '';
+    mysteryBtn.style.opacity = '';
     mysteryBtn.classList.remove('selected');
     mysteryBtn.classList.remove('chosen');
     mysteryBtn.innerHTML = panel.classList.contains('open') ? '−' : '+';
@@ -7328,8 +7379,83 @@ function renderAnagram() {
     if (swapHint) swapHint.style.display = 'none';
   }
 
-  document.getElementById('anagramSubmitBtn').disabled = anagramSolvedToday;
-  document.getElementById('anagramShuffleBtn').disabled = anagramSolvedToday;
+  const noneLeft = anagramSlots.every(Boolean);
+  document.getElementById('anagramRevealBtn').disabled = noneLeft;
+  document.getElementById('anagramRevealBtn').style.opacity = noneLeft ? '0.4' : '';
+}
+
+// Places a tile in the first free position, or takes it back if it's already
+// down. Positions locked by a hint are left alone.
+function anagramToggleTile(tileId) {
+  if (anagramSolvedToday || anagramGaveUp) return;
+  const at = anagramSlotOfTile(tileId);
+  if (at >= 0) {
+    if (anagramSlots[at].locked) return;
+    anagramSlots[at] = null;
+    renderAnagram();
+    return;
+  }
+  const letter = tileId === 'mystery'
+    ? anagramMysteryLetter
+    : (anagramTiles.find(t => t.id === tileId) || {}).letter;
+  if (!letter) return;
+  const free = anagramSlots.findIndex(s => !s);
+  if (free < 0) return;
+  anagramSlots[free] = { letter, tileId, locked: false };
+  renderAnagram();
+}
+
+// Reveals one random unfilled position, at the cost of a point. The letter is
+// taken from the rack if it's there, otherwise it must be the missing 11th.
+function anagramRevealLetter() {
+  if (anagramSolvedToday || anagramGaveUp) return;
+  const empties = anagramSlots.map((s, i) => (s ? null : i)).filter(i => i !== null);
+  if (!empties.length) return;
+
+  const idx = empties[Math.floor(Math.random() * empties.length)];
+  const letter = anagramWord[idx];
+
+  const lockedTiles = new Set(anagramSlots.filter(s => s && s.locked).map(s => s.tileId));
+  const candidates = anagramTiles.filter(t => t.letter === letter && !lockedTiles.has(t.id));
+
+  let tileId;
+  if (candidates.length) {
+    // Prefer one that isn't already placed, so we disturb as little as possible
+    const spare = candidates.find(t => anagramSlotOfTile(t.id) < 0);
+    const chosen = spare || candidates[0];
+    const at = anagramSlotOfTile(chosen.id);
+    if (at >= 0) anagramSlots[at] = null;
+    tileId = chosen.id;
+  } else {
+    // Not in the rack, so it's the missing letter
+    anagramMysteryLetter = letter;
+    const at = anagramSlotOfTile('mystery');
+    if (at >= 0) anagramSlots[at] = null;
+    tileId = 'mystery';
+  }
+
+  anagramSlots[idx] = { letter, tileId, locked: true };
+  anagramHints++;
+
+  const msg = document.getElementById('anagramMessage');
+  msg.textContent = `LETTER ${idx + 1} REVEALED · ${anagramCurrentScore()} POINTS LEFT`;
+  msg.className = 'message show info';
+  setTimeout(() => { msg.className = 'message'; }, 2000);
+
+  renderAnagram();
+
+  // Revealing the last gap finishes the puzzle
+  if (anagramSlots.every(Boolean)) setTimeout(submitAnagram, 500);
+}
+
+function anagramGiveUpNow() {
+  if (anagramSolvedToday || anagramGaveUp) return;
+  anagramGaveUp = true;
+  anagramSlots = anagramWord.split('').map(l => ({ letter: l, tileId: null, locked: true }));
+  anagramSolvedToday = true;
+  localStorage.setItem(ANAGRAM_SOLVED_KEY, todayString());
+  showAnagramReveal();
+  setTimeout(() => showAnagramResult(false), 400);
 }
 
 function shuffleAnagram() {
@@ -7342,11 +7468,12 @@ function shuffleAnagram() {
 
 function openAnagramMystery() {
   if (anagramSolvedToday) return;
-  // If letter already chosen, tapping again resets it
+  // If a letter is already chosen, tapping again clears it
   if (anagramMysteryLetter) {
+    const at = anagramSlotOfTile('mystery');
+    if (at >= 0 && anagramSlots[at].locked) return;
+    if (at >= 0) anagramSlots[at] = null;
     anagramMysteryLetter = null;
-    // Remove mystery from selection if it was selected
-    anagramSelected = anagramSelected.filter(id => id !== 'mystery');
     renderAnagram();
     return;
   }
@@ -7363,41 +7490,30 @@ function selectAnagramMysteryLetter(letter) {
 }
 
 function submitAnagram() {
-  const word = anagramSelected.map(id => {
-    if (id === 'mystery') return anagramMysteryLetter;
-    const t = anagramTiles.find(t => t.id === id);
-    return t ? t.letter : '';
-  }).join('');
-
   const msg = document.getElementById('anagramMessage');
 
-  if (word.length !== 11) {
-    msg.textContent = 'USE ALL 11 LETTERS TO FORM THE WORD.';
+  if (anagramSlots.some(s => !s)) {
+    msg.textContent = 'FILL ALL 11 POSITIONS FIRST.';
     msg.className = 'message show error';
     setTimeout(() => { msg.className = 'message'; }, 2000);
     return;
   }
-  if (!anagramMysteryLetter) {
-    msg.textContent = 'PICK YOUR MYSTERY 11TH LETTER FIRST.';
-    msg.className = 'message show error';
-    setTimeout(() => { msg.className = 'message'; }, 2000);
-    return;
-  }
+
+  const word = anagramSlots.map(s => s.letter).join('');
 
   if (word === anagramWord) {
     anagramSolvedToday = true;
     localStorage.setItem(ANAGRAM_SOLVED_KEY, todayString());
     showAnagramReveal();
     setTimeout(() => showAnagramResult(true), 400);
-  } else if (isValidWord(word)) {
-    msg.textContent = `"${word}" IS A REAL WORD, BUT NOT TODAY'S ANSWER.`;
-    msg.className = 'message show error';
-    setTimeout(() => { msg.className = 'message'; }, 2500);
-  } else {
-    msg.textContent = `"${word}" ISN'T TODAY'S WORD. TRY AGAIN!`;
-    msg.className = 'message show error';
-    setTimeout(() => { msg.className = 'message'; }, 2500);
+    return;
   }
+
+  msg.textContent = isValidWord(word)
+    ? `"${word}" IS A REAL WORD, BUT NOT TODAY'S ANSWER.`
+    : `"${word}" ISN'T TODAY'S WORD. TRY AGAIN!`;
+  msg.className = 'message show error';
+  setTimeout(() => { msg.className = 'message'; }, 2500);
   renderAnagram();
 }
 
@@ -7415,6 +7531,8 @@ async function saveAnagramResult(solved) {
   const { error } = await sbClient.from('anagram_results').insert({
     user_id: currentUser.id,
     solved,
+    score: solved ? anagramCurrentScore() : 0,
+    hints_used: anagramHints,
     word: anagramWord,
     played_at: new Date().toISOString(),
   });
@@ -7425,11 +7543,18 @@ async function loadAnagramStats() {
   if (!sbClient || !currentUser) return null;
   const { data } = await sbClient
     .from('anagram_results')
-    .select('solved, played_at')
+    .select('solved, score, hints_used, played_at')
     .eq('user_id', currentUser.id)
     .order('played_at', { ascending: false });
   if (!data) return null;
   const solved = data.filter(r => r.solved).length;
+  // Today's result, read back from the database — reopening the app later in
+  // the day must show what you actually scored, not a fresh 11.
+  const isoToday2 = new Date().toISOString().slice(0, 10);
+  const todayRow = data.find(r => r.played_at && r.played_at.slice(0, 10) === isoToday2);
+  const todayScore = todayRow ? (todayRow.score ?? (todayRow.solved ? null : 0)) : null;
+  const todayHints = todayRow ? (todayRow.hints_used ?? null) : null;
+  const todaySolved = todayRow ? !!todayRow.solved : false;
   const solvedDates = new Set(data.filter(r => r.solved).map(r => r.played_at.slice(0, 10)));
   let streak = 0;
   let best = 0;
@@ -7480,7 +7605,7 @@ async function loadAnagramStats() {
     best = Math.max(best, run);
   }
   best = Math.max(best, streak);
-  return { solved, streak, best };
+  return { solved, streak, best, todayScore, todayHints, todaySolved };
 }
 
 async function showAnagramReveal() {
@@ -7501,9 +7626,11 @@ async function showAnagramReveal() {
 
   // Load stats for display
   let statsHtml = '';
+  let storedToday = null;
   if (sbClient && currentUser) {
     const stats = await loadAnagramStats();
     if (stats) {
+      if (stats.todayScore != null) storedToday = stats.todayScore;
       statsHtml = `
         <div style="display:flex;justify-content:center;gap:24px;margin-top:20px;">
           <div style="text-align:center;">
@@ -7531,10 +7658,23 @@ async function showAnagramReveal() {
     if (wordSection) wordSection.after(reveal);
     else anagramScreen.insertBefore(reveal, grid);
   }
+  // Prefer the saved result — anagramHints is empty on a later visit
+  const scoredToday = anagramGaveUv() ? 0 : (storedToday != null ? storedToday : anagramCurrentScore());
+  const hintsToday = ANAGRAM_MAX_POINTS - scoredToday;
+  const headline = anagramGaveUv()
+    ? 'YOU GAVE UP'
+    : anagramSolvedToday ? 'YOU SOLVED IT!' : "TODAY'S WORD";
+  const pointsHtml = anagramSolvedToday ? `
+      <div style="margin-bottom:14px;">
+        <div style="font-size:44px;font-weight:900;color:var(--gold);line-height:1;">${scoredToday}</div>
+        <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;margin-top:2px;">POINT${scoredToday !== 1 ? 'S' : ''}${hintsToday ? ` · ${hintsToday} HINT${hintsToday !== 1 ? 'S' : ''} USED` : ' · NO HINTS'}</div>
+      </div>` : '';
+
   reveal.style.display = 'flex';
   reveal.innerHTML = `
     <div style="text-align:center;width:100%;">
-      <div style="font-size:11px;letter-spacing:0.2em;opacity:0.5;margin-bottom:16px;">${anagramSolvedToday ? 'YOU SOLVED IT!' : "TODAY'S WORD"}</div>
+      <div style="font-size:11px;letter-spacing:0.2em;opacity:0.5;margin-bottom:16px;">${headline}</div>
+      ${pointsHtml}
       <div style="font-size:clamp(22px, 6vw, 42px);font-weight:900;letter-spacing:0.03em;color:var(--gold);margin-bottom:6px;white-space:nowrap;max-width:100%;text-align:center;">${anagramWord}</div>
       ${statsHtml}
       <button class="action-btn wide" id="anagramShareRevealBtn" style="margin-top:20px;height:44px;width:160px;">SHARE</button>
@@ -7589,8 +7729,16 @@ function showAnagramResult(solved) {
   const title = document.getElementById('anagramResultTitle');
   const body = document.getElementById('anagramResultBody');
   if (solved) {
-    title.textContent = 'SOLVED!';
-    body.innerHTML = `TODAY'S WORD WAS <strong style="color:var(--gold);">${anagramWord}</strong>.<br><br>COME BACK TOMORROW FOR A NEW ONE.`;
+    const pts = anagramCurrentScore();
+    title.textContent = pts === ANAGRAM_MAX_POINTS ? 'PERFECT!' : 'SOLVED!';
+    body.innerHTML = `TODAY'S WORD WAS <strong style="color:var(--gold);">${anagramWord}</strong>.<br><br>`
+      + `YOU SCORED <strong style="color:var(--gold);">${pts} POINT${pts !== 1 ? 'S' : ''}</strong>`
+      + (anagramHints ? ` AFTER ${anagramHints} HINT${anagramHints !== 1 ? 'S' : ''}.` : ' WITH NO HINTS.')
+      + `<br><br>COME BACK TOMORROW FOR A NEW ONE.`;
+  } else {
+    title.textContent = 'GAVE UP';
+    body.innerHTML = `TODAY'S WORD WAS <strong style="color:var(--gold);">${anagramWord}</strong>.<br><br>`
+      + `NO POINTS TODAY — COME BACK TOMORROW.`;
   }
   overlay.classList.add('show');
 
@@ -9228,14 +9376,21 @@ async function shareAnagramResult(solved, word) {
   let y = await drawShareHeader(ctx, 'ANAGRAM', '/icons/anagram.png', name);
 
   // The word itself is never shown — sharing shouldn't spoil the puzzle
+  const pts = !solved ? 0 : (stats.todayScore != null ? stats.todayScore : anagramCurrentScore());
+  const hintsUsed = ANAGRAM_MAX_POINTS - pts;
+
   ctx.textAlign = 'center';
   ctx.fillStyle = SHARE_GOLD;
-  ctx.font = '900 104px Jost';
-  ctx.fillText(solved ? 'SOLVED' : 'ATTEMPTED', SHARE_W / 2, y + 150);
+  ctx.font = '900 132px Jost';
+  ctx.fillText(String(pts), SHARE_W / 2, y + 130);
 
   ctx.font = '700 26px Jost';
   ctx.globalAlpha = 0.6;
-  ctx.fillText(solved ? "TODAY'S 11-LETTER WORD" : "TODAY'S PUZZLE", SHARE_W / 2, y + 200);
+  ctx.fillText(`POINT${pts !== 1 ? 'S' : ''} OUT OF 11`, SHARE_W / 2, y + 172);
+  ctx.fillText(
+    !solved ? 'GAVE UP' : (hintsUsed ? `SOLVED WITH ${hintsUsed} HINT${hintsUsed !== 1 ? 'S' : ''}` : 'SOLVED WITH NO HINTS'),
+    SHARE_W / 2, y + 206
+  );
   ctx.globalAlpha = 1;
 
   // Blanked-out tiles standing in for the hidden answer
@@ -9269,7 +9424,7 @@ async function shareAnagramResult(solved, word) {
   drawShareFooter(ctx);
 
   const text = solved
-    ? "I solved today's Elevensies Anagram! Can you? playelevensies.com"
+    ? `I scored ${pts}/11 on today's Elevensies Anagram! Can you beat it? playelevensies.com`
     : "Can you solve today's Elevensies Anagram? playelevensies.com";
   await shareCanvasImage('elevensies-anagram.png', text, document.getElementById('anagramShareRevealBtn'));
 }
@@ -9504,31 +9659,28 @@ document.getElementById('h2hResultsCloseBtn').addEventListener('click', leaveH2H
 
 // Anagram screen wiring
 document.getElementById('anagramBackspaceBtn').addEventListener('click', () => {
-  if (anagramSelected.length > 0) {
-    anagramSelected = anagramSelected.slice(0, -1);
-    renderAnagram();
+  // Takes back the last letter you placed; revealed ones stay put
+  for (let i = anagramSlots.length - 1; i >= 0; i--) {
+    if (anagramSlots[i] && !anagramSlots[i].locked) {
+      anagramSlots[i] = null;
+      renderAnagram();
+      return;
+    }
   }
 });
-document.getElementById('anagramWordDisplay').addEventListener('click', () => {
-  if (anagramSelected.length > 0) {
-    anagramSelected = [];
-    renderAnagram();
-  }
+document.getElementById('anagramRevealBtn')?.addEventListener('click', anagramRevealLetter);
+document.getElementById('anagramGiveUpBtn')?.addEventListener('click', () => {
+  const btn = document.getElementById('anagramGiveUpBtn');
+  if (btn.dataset.confirm === '1') { anagramGiveUpNow(); return; }
+  btn.dataset.confirm = '1';
+  btn.textContent = 'SURE? 0 POINTS';
+  setTimeout(() => { btn.dataset.confirm = ''; btn.textContent = 'GIVE UP'; }, 4000);
 });
 document.getElementById('anagramShuffleBtn').addEventListener('click', shuffleAnagram);
 document.getElementById('anagramMysteryBtn').addEventListener('click', () => {
   if (anagramSolvedToday) return;
-  if (anagramMysteryLetter) {
-    const idx = anagramSelected.indexOf('mystery');
-    if (idx >= 0) {
-      anagramSelected.splice(idx, 1);
-    } else {
-      anagramSelected.push('mystery');
-    }
-    renderAnagram();
-  } else {
-    openAnagramMystery();
-  }
+  if (anagramMysteryLetter) anagramToggleTile('mystery');
+  else openAnagramMystery();
 });
 document.getElementById('anagramSubmitBtn').addEventListener('click', submitAnagram);
 document.getElementById('anagramBackBtn').addEventListener('click', () => {
