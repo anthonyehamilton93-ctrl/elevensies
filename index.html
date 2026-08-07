@@ -8876,7 +8876,7 @@ async function drawShareHeader(ctx, modeLabel, iconSrc, name) {
   ctx.font = `900 ${labelSize}px Jost`;
   let textW = ctx.measureText(modeLabel).width;
   const iconSize = 44;
-  const padX = 26, gap = icon ? 16 : 0, chipH = 74;
+  const padX = 26, gap = icon ? 24 : 0, chipH = 74;
   let chipW = padX * 2 + (icon ? iconSize : 0) + gap + textW;
   if (chipW > SHARE_W - 120) {
     labelSize = 26;
@@ -8889,7 +8889,17 @@ async function drawShareHeader(ctx, modeLabel, iconSrc, name) {
   // Solid gold block — reads instantly, even as a thumbnail
   ctx.fillStyle = SHARE_GOLD;
   ctx.fillRect(chipX, chipY, chipW, chipH);
-  if (icon) ctx.drawImage(icon, chipX + padX, chipY + (chipH - iconSize) / 2, iconSize, iconSize);
+  if (icon) {
+    // The icons are gold artwork, so they'd vanish on the gold bar. Sit them
+    // on a green tile instead — the game's own colour pairing.
+    const pad = 8;
+    const tile = iconSize + pad * 2;
+    const tileX = chipX + padX - pad;
+    const tileY = chipY + (chipH - tile) / 2;
+    ctx.fillStyle = SHARE_GREEN;
+    ctx.fillRect(tileX, tileY, tile, tile);
+    ctx.drawImage(icon, tileX + pad, tileY + pad, iconSize, iconSize);
+  }
   ctx.textAlign = 'left';
   ctx.fillStyle = SHARE_GREEN;
   ctx.fillText(modeLabel, chipX + padX + (icon ? iconSize : 0) + gap, chipY + chipH / 2 + labelSize * 0.36);
