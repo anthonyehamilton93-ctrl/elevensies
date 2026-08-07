@@ -3839,7 +3839,7 @@
       <input id="leagueStartInput" type="date" style="background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:13px;letter-spacing:0.06em;padding:9px 12px;outline:none;margin-bottom:10px;">
       <button class="cancel-btn" id="leagueStartSaveBtn" style="font-size:10px;padding:7px 16px;margin:0 auto;display:block;">SAVE START DATE</button>
       <div id="leagueStartMsg" style="font-size:10px;letter-spacing:0.06em;margin-top:8px;min-height:14px;opacity:0.7;"></div>
-      <div style="font-size:9px;letter-spacing:0.06em;opacity:0.4;margin-top:8px;line-height:1.6;">Members who join before this date can win the season. Later joiners play on and are eligible for the next one.</div>
+      <div style="font-size:9px;letter-spacing:0.06em;opacity:0.4;margin-top:8px;line-height:1.6;">Start today if it's still before 11am, or pick a date ahead. Members who join before the start can win the season — later joiners play on and are eligible for the next one.</div>
     </div>
 
     <!-- Season points table -->
@@ -5271,7 +5271,10 @@ async function openLeagueDetail(leagueId) {
     const startWrap = document.getElementById('leagueStartWrap');
     if (isAdmin && (!league.season_start_date || new Date(league.season_start_date + 'T00:00:00') > new Date())) {
       startWrap.style.display = '';
-      document.getElementById('leagueStartInput').value = league.season_start_date || '';
+      const startInput = document.getElementById('leagueStartInput');
+      const nowLocal = new Date();
+      startInput.min = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+      startInput.value = league.season_start_date || '';
       document.getElementById('leagueStartMsg').textContent = '';
     } else {
       startWrap.style.display = 'none';
