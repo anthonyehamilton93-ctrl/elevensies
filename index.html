@@ -1858,14 +1858,14 @@
     <div style="font-size:10px;letter-spacing:0.1em;opacity:0.4;margin-bottom:28px;">SHARE THIS WITH YOUR FRIENDS</div>
     <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:10px;">PLAYERS</div>
     <div id="h2hPlayerList" style="margin-bottom:28px;"></div>
-    <button class="auth-submit-btn" id="h2hStartBtn" style="display:none;margin-bottom:12px;">START GAME</button>
+    <button class="auth-submit-btn" id="h2hStartBtnLegacy" style="display:none;margin-bottom:12px;">START GAME</button>
     <div style="font-size:11px;letter-spacing:0.08em;opacity:0.5;" id="h2hWaitingStatus">WAITING FOR PLAYERS…</div>
     <button class="cancel-btn" id="h2hLeaveBtn" style="margin-top:20px;">LEAVE</button>
   </div>
 
   <!-- Active round: the game board is reused, this just tracks round state -->
   <div id="h2hRoundHeader" style="display:none;width:100%;text-align:center;padding:8px 0;background:rgba(240,192,32,0.06);border-bottom:1px solid rgba(240,192,32,0.15);">
-    <span style="font-size:10px;letter-spacing:0.15em;opacity:0.7;" id="h2hRoundLabel">ROUND 1 OF 3</span>
+    <span style="font-size:10px;letter-spacing:0.15em;opacity:0.7;" id="h2hRoundLabelLegacy">ROUND 1 OF 3</span>
   </div>
 
   <!-- Waiting for others after submitting -->
@@ -1883,7 +1883,7 @@
     <div id="h2hRoundTable" style="width:100%;margin-bottom:20px;"></div>
     <div style="font-size:10px;letter-spacing:0.15em;opacity:0.5;margin-bottom:8px;">SERIES</div>
     <div id="h2hSeriesTable" style="width:100%;margin-bottom:28px;"></div>
-    <button class="auth-submit-btn" id="h2hNextRoundBtn" style="display:none;margin-bottom:12px;">PLAY NEXT ROUND</button>
+    <button class="auth-submit-btn" id="h2hNextRoundBtnLegacy" style="display:none;margin-bottom:12px;">PLAY NEXT ROUND</button>
     <div style="font-size:11px;letter-spacing:0.08em;opacity:0.5;" id="h2hNextStatus"></div>
     <button class="cancel-btn" id="h2hQuitBtn" style="margin-top:16px;">QUIT GAME</button>
   </div>
@@ -10252,22 +10252,7 @@ async function initReminderState() {
 
   let pushOptedIn = false;
   if (pushCapable) {
-    const { data: pushData } = await sbClient.from('push_subscriptions').select('id').eq('user_id', currentUser.id).maybeSingle();
-    pushOptedIn = !!pushData;
-    // If Supabase says opted in but browser has no subscription, silently resubscribe
-    if (pushOptedIn) {
-      const browserSub = await getPushSubscription();
-      if (!browserSub) {
-        try {
-          const newSub = await subscribeToPush();
-          if (newSub) await savePushSubscription(newSub);
-          else {
-            await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
-            pushOptedIn = false;
-          }
-        } catch(e) { pushOptedIn = false; }
-      }
-    }
+    pushOptedIn = await syncPushSubscription();
   }
 
   reminderOptedIn = emailOptedIn || pushOptedIn;
@@ -10635,23 +10620,68 @@ async function subscribeToPush() {
   }
 }
 
+// Reports whether THIS device is subscribed, and repairs it if it has drifted.
+// Deliberately never touches the player's other devices.
+async function syncPushSubscription() {
+  if (!sbClient || !currentUser) return false;
+
+  const { data: rows } = await sbClient
+    .from('push_subscriptions')
+    .select('id, endpoint')
+    .eq('user_id', currentUser.id);
+
+  const known = Array.isArray(rows) ? rows : [];
+  const browserSub = await getPushSubscription();
+
+  if (browserSub) {
+    const listed = known.some(r => r.endpoint === browserSub.endpoint);
+    if (!listed) {
+      // Either a device we've never recorded, or the browser rotated the
+      // endpoint behind our back. Either way, record it.
+      await savePushSubscription(browserSub);
+    }
+    return true;
+  }
+
+  // No subscription in this browser. If permission is already granted this is
+  // the same device coming back after a reinstall or a cleared cache, so make
+  // a new one quietly. Otherwise leave it — a device the player hasn't opted
+  // in on shouldn't start receiving push on its own.
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && known.length > 0) {
+    try {
+      const fresh = await subscribeToPush();
+      if (fresh) { await savePushSubscription(fresh); return true; }
+    } catch (err) {
+      console.error('Push resubscribe failed:', err);
+    }
+  }
+  return false;
+}
+
 async function savePushSubscription(sub) {
   if (!sbClient || !currentUser || !sub) return;
   const subJson = sub.toJSON();
-  // First delete any existing subscription for this user, then insert fresh
-  await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
-  const { error } = await sbClient.from('push_subscriptions').insert({
+  // One row per device, matched on endpoint. Deleting the user's other rows
+  // here would unsubscribe their other devices — which is exactly what used
+  // to happen every time someone opened the app on a second browser.
+  const { error } = await sbClient.from('push_subscriptions').upsert({
     user_id: currentUser.id,
+    endpoint: subJson.endpoint,
     subscription: subJson,
-  });
+  }, { onConflict: 'endpoint' });
   if (error) console.error('Save push subscription error:', error);
 }
 
 async function deletePushSubscription() {
   if (!sbClient || !currentUser) return;
-  // Don't call sub.unsubscribe() — that revokes browser permission and breaks re-enabling
-  // Just remove from Supabase so no push is sent
-  await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
+  // Don't call sub.unsubscribe() — that revokes browser permission and breaks re-enabling.
+  // Only this device is switched off; the player's other devices carry on.
+  const sub = await getPushSubscription();
+  if (sub && sub.endpoint) {
+    await sbClient.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+  } else {
+    await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
+  }
 }
 
 async function handlePushToggle() {
@@ -10815,25 +10845,9 @@ async function openToolsOverlay() {
     setSqToggle('toolsReminderToggle', !data.reminders_unsubscribed);
     setSqToggle('toolsRoundupToggle', !data.email_unsubscribed);
   }
-  const { data: pushData } = await sbClient.from('push_subscriptions').select('id').eq('user_id', currentUser.id).maybeSingle();
-  const hasSupabaseSub = !!pushData;
-  const browserSub = await getPushSubscription();
-  if (hasSupabaseSub && !browserSub && canUsePush()) {
-    // Supabase says opted in but browser lost subscription (e.g. app reinstall) — silently resubscribe
-    try {
-      const newSub = await subscribeToPush();
-      if (newSub) {
-        await savePushSubscription(newSub);
-        setSqToggle('toolsPushToggle', true);
-      } else {
-        // Can't resubscribe — clean up Supabase row
-        await sbClient.from('push_subscriptions').delete().eq('user_id', currentUser.id);
-        setSqToggle('toolsPushToggle', false);
-      }
-    } catch(e) { setSqToggle('toolsPushToggle', false); }
-  } else {
-    setSqToggle('toolsPushToggle', hasSupabaseSub && !!browserSub);
-  }
+  // Repairs a stale or missing subscription and reports the true state
+  const pushOn = canUsePush() ? await syncPushSubscription() : false;
+  setSqToggle('toolsPushToggle', pushOn);
   // Hide push toggle if device can't support it
   const pushRow = document.getElementById('toolsPushToggle')?.closest('div[style*="justify-content"]');
   if (pushRow) pushRow.style.display = canUsePush() ? 'flex' : 'none';
