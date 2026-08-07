@@ -32,12 +32,53 @@ self.addEventListener('push', (e) => {
     badge: ICON,
     data: { url: data.url || APP_ORIGIN },
     vibrate: [200, 100, 200],
+    // A single tag means a later reminder replaces an earlier undelivered one
+    // rather than stacking two notifications for the same day's game.
+    tag: 'elevensies-daily',
+    renotify: true,
     requireInteraction: false,
   };
 
   e.waitUntil(
     self.registration.showNotification(data.title || 'Elevensies', options)
   );
+});
+
+// The browser can rotate a push subscription on its own — a service worker
+// update is the usual trigger. When that happens the old endpoint still looks
+// valid to the push service for a while, so messages sent to it are accepted
+// and silently dropped. Resubscribe and tell the server the new address.
+const VAPID_PUBLIC_KEY = 'BOaVNchoGC50d0sx48gA_wgL7HHoj8zjrMP-cw84p8Rqd4bdf1CxH25QSS5B9tHWD2fzRCw-kMH8f7fuZhMRABE';
+
+function urlB64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map((ch) => ch.charCodeAt(0)));
+}
+
+self.addEventListener('pushsubscriptionchange', (e) => {
+  e.waitUntil((async () => {
+    try {
+      const oldEndpoint = e.oldSubscription ? e.oldSubscription.endpoint : null;
+      const appKey =
+        (e.oldSubscription && e.oldSubscription.options && e.oldSubscription.options.applicationServerKey)
+        || urlB64ToUint8Array(VAPID_PUBLIC_KEY);
+
+      const sub = await self.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: appKey,
+      });
+
+      await fetch('/api/daily-reminder?resubscribe=1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldEndpoint, subscription: sub.toJSON() }),
+      });
+    } catch (err) {
+      console.error('Resubscribe failed:', err);
+    }
+  })());
 });
 
 // Notification click — focus an existing tab if there is one, else open the app
