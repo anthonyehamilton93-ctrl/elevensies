@@ -162,6 +162,17 @@ async function sendResendBatches(emails) {
   return { sent, failed };
 }
 
+// Rough platform label from the push endpoint, so a report about several
+// devices is readable rather than a wall of URLs.
+function platformOf(endpoint) {
+  if (!endpoint) return 'Unknown';
+  if (endpoint.includes('fcm.googleapis.com')) return 'Chrome / Android';
+  if (endpoint.includes('web.push.apple.com')) return 'Safari / iOS';
+  if (endpoint.includes('mozilla')) return 'Firefox';
+  if (endpoint.includes('windows.com')) return 'Edge';
+  return 'Other';
+}
+
 // Local-midnight-to-UTC for a given timezone offset in minutes.
 function localDayStartUTC(now, offsetMinutes) {
   const local = new Date(now.getTime() + offsetMinutes * 60000);
@@ -305,21 +316,39 @@ export default async function handler(req, res) {
   // ---- Test push ----
   const testUid = req.query?.test;
   if (testUid) {
-    const subs = await db(`/push_subscriptions?select=id,user_id,subscription&user_id=eq.${testUid}`);
+    const subs = await dbAll(`/push_subscriptions?select=id,user_id,subscription&user_id=eq.${testUid}`);
     if (!subs?.length) {
-      const all = await db(`/push_subscriptions?select=user_id`);
+      const all = await dbAll(`/push_subscriptions?select=user_id`);
       return res.status(404).json({ error: 'No subscription found', totalInTable: all?.length ?? 0 });
     }
-    try {
-      await webpush.sendNotification(subs[0].subscription, JSON.stringify({
-        title: 'Time for Elevensies!',
-        body: 'Test notification — push is working! 🟨',
-        url: GAME_URL,
-      }), PUSH_OPTIONS);
-      return res.status(200).json({ ok: true, message: 'Test push sent' });
-    } catch (err) {
-      return res.status(500).json({ error: err.message, statusCode: err.statusCode, body: err.body });
+
+    // Send to every device this player has registered, and report each one —
+    // testing only the first would miss exactly the device that's failing.
+    const results = [];
+    for (const sub of subs) {
+      const endpoint = sub.subscription && sub.subscription.endpoint;
+      try {
+        await webpush.sendNotification(sub.subscription, JSON.stringify({
+          title: 'Time for Elevensies!',
+          body: 'Test notification — push is working! 🟨',
+          url: GAME_URL,
+        }), PUSH_OPTIONS);
+        results.push({ device: platformOf(endpoint), sent: true, endpointTail: (endpoint || '').slice(-12) });
+      } catch (err) {
+        results.push({
+          device: platformOf(endpoint),
+          sent: false,
+          statusCode: err.statusCode,
+          error: err.message,
+          endpointTail: (endpoint || '').slice(-12),
+        });
+      }
     }
+    return res.status(200).json({
+      devices: subs.length,
+      sent: results.filter(r => r.sent).length,
+      results,
+    });
   }
 
   // ---- Dry run: report what the 11am job would do, send nothing ----
@@ -334,11 +363,13 @@ export default async function handler(req, res) {
     const rows = subs.map(s => {
       const o = offsetMap[s.user_id];
       const nullFallback = (o === null || o === undefined) && (off === 0 || off === 60);
+      const endpoint = s.subscription && s.subscription.endpoint;
       return {
         user_id: s.user_id,
+        device: platformOf(endpoint),
+        endpointTail: (endpoint || '').slice(-12),
         utc_offset: o === undefined ? 'NO PROFILE ROW' : o,
-        offset_type: typeof o,
-        has_endpoint: !!(s.subscription && s.subscription.endpoint),
+        has_endpoint: !!endpoint,
         would_receive: nullFallback || Number(o) === Number(off),
       };
     });
