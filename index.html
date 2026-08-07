@@ -856,14 +856,6 @@
     border-color: var(--gold) !important;
     color: var(--gold) !important;
   }
-  .new-dot {
-    display: inline-block;
-    width: 6px; height: 6px;
-    background: var(--gold);
-    margin-left: 6px;
-    vertical-align: middle;
-  }
-
   @keyframes sqPulse {
     0%, 100% { opacity: 0.12; }
     50% { opacity: 1; }
@@ -2539,7 +2531,7 @@
 
     <!-- What's new -->
     <div style="margin-bottom:16px;">
-      <button class="auth-submit-btn" id="briefingWhatsNewBtn" style="font-size:11px;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);">WHAT'S NEW ›<span class="new-dot" id="whatsNewDot" style="display:none;"></span></button>
+      <button class="auth-submit-btn" id="briefingWhatsNewBtn" style="font-size:11px;background:transparent;border:2px solid var(--gold-dark);color:var(--gold);">WHAT'S NEW ›</button>
     </div>
 
     <button class="auth-submit-btn" id="briefingCloseBtn">LET'S PLAY</button>
@@ -4933,11 +4925,9 @@ const WHATS_NEW_VERSION = 'league-seasons-2026-08';
 
 function updateWhatsNewGlow() {
   const btn = document.getElementById('briefingWhatsNewBtn');
-  const dot = document.getElementById('whatsNewDot');
   if (!btn) return;
   const seen = localStorage.getItem('elv_whats_new_seen') === WHATS_NEW_VERSION;
   btn.classList.toggle('pulse-new', !seen);
-  if (dot) dot.style.display = seen ? 'none' : '';
 }
 
 async function showDailyBriefing() {
