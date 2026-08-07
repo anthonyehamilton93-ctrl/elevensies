@@ -2559,14 +2559,23 @@
 </div>
 
 <!-- Mini Leagues intro popup -->
-<div class="overlay" id="leaguesIntroOverlay">
+<div class="overlay" id="leaguesIntroOverlay" style="z-index:2400;">
   <div class="modal" style="text-align:center;">
-    <div class="modal-title">NEW: MINI LEAGUES</div>
-    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
-      Create a private league with friends, share a password, and compete on your own Top 11.<br><br>
-      Find it in STATS → LEAGUES.
+    <div style="text-align:center;margin-bottom:8px;"><img src="/icons/stats.png" style="height:36px;width:auto;opacity:0.9;"></div>
+    <div style="font-size:10px;letter-spacing:0.2em;opacity:0.5;margin-bottom:4px;">NEW</div>
+    <div class="modal-title">LEAGUE SEASONS</div>
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.8;margin-bottom:14px;opacity:0.85;">
+      Mini leagues now run in <strong style="color:var(--gold);">11-day seasons</strong> — so there's something to play for every single day, not just a table that barely moves.
     </div>
-    <button class="auth-submit-btn" id="leaguesIntroTryBtn" style="margin-bottom:10px;">TRY IT</button>
+    <div style="background:var(--green-dark);padding:14px;margin-bottom:14px;font-size:12px;line-height:1.9;letter-spacing:0.04em;text-align:left;">
+      <div>Play each day and you score points.</div>
+      <div>Beat your friends that day and you score more.</div>
+      <div>Top of the table after 11 days wins the season.</div>
+    </div>
+    <div style="font-size:12px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.7;">
+      Miss a day and you get nothing — so the person who turns up every morning is the one who wins.
+    </div>
+    <button class="auth-submit-btn" id="leaguesIntroTryBtn" style="margin-bottom:10px;">TAKE ME THERE</button>
     <button class="cancel-btn" id="leaguesIntroCloseBtn">MAYBE LATER</button>
   </div>
 </div>
@@ -4867,14 +4876,28 @@ async function openPlayerProfile(uid) {
   }
 }
 
+// Bump this to announce a future leagues change to everyone again
+const LEAGUE_INTRO_VERSION = 'seasons-2026-08';
+
+// Shown once, after the daily briefing is dismissed, so the two never stack.
+// Only to signed-in players, since leagues need an account.
+function maybeShowLeaguesIntro() {
+  if (!currentUser) return;
+  if (localStorage.getItem('elevensies_leagues_intro_seen') === LEAGUE_INTRO_VERSION) return;
+  const briefing = document.getElementById('dailyBriefingOverlay');
+  if (briefing && briefing.classList.contains('show')) return;
+  setTimeout(() => {
+    document.getElementById('leaguesIntroOverlay').classList.add('show');
+  }, 400);
+}
+
 document.getElementById('leaguesIntroTryBtn').addEventListener('click', () => {
-  localStorage.setItem('elevensies_leagues_intro_seen', '1');
+  localStorage.setItem('elevensies_leagues_intro_seen', LEAGUE_INTRO_VERSION);
   document.getElementById('leaguesIntroOverlay').classList.remove('show');
-  // Open leagues tab in stats
   openLeaguesTab();
 });
 document.getElementById('leaguesIntroCloseBtn').addEventListener('click', () => {
-  localStorage.setItem('elevensies_leagues_intro_seen', '1');
+  localStorage.setItem('elevensies_leagues_intro_seen', LEAGUE_INTRO_VERSION);
   document.getElementById('leaguesIntroOverlay').classList.remove('show');
 });
 // ===== FOOTER =====
@@ -5014,6 +5037,7 @@ async function showDailyBriefing() {
 
 document.getElementById('briefingCloseBtn').addEventListener('click', () => {
   document.getElementById('dailyBriefingOverlay').classList.remove('show');
+  maybeShowLeaguesIntro();
 });
 document.getElementById('briefingWhatsNewBtn').addEventListener('click', () => {
   localStorage.setItem('elv_whats_new_seen', WHATS_NEW_VERSION);
