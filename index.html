@@ -7179,6 +7179,72 @@ let anagramGaveUp = false;
 let anagramSolvedToday = false;
 const ANAGRAM_MAX_POINTS = 11;
 
+// The order letters get revealed in is fixed for a given word, so every
+// player sees the same sequence — and the hint count on its own is enough to
+// rebuild the board after a refresh or on another device.
+let anagramRevealOrder = [];
+
+function buildAnagramRevealOrder(word, missingIdx) {
+  const idxs = word.split('').map((_, i) => i).filter(i => i !== missingIdx);
+  for (let i = idxs.length - 1; i > 0; i--) {
+    const j = Math.floor(seededRandom(word + '-revealorder-' + i) * (i + 1));
+    [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
+  }
+  // The hidden 11th letter is the puzzle, so it's always the last to go
+  idxs.push(missingIdx);
+  return idxs;
+}
+
+// Locks the correct letter into one position, taking it from the rack if it's
+// there and otherwise treating it as the hidden letter.
+function revealAnagramAt(idx) {
+  if (idx == null || idx < 0 || anagramSlots[idx]?.locked) return;
+  const letter = anagramWord[idx];
+  const lockedTiles = new Set(anagramSlots.filter(s => s && s.locked).map(s => s.tileId));
+  const candidates = anagramTiles.filter(t => t.letter === letter && !lockedTiles.has(t.id));
+
+  let tileId;
+  if (candidates.length) {
+    const spare = candidates.find(t => anagramSlotOfTile(t.id) < 0);
+    const chosen = spare || candidates[0];
+    const at = anagramSlotOfTile(chosen.id);
+    if (at >= 0) anagramSlots[at] = null;
+    tileId = chosen.id;
+  } else {
+    anagramMysteryLetter = letter;
+    const at = anagramSlotOfTile('mystery');
+    if (at >= 0) anagramSlots[at] = null;
+    tileId = 'mystery';
+  }
+  anagramSlots[idx] = { letter, tileId, locked: true };
+}
+
+// Records hints as they're taken, so leaving the game — or opening it on
+// another device — can't hand back the points already spent.
+async function saveAnagramProgress() {
+  if (!sbClient || !currentUser) return;
+  const { error } = await sbClient.from('anagram_results').upsert({
+    user_id: currentUser.id,
+    play_date: todayString(),
+    solved: false,
+    hints_used: anagramHints,
+    word: anagramWord,
+    played_at: new Date().toISOString(),
+  }, { onConflict: 'user_id,play_date' });
+  if (error) console.error('Anagram progress save error:', error);
+}
+
+async function loadAnagramProgress() {
+  if (!sbClient || !currentUser) return null;
+  const { data } = await sbClient
+    .from('anagram_results')
+    .select('solved, score, hints_used')
+    .eq('user_id', currentUser.id)
+    .eq('play_date', todayString())
+    .maybeSingle();
+  return data || null;
+}
+
 function anagramGaveUv() { return anagramGaveUp; }
 
 function anagramCurrentScore() {
@@ -7216,12 +7282,12 @@ async function hasSolvedAnagramTodayRemote() {
   // Use ISO padded format — todayString() is unpadded and won't compare correctly against Supabase timestamps
   const { data } = await sbClient
     .from('anagram_results')
-    .select('solved')
+    .select('solved, score')
     .eq('user_id', currentUser.id)
-    .gte('played_at', todayString() + 'T00:00:00')
-    .eq('solved', true)
-    .limit(1);
-  return data && data.length > 0;
+    .eq('play_date', todayString())
+    .maybeSingle();
+  // Solved, or given up — either way today is done
+  return !!(data && (data.solved || data.score === 0));
 }
 
 function isAfterAnagramReveal() {
@@ -7278,6 +7344,16 @@ async function startAnagram() {
   anagramHints = 0;
   anagramGaveUp = false;
   anagramTiles._missingLetter = missingLetter;
+  anagramRevealOrder = buildAnagramRevealOrder(anagramWord, missingIndex);
+
+  // Put back any hints already taken today, wherever they were taken
+  const progress = await loadAnagramProgress();
+  if (progress && progress.hints_used > 0) {
+    for (let i = 0; i < Math.min(progress.hints_used, anagramRevealOrder.length); i++) {
+      revealAnagramAt(anagramRevealOrder[i]);
+    }
+    anagramHints = progress.hints_used;
+  }
 
   const elapsed = Date.now() - anagramLoadStart;
   setTimeout(() => {
@@ -7423,37 +7499,12 @@ function anagramToggleTile(tileId) {
 // taken from the rack if it's there, otherwise it must be the missing 11th.
 function anagramRevealLetter() {
   if (anagramSolvedToday || anagramGaveUp) return;
-  const empties = anagramSlots.map((s, i) => (s ? null : i)).filter(i => i !== null);
-  if (!empties.length) return;
+  if (anagramHints >= anagramRevealOrder.length) return;
 
-  // Finding the hidden 11th letter is the puzzle, so a hint never gives it
-  // away while there's anything else left to reveal.
-  const preferred = empties.filter(i => i !== anagramMissingIndex);
-  const pool = preferred.length ? preferred : empties;
-  const idx = pool[Math.floor(Math.random() * pool.length)];
-  const letter = anagramWord[idx];
-
-  const lockedTiles = new Set(anagramSlots.filter(s => s && s.locked).map(s => s.tileId));
-  const candidates = anagramTiles.filter(t => t.letter === letter && !lockedTiles.has(t.id));
-
-  let tileId;
-  if (candidates.length) {
-    // Prefer one that isn't already placed, so we disturb as little as possible
-    const spare = candidates.find(t => anagramSlotOfTile(t.id) < 0);
-    const chosen = spare || candidates[0];
-    const at = anagramSlotOfTile(chosen.id);
-    if (at >= 0) anagramSlots[at] = null;
-    tileId = chosen.id;
-  } else {
-    // Not in the rack, so it's the missing letter
-    anagramMysteryLetter = letter;
-    const at = anagramSlotOfTile('mystery');
-    if (at >= 0) anagramSlots[at] = null;
-    tileId = 'mystery';
-  }
-
-  anagramSlots[idx] = { letter, tileId, locked: true };
+  const idx = anagramRevealOrder[anagramHints];
+  revealAnagramAt(idx);
   anagramHints++;
+  saveAnagramProgress();
 
   const msg = document.getElementById('anagramMessage');
   msg.textContent = `LETTER ${idx + 1} REVEALED · ${anagramCurrentScore()} POINTS LEFT`;
@@ -7537,23 +7588,16 @@ function submitAnagram() {
 
 async function saveAnagramResult(solved) {
   if (!sbClient || !currentUser) return false;
-    // Check not already saved today
-  const { data: existing } = await sbClient
-    .from('anagram_results')
-    .select('id')
-    .eq('user_id', currentUser.id)
-    .gte('played_at', todayString() + 'T00:00:00')
-    .lte('played_at', todayString() + 'T23:59:59')
-    .limit(1);
-  if (existing && existing.length > 0) return false; // already saved
-  const { error } = await sbClient.from('anagram_results').insert({
+  // One row per player per day — this updates whatever the hints already wrote
+  const { error } = await sbClient.from('anagram_results').upsert({
     user_id: currentUser.id,
+    play_date: todayString(),
     solved,
     score: solved ? anagramCurrentScore() : 0,
     hints_used: anagramHints,
     word: anagramWord,
     played_at: new Date().toISOString(),
-  });
+  }, { onConflict: 'user_id,play_date' });
   return !error;
 }
 
@@ -7561,15 +7605,14 @@ async function loadAnagramStats() {
   if (!sbClient || !currentUser) return null;
   const { data } = await sbClient
     .from('anagram_results')
-    .select('solved, score, hints_used, played_at')
+    .select('solved, score, hints_used, play_date, played_at')
     .eq('user_id', currentUser.id)
     .order('played_at', { ascending: false });
   if (!data) return null;
   const solved = data.filter(r => r.solved).length;
   // Today's result, read back from the database — reopening the app later in
   // the day must show what you actually scored, not a fresh 11.
-  const isoToday2 = new Date().toISOString().slice(0, 10);
-  const todayRow = data.find(r => r.played_at && r.played_at.slice(0, 10) === isoToday2);
+  const todayRow = data.find(r => r.play_date === todayString());
   const todayScore = todayRow ? (todayRow.score ?? (todayRow.solved ? null : 0)) : null;
   const todayHints = todayRow ? (todayRow.hints_used ?? null) : null;
   const todaySolved = todayRow ? !!todayRow.solved : false;
