@@ -100,6 +100,16 @@ async function listAllAuthUsers() {
   return all;
 }
 
+// Delivery options. Without these the push goes out at normal urgency with no
+// TTL, which lets Android's Doze and iOS's equivalent hold it back until the
+// device next wakes — fine for a chat message, useless for "the game is open
+// now". High urgency asks for immediate delivery; the TTL means an offline
+// device still gets it when it comes back, but only while the game is open.
+const PUSH_OPTIONS = {
+  urgency: 'high',
+  TTL: 10800, // 3 hours — the length of the game window
+};
+
 // Sends push in parallel batches and reports which subscriptions are dead.
 async function sendPushBatch(subs, payload) {
   let sent = 0;
@@ -107,7 +117,7 @@ async function sendPushBatch(subs, payload) {
   for (const slice of chunk(subs, PUSH_CONCURRENCY)) {
     await Promise.all(slice.map(async (sub) => {
       try {
-        await webpush.sendNotification(sub.subscription, JSON.stringify(payload));
+        await webpush.sendNotification(sub.subscription, JSON.stringify(payload), PUSH_OPTIONS);
         sent++;
       } catch (err) {
         if (err.statusCode === 404 || err.statusCode === 410) expiredIds.push(sub.id);
@@ -244,6 +254,45 @@ async function sendPushToTimezone(targetOffset) {
 }
 
 export default async function handler(req, res) {
+  // ---- Service worker repairing its own subscription ----
+  // Runs before the cron-secret check because it's called by the browser, not
+  // by cron. It carries no credentials, but it has to quote the previous
+  // endpoint — which only the browser that held it knows — and it can only
+  // ever swap that one row for a new address.
+  if (req.query?.resubscribe) {
+    const { oldEndpoint, subscription } = req.body || {};
+    if (!subscription || !subscription.endpoint) {
+      return res.status(400).json({ error: 'No subscription supplied' });
+    }
+    if (!oldEndpoint) {
+      return res.status(400).json({ error: 'No previous endpoint supplied' });
+    }
+
+    const rows = await db(
+      `/push_subscriptions?select=id,user_id&subscription->>endpoint=eq.${encodeURIComponent(oldEndpoint)}`
+    );
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(404).json({ error: 'Previous subscription not found' });
+    }
+
+    const updated = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?id=eq.${rows[0].id}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({ subscription, endpoint: subscription.endpoint }),
+    });
+    if (!updated.ok) {
+      console.error('Resubscribe update failed:', await updated.text());
+      return res.status(500).json({ error: 'Could not update subscription' });
+    }
+    console.log('PUSH ENDPOINT ROTATED for user', rows[0].user_id);
+    return res.status(200).json({ ok: true });
+  }
+
   const secret = req.headers['x-cron-secret'];
   if (CRON_SECRET && secret !== CRON_SECRET) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -266,7 +315,7 @@ export default async function handler(req, res) {
         title: 'Time for Elevensies!',
         body: 'Test notification — push is working! 🟨',
         url: GAME_URL,
-      }));
+      }), PUSH_OPTIONS);
       return res.status(200).json({ ok: true, message: 'Test push sent' });
     } catch (err) {
       return res.status(500).json({ error: err.message, statusCode: err.statusCode, body: err.body });
