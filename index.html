@@ -1737,7 +1737,7 @@
   <!-- Anagram screen -->
   <div class="anagram-screen" id="anagramScreen" style="display:none; flex-direction:column; align-items:center; width:100%; flex:1;">
 
-  <div style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0 8px;box-sizing:border-box;">
+  <div id="anagramHeaderRow" style="width:352px;max-width:100%;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0 8px;box-sizing:border-box;">
     <div style="text-align:left;">
       <div style="font-size:10px;letter-spacing:0.14em;opacity:0.5;">HINTS USED</div>
       <div style="font-size:22px;font-weight:900;color:var(--gold);line-height:1.2;" id="anagramHintsUsed">0</div>
@@ -1767,7 +1767,7 @@
     <button class="action-btn wide" id="anagramSubmitBtn">SUBMIT</button>
   </div>
 
-  <div style="width:352px;max-width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;box-sizing:border-box;">
+  <div id="anagramExtraRow" style="width:352px;max-width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;box-sizing:border-box;">
     <button class="cancel-btn" id="anagramRevealBtn" style="margin:0;font-size:11px;padding:10px 0;">REVEAL A LETTER</button>
     <button class="cancel-btn" id="anagramGiveUpBtn" style="margin:0;font-size:11px;padding:10px 0;color:#ff7c7c;border-color:rgba(255,124,124,0.35);">GIVE UP</button>
   </div>
@@ -7175,6 +7175,7 @@ let anagramTiles = [];       // { id, letter } — the 10 given letters
 let anagramSlots = [];       // 11 positions: null | { letter, tileId, locked }
 let anagramHints = 0;        // letters revealed, each costing a point
 let anagramMissingIndex = -1; // where the hidden 11th letter belongs
+let anagramFinishedThisSession = false; // trust memory over the database today
 let anagramGaveUp = false;
 let anagramSolvedToday = false;
 const ANAGRAM_MAX_POINTS = 11;
@@ -7231,7 +7232,7 @@ async function saveAnagramProgress() {
     word: anagramWord,
     played_at: new Date().toISOString(),
   }, { onConflict: 'user_id,play_date' });
-  if (error) console.error('Anagram progress save error:', error);
+  if (error) console.error('ANAGRAM PROGRESS SAVE FAILED:', error.message, error.details || '');
 }
 
 async function loadAnagramProgress() {
@@ -7300,6 +7301,20 @@ async function startAnagram() {
   if (!anagramWord) { showScreen('welcome'); return; }
 
   // Show screen immediately with animated loading overlay
+  // Undo whatever the reveal screen hid last time
+  ['anagramExtraRow', 'anagramHeaderRow'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
+  const agGrid = document.getElementById('anagramTileGrid');
+  if (agGrid) agGrid.style.display = '';
+  const agRow = document.getElementById('anagramActionRow');
+  if (agRow) agRow.style.display = '';
+  const agSection = document.getElementById('anagramWordSection');
+  if (agSection) agSection.style.display = '';
+  const agReveal = document.getElementById('anagramRevealArea');
+  if (agReveal) agReveal.style.display = 'none';
+
   showScreen('anagram');
   const anagramLoadStart = Date.now();
   document.getElementById('anagramLoadingOverlay').classList.add('show');
@@ -7343,6 +7358,7 @@ async function startAnagram() {
   anagramSlots = new Array(11).fill(null);
   anagramHints = 0;
   anagramGaveUp = false;
+  anagramFinishedThisSession = false;
   anagramTiles._missingLetter = missingLetter;
   anagramRevealOrder = buildAnagramRevealOrder(anagramWord, missingIndex);
 
@@ -7520,11 +7536,16 @@ function anagramRevealLetter() {
 function anagramGiveUpNow() {
   if (anagramSolvedToday || anagramGaveUp) return;
   anagramGaveUp = true;
+  anagramFinishedThisSession = true;
   anagramSlots = anagramWord.split('').map(l => ({ letter: l, tileId: null, locked: true }));
   anagramSolvedToday = true;
   localStorage.setItem(ANAGRAM_SOLVED_KEY, todayString());
-  showAnagramReveal();
-  setTimeout(() => showAnagramResult(false), 400);
+  showEndGameLoader();
+  saveAnagramResult(false).then(() => {
+    hideEndGameLoader();
+    showAnagramReveal();
+    setTimeout(() => showAnagramResult(false), 400);
+  });
 }
 
 function shuffleAnagram() {
@@ -7572,9 +7593,16 @@ function submitAnagram() {
 
   if (word === anagramWord) {
     anagramSolvedToday = true;
+    anagramFinishedThisSession = true;
     localStorage.setItem(ANAGRAM_SOLVED_KEY, todayString());
-    showAnagramReveal();
-    setTimeout(() => showAnagramResult(true), 400);
+    // Save before drawing the reveal — otherwise it reads the half-written
+    // progress row and reports no score and no streak.
+    showEndGameLoader();
+    saveAnagramResult(true).then(() => {
+      hideEndGameLoader();
+      showAnagramReveal();
+      setTimeout(() => showAnagramResult(true), 400);
+    });
     return;
   }
 
@@ -7598,25 +7626,31 @@ async function saveAnagramResult(solved) {
     word: anagramWord,
     played_at: new Date().toISOString(),
   }, { onConflict: 'user_id,play_date' });
+  if (error) console.error('ANAGRAM SAVE FAILED:', error.message, error.details || '');
   return !error;
 }
 
 async function loadAnagramStats() {
   if (!sbClient || !currentUser) return null;
-  const { data } = await sbClient
+  const { data, error: statsErr } = await sbClient
     .from('anagram_results')
     .select('solved, score, hints_used, play_date, played_at')
     .eq('user_id', currentUser.id)
     .order('played_at', { ascending: false });
+  if (statsErr) console.error('ANAGRAM STATS FAILED:', statsErr.message, statsErr.details || '');
   if (!data) return null;
   const solved = data.filter(r => r.solved).length;
   // Today's result, read back from the database — reopening the app later in
   // the day must show what you actually scored, not a fresh 11.
   const todayRow = data.find(r => r.play_date === todayString());
-  const todayScore = todayRow ? (todayRow.score ?? (todayRow.solved ? null : 0)) : null;
+  // A row written by a hint has no score yet. Only treat a real number as a
+  // result — otherwise an unfinished game reads as nil points.
+  const todayScore = todayRow && typeof todayRow.score === 'number' ? todayRow.score : null;
   const todayHints = todayRow ? (todayRow.hints_used ?? null) : null;
   const todaySolved = todayRow ? !!todayRow.solved : false;
-  const solvedDates = new Set(data.filter(r => r.solved).map(r => r.played_at.slice(0, 10)));
+  const solvedDates = new Set(
+    data.filter(r => r.solved).map(r => r.play_date || r.played_at.slice(0, 10))
+  );
   let streak = 0;
   let best = 0;
   const dates = [...solvedDates].sort().reverse();
@@ -7680,6 +7714,12 @@ async function showAnagramReveal() {
   // Hide game elements
   if (grid) grid.style.display = 'none';
   if (actionRow) actionRow.style.display = 'none';
+  const extraRow = document.getElementById('anagramExtraRow');
+  if (extraRow) extraRow.style.display = 'none';
+  const headerRow = document.getElementById('anagramHeaderRow');
+  if (headerRow) headerRow.style.display = 'none';
+  const swap = document.getElementById('anagramSwapHint');
+  if (swap) swap.style.display = 'none';
   if (panel) panel.classList.remove('open');
   if (wordSection) wordSection.style.display = 'none';
   const bsBtn = document.getElementById('anagramBackspaceBtn');
@@ -7719,8 +7759,11 @@ async function showAnagramReveal() {
     if (wordSection) wordSection.after(reveal);
     else anagramScreen.insertBefore(reveal, grid);
   }
-  // Prefer the saved result — anagramHints is empty on a later visit
-  const scoredToday = anagramGaveUv() ? 0 : (storedToday != null ? storedToday : anagramCurrentScore());
+  // Just finished, so memory is authoritative. On a later visit memory is
+  // empty and the saved result is.
+  const scoredToday = anagramGaveUv()
+    ? 0
+    : (anagramFinishedThisSession || storedToday == null ? anagramCurrentScore() : storedToday);
   const hintsToday = ANAGRAM_MAX_POINTS - scoredToday;
   const headline = anagramGaveUv()
     ? 'YOU GAVE UP'
