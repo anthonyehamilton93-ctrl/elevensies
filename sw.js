@@ -57,10 +57,32 @@ function urlB64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map((ch) => ch.charCodeAt(0)));
 }
 
+// A tiny key/value store both the page and this worker can reach. It holds a
+// token identifying this browser, written when the player subscribes.
+function elvIdb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('elevensies', 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore('kv'); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function elvIdbGet(key) {
+  return elvIdb().then(db => new Promise((resolve) => {
+    const r = db.transaction('kv', 'readonly').objectStore('kv').get(key);
+    r.onsuccess = () => resolve(r.result || null);
+    r.onerror = () => resolve(null);
+  })).catch(() => null);
+}
+
 self.addEventListener('pushsubscriptionchange', (e) => {
   e.waitUntil((async () => {
     try {
+      // Chrome usually leaves oldSubscription null, which is why the token
+      // matters — without it there's no way to know which row rotated.
       const oldEndpoint = e.oldSubscription ? e.oldSubscription.endpoint : null;
+      const deviceToken = await elvIdbGet('device_token');
       const appKey =
         (e.oldSubscription && e.oldSubscription.options && e.oldSubscription.options.applicationServerKey)
         || urlB64ToUint8Array(VAPID_PUBLIC_KEY);
@@ -73,7 +95,7 @@ self.addEventListener('pushsubscriptionchange', (e) => {
       await fetch('/api/daily-reminder?resubscribe=1', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ oldEndpoint, subscription: sub.toJSON() }),
+        body: JSON.stringify({ deviceToken, oldEndpoint, subscription: sub.toJSON() }),
       });
     } catch (err) {
       console.error('Resubscribe failed:', err);
