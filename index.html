@@ -425,14 +425,25 @@
     color: var(--gold);
     cursor: pointer;
   }
+  /* Sits on the row below the word rather than beside it, so the word
+     builder gets the full width in every mode. */
+  .word-meta-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 28px;
+  }
   .backspace-btn {
     position: absolute;
     right: 0;
-    bottom: 6px;
+    top: 50%;
+    transform: translateY(-50%);
     background: #f0c020;
     border: none;
-    width: 36px;
-    height: 40px;
+    width: 34px;
+    height: 26px;
     cursor: pointer;
     padding: 0;
     opacity: 0;
@@ -447,13 +458,14 @@
   .backspace-btn::after {
     content: '';
     position: absolute;
-    width: 16px;
+    width: 14px;
     height: 3px;
     background: #155c33;
     border-radius: 0;
   }
   .backspace-btn::before { transform: rotate(45deg); }
   .backspace-btn::after  { transform: rotate(-45deg); }
+  .word-value { position: relative; }
   .backspace-btn.show {
     opacity: 1;
     pointer-events: auto;
@@ -1698,10 +1710,12 @@
 
   <div class="word-section" style="padding-top:8px;">
     <div class="word-display-row" style="border-bottom:none;height:auto;margin-bottom:4px;">
-      <div class="word-display" id="wordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
+      <div class="word-display" id="wordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;overflow:hidden;"></div>
+    </div>
+    <div class="word-meta-row">
+      <div class="word-value" id="wordValue">0 PTS</div>
       <button class="backspace-btn" id="backspaceBtn"></button>
     </div>
-    <div class="word-value" id="wordValue">0 PTS</div>
   </div>
 
   <div class="message" id="message"></div>
@@ -1751,10 +1765,12 @@
   <div class="word-section" id="anagramWordSection" style="padding-top:0;">
     <!-- Eleven fixed positions. Hints lock the correct letter into place. -->
     <div class="word-display-row" style="min-height:46px;">
-      <div id="anagramSlots" style="display:flex;gap:3px;justify-content:center;flex-wrap:nowrap;flex:1;max-width:calc(100% - 44px);cursor:pointer;"></div>
+      <div id="anagramSlots" style="display:flex;gap:3px;justify-content:center;flex-wrap:nowrap;flex:1;cursor:pointer;"></div>
+    </div>
+    <div class="word-meta-row">
+      <div class="turns-line" id="anagramStatusLine" style="margin-bottom:0;">FIND THE 11TH LETTER</div>
       <button class="backspace-btn" id="anagramBackspaceBtn"></button>
     </div>
-    <div class="turns-line" id="anagramStatusLine">FIND THE 11TH LETTER</div>
   </div>
 
   <div class="message" id="anagramMessage" style="width:100%;text-align:center;"></div>
@@ -1805,10 +1821,12 @@
 
     <div class="word-section" id="elimWordSection">
       <div class="word-display-row">
-        <div class="word-display" id="elimWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
+        <div class="word-display" id="elimWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;overflow:hidden;"></div>
+      </div>
+      <div class="word-meta-row">
+        <div class="word-value" id="elimWordValue" style="opacity:0;">&nbsp;</div>
         <button class="backspace-btn" id="elimBackspaceBtn"></button>
       </div>
-      <div class="word-value" id="elimWordValue" style="opacity:0;">&nbsp;</div>
       <div class="score-line" style="opacity:0;">&nbsp;</div>
       <div class="turns-line" id="elimStatusLine">UNSCRAMBLE THE WORD</div>
     </div>
@@ -1946,10 +1964,12 @@
   <!-- Word section -->
   <div class="word-section" id="draftWordSection" style="display:none;">
     <div class="word-display-row">
-      <div class="word-display" id="draftWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
+      <div class="word-display" id="draftWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;overflow:hidden;"></div>
+    </div>
+    <div class="word-meta-row">
+      <div class="word-value" id="draftWordValue">&nbsp;</div>
       <button class="backspace-btn" id="draftBackspaceBtn"></button>
     </div>
-    <div class="word-value" id="draftWordValue">&nbsp;</div>
     <div class="turns-line" id="draftStatusLine">BUILD A WORD FROM YOUR RACK</div>
   </div>
 
@@ -2010,10 +2030,12 @@
   <!-- Word section -->
   <div class="word-section">
     <div class="word-display-row">
-      <div class="word-display" id="linksWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;max-width:calc(100% - 40px);overflow:hidden;"></div>
+      <div class="word-display" id="linksWordDisplay" style="height:auto;font-size:inherit;letter-spacing:0;padding-bottom:0;gap:3px;flex-wrap:nowrap;min-height:44px;overflow:hidden;"></div>
+    </div>
+    <div class="word-meta-row">
+      <div class="word-value" id="linksWordValue">&nbsp;</div>
       <button class="backspace-btn" id="linksBackspaceBtn"></button>
     </div>
-    <div class="word-value" id="linksWordValue">&nbsp;</div>
     <div class="score-line" style="opacity:0;">&nbsp;</div>
     <div class="turns-line" id="linksStatusLine">START WITH ANY LETTER</div>
   </div>
@@ -7400,8 +7422,8 @@ function renderAnagram() {
   document.getElementById('anagramHintsUsed').textContent = anagramHints;
 
   // Eleven positions. Locked ones came from a hint and can't be moved.
-  // Sized to fit eleven across without running under the backspace button
-  const size = 27;
+  // 11 across at 29px lines up with the 352px tile grid below
+  const size = 29;
   slotsEl.innerHTML = anagramSlots.map((s, i) => {
     if (!s) {
       return `<div style="width:${size}px;height:${Math.round(size * 1.15)}px;border:2px dashed rgba(240,192,32,0.3);box-sizing:border-box;flex-shrink:0;"></div>`;
@@ -10931,15 +10953,19 @@ async function syncPushSubscription() {
 
   const { data: rows } = await sbClient
     .from('push_subscriptions')
-    .select('id, endpoint')
+    .select('id, endpoint, device_token')
     .eq('user_id', currentUser.id);
 
   const known = Array.isArray(rows) ? rows : [];
   const browserSub = await getPushSubscription();
+  const myToken = await elvIdbGet('device_token');
 
   if (browserSub) {
-    const listed = known.some(r => r.endpoint === browserSub.endpoint);
-    if (!listed) {
+    // This device's row is the one carrying its token; fall back to matching
+    // on endpoint for devices that subscribed before tokens existed.
+    const mine = known.find(r => myToken && r.device_token === myToken)
+      || known.find(r => r.endpoint === browserSub.endpoint);
+    if (!mine || mine.endpoint !== browserSub.endpoint) {
       // Either a device we've never recorded, or the browser rotated the
       // endpoint behind our back. Either way, record it.
       await savePushSubscription(browserSub);
@@ -10962,24 +10988,72 @@ async function syncPushSubscription() {
   return false;
 }
 
+// A key/value store the service worker can also read. It holds a token that
+// identifies this browser, so when Chrome rotates the push subscription the
+// worker can say which row to repair — it usually isn't told the old endpoint.
+function elvIdb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('elevensies', 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore('kv'); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function elvIdbGet(key) {
+  return elvIdb().then(db => new Promise((resolve) => {
+    const r = db.transaction('kv', 'readonly').objectStore('kv').get(key);
+    r.onsuccess = () => resolve(r.result || null);
+    r.onerror = () => resolve(null);
+  })).catch(() => null);
+}
+
+function elvIdbSet(key, value) {
+  return elvIdb().then(db => new Promise((resolve) => {
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(value, key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => resolve(false);
+  })).catch(() => false);
+}
+
+async function getDeviceToken() {
+  let token = await elvIdbGet('device_token');
+  if (!token) {
+    token = (crypto.randomUUID ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + Date.now().toString(36));
+    await elvIdbSet('device_token', token);
+  }
+  return token;
+}
+
 async function savePushSubscription(sub) {
   if (!sbClient || !currentUser || !sub) return;
   const subJson = sub.toJSON();
-  // One row per device, matched on endpoint. Deleting the user's other rows
-  // here would unsubscribe their other devices — which is exactly what used
-  // to happen every time someone opened the app on a second browser.
+  const deviceToken = await getDeviceToken();
+
+  // One row per device, keyed on its token. Matching on the token rather than
+  // the endpoint means a rotated subscription updates the same row instead of
+  // leaving a dead one behind — and never disturbs the player's other devices.
   const { error } = await sbClient.from('push_subscriptions').upsert({
     user_id: currentUser.id,
     endpoint: subJson.endpoint,
     subscription: subJson,
-  }, { onConflict: 'endpoint' });
-  if (error) console.error('Save push subscription error:', error);
+    device_token: deviceToken,
+  }, { onConflict: 'device_token' });
+  if (error) console.error('PUSH SAVE FAILED:', error.message, error.details || '');
 }
 
 async function deletePushSubscription() {
   if (!sbClient || !currentUser) return;
   // Don't call sub.unsubscribe() — that revokes browser permission and breaks re-enabling.
   // Only this device is switched off; the player's other devices carry on.
+  // Switch off this device only; the player's others carry on
+  const token = await elvIdbGet('device_token');
+  if (token) {
+    await sbClient.from('push_subscriptions').delete().eq('device_token', token);
+    return;
+  }
   const sub = await getPushSubscription();
   if (sub && sub.endpoint) {
     await sbClient.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
@@ -11036,7 +11110,8 @@ function renderWordAsTiles(el, letters, placeholder = 'ELEVENSIES', showPts = tr
     return;
   }
   const n = letters.length;
-  const tileW = Math.min(36, Math.max(24, Math.floor(240 / n) - 3));
+  // Full width available now the backspace has moved off this row
+  const tileW = Math.min(40, Math.max(26, Math.floor(340 / n) - 3));
   const tileH = Math.round(tileW * 1.1);
   const fontSize = Math.round(tileW * 0.44);
   const ptSize = Math.max(7, Math.round(tileW * 0.22));
