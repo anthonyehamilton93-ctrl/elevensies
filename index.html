@@ -5725,7 +5725,7 @@ async function openAnagramStats() {
   if (rows[0]) rows[0].querySelector('span:first-child').textContent = 'SOLVED';
   if (rows[1]) rows[1].querySelector('span:first-child').textContent = 'CURRENT STREAK';
   if (rows[2]) rows[2].querySelector('span:first-child').textContent = 'BEST STREAK';
-  if (rows[3]) rows[3].querySelector('span:first-child').textContent = "TODAY'S POINTS";
+  if (rows[3]) rows[3].querySelector('span:first-child').textContent = 'AVERAGE SCORE';
 
   overlay.classList.add('show');
 
@@ -5746,7 +5746,7 @@ async function openAnagramStats() {
     document.getElementById('statsOverlayStreak').textContent = stats.streak ? `${stats.streak}` : '—';
     document.getElementById('statsOverlayBest').textContent = stats.best ? `${stats.best}` : '—';
     document.getElementById('statsOverlayAvgWord').textContent =
-      stats.todayScore != null ? `${stats.todayScore} / 11` : '—';
+      stats.avgScore != null ? `${stats.avgScore} / 11` : '—';
   }
 
   // Build previous words list — last 10 days from today only, with solved status
@@ -7674,6 +7674,13 @@ async function loadAnagramStats() {
   const todayScore = todayRow && typeof todayRow.score === 'number' ? todayRow.score : null;
   const todayHints = todayRow ? (todayRow.hints_used ?? null) : null;
   const todaySolved = todayRow ? !!todayRow.solved : false;
+
+  // Only games with a recorded score count. Everything played before scoring
+  // existed has a null score and is left out, so the average starts clean.
+  const scoredRows = data.filter(r => typeof r.score === 'number');
+  const avgScore = scoredRows.length
+    ? (scoredRows.reduce((s, r) => s + r.score, 0) / scoredRows.length).toFixed(1)
+    : null;
   const solvedDates = new Set(
     data.filter(r => r.solved).map(r => r.play_date || r.played_at.slice(0, 10))
   );
@@ -7726,7 +7733,7 @@ async function loadAnagramStats() {
     best = Math.max(best, run);
   }
   best = Math.max(best, streak);
-  return { solved, streak, best, todayScore, todayHints, todaySolved };
+  return { solved, streak, best, todayScore, todayHints, todaySolved, avgScore };
 }
 
 async function showAnagramReveal() {
