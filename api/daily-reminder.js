@@ -271,19 +271,29 @@ export default async function handler(req, res) {
   // endpoint — which only the browser that held it knows — and it can only
   // ever swap that one row for a new address.
   if (req.query?.resubscribe) {
-    const { oldEndpoint, subscription } = req.body || {};
+    const { deviceToken, oldEndpoint, subscription } = req.body || {};
     if (!subscription || !subscription.endpoint) {
       return res.status(400).json({ error: 'No subscription supplied' });
     }
-    if (!oldEndpoint) {
-      return res.status(400).json({ error: 'No previous endpoint supplied' });
+    if (!deviceToken && !oldEndpoint) {
+      return res.status(400).json({ error: 'Nothing to identify the device by' });
     }
 
-    const rows = await db(
-      `/push_subscriptions?select=id,user_id&subscription->>endpoint=eq.${encodeURIComponent(oldEndpoint)}`
-    );
+    // The token names the exact browser. The old endpoint is a fallback for
+    // devices that subscribed before tokens existed.
+    let rows = [];
+    if (deviceToken) {
+      rows = await db(
+        `/push_subscriptions?select=id,user_id&device_token=eq.${encodeURIComponent(deviceToken)}`
+      );
+    }
+    if ((!Array.isArray(rows) || rows.length === 0) && oldEndpoint) {
+      rows = await db(
+        `/push_subscriptions?select=id,user_id&endpoint=eq.${encodeURIComponent(oldEndpoint)}`
+      );
+    }
     if (!Array.isArray(rows) || rows.length === 0) {
-      return res.status(404).json({ error: 'Previous subscription not found' });
+      return res.status(404).json({ error: 'Device not recognised' });
     }
 
     const updated = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?id=eq.${rows[0].id}`, {
@@ -294,7 +304,11 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         Prefer: 'return=minimal',
       },
-      body: JSON.stringify({ subscription, endpoint: subscription.endpoint }),
+      body: JSON.stringify({
+        subscription,
+        endpoint: subscription.endpoint,
+        ...(deviceToken ? { device_token: deviceToken } : {}),
+      }),
     });
     if (!updated.ok) {
       console.error('Resubscribe update failed:', await updated.text());
