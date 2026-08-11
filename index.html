@@ -9915,6 +9915,8 @@ async function handleRemindToggle(id) {
 }
 
 // ===== DRAFT MODE =====
+let draftBag = [];         // this session's shuffled 100-tile bag, drawn down
+let draftOffered = [];     // letters currently on offer — removed from the bag
 let draftPicks = [];       // letters chosen so far
 let draftSelected = [];    // selected tiles for word building
 let draftTiles = [];       // tile objects from rack — reused for every word
@@ -9931,6 +9933,12 @@ function startDraft() {
   draftTiles = [];
   draftPickStep = 0;
   draftWords = [];
+  // One shuffled 100-tile bag for the whole session — a letter offered and
+  // not taken, or taken, doesn't come back. There's only one Z in here, same
+  // as the real thing, so seeing two in one game means the bag ran that way,
+  // not that the game kept handing you fresh copies of it.
+  draftBag = shuffleInPlace([...LETTER_POOL]);
+  draftOffered = [];
   draftTotal = 0;
   draftPlayed = new Set();
   draftPhase = 'pick';
@@ -9974,34 +9982,62 @@ function letterBand(l) {
   return 'high';
 }
 
+// Puts back whatever the last set of choices didn't use — only a letter the
+// player actually picks leaves the bag for good.
+function returnUnusedDraftOffer() {
+  if (draftOffered.length) {
+    draftBag.push(...draftOffered);
+    draftOffered = [];
+  }
+}
+
 function getDraftChoices() {
-  // Drawn from the weighted pool so common letters still come up more often,
-  // but with three rules: no repeats, at least two different value bands, and
-  // a vowel guaranteed if the rack is short of them.
+  returnUnusedDraftOffer();
+
+  // Same shape as before — no repeats within a set, at least two value
+  // bands so it's a real decision, a vowel if the rack needs one — but drawn
+  // from what's left in the session's bag rather than a fresh full pool each
+  // time. Letters genuinely run out as the game goes on.
   const needVowel = countVowels(draftPicks) < 2 && draftPicks.length >= 4;
 
-  for (let attempt = 0; attempt < 200; attempt++) {
-    const pool = [...LETTER_POOL];
-    const choices = [];
-    while (choices.length < 3 && pool.length) {
-      const idx = Math.floor(Math.random() * pool.length);
-      const letter = pool.splice(idx, 1)[0];
-      if (choices.includes(letter)) continue; // never offer the same letter twice
-      choices.push(letter);
+  const tryDraw = (requireBands) => {
+    if (draftBag.length < 3) return null;
+    for (let attempt = 0; attempt < 200; attempt++) {
+      const pool = [...draftBag];
+      const choices = [];
+      while (choices.length < 3 && pool.length) {
+        const idx = Math.floor(Math.random() * pool.length);
+        const letter = pool.splice(idx, 1)[0];
+        if (choices.includes(letter)) continue;
+        choices.push(letter);
+      }
+      if (choices.length < 3) continue;
+      if (requireBands && new Set(choices.map(letterBand)).size < 2) continue;
+      if (needVowel && !choices.some(l => VOWELS.has(l))) continue;
+      return choices;
     }
-    if (choices.length < 3) continue;
+    return null;
+  };
 
-    const bands = new Set(choices.map(letterBand));
-    if (bands.size < 2) continue;
-    if (needVowel && !choices.some(l => VOWELS.has(l))) continue;
+  // If the bag has thinned out enough that band variety keeps failing —
+  // likely because the high-value letters are already gone — fall back to
+  // whatever three distinct letters are left rather than looping forever.
+  let choices = tryDraw(true) || tryDraw(false);
 
-    return choices;
+  if (!choices) {
+    // Bag is nearly empty. Reshuffle a fresh bag rather than leave the
+    // player stuck with fewer than three options.
+    draftBag = shuffleInPlace([...LETTER_POOL]);
+    choices = tryDraw(true) || tryDraw(false);
   }
 
-  // Fallback — one from each band, still all different letters
-  const byBand = { low: [], mid: [], high: [] };
-  for (const l of ALPHABET) byBand[letterBand(l)].push(l);
-  return ['low', 'mid', 'high'].map(b => byBand[b][Math.floor(Math.random() * byBand[b].length)]);
+  // Hold these back from the bag until we know which one gets picked
+  for (const l of choices) {
+    const idx = draftBag.indexOf(l);
+    if (idx >= 0) draftBag.splice(idx, 1);
+  }
+  draftOffered = choices;
+  return choices;
 }
 
 function renderDraftPick() {
@@ -10022,6 +10058,11 @@ function renderDraftPick() {
 }
 
 function pickDraftLetter(letter) {
+  // The other two offered letters go back into the bag — only what's
+  // actually picked leaves it
+  draftOffered = draftOffered.filter(l => l !== letter);
+  returnUnusedDraftOffer();
+
   draftPicks.push(letter);
   draftPickStep++;
 
