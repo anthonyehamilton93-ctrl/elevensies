@@ -10566,7 +10566,9 @@ document.getElementById('linksBackspaceBtn')?.addEventListener('click', () => {
   renderLinksWord();
 });
 document.getElementById('linksShuffleBtn')?.addEventListener('click', () => {
-  linksSelected = [];
+  // Clear what's been built, but the required opening letter is locked for
+  // the whole round — shuffle mustn't drop it back into the rack.
+  linksSelected = linksSelected.filter(s => s.locked);
   shuffleInPlace(linksTiles);
   renderLinksTiles();
   renderLinksWord();
