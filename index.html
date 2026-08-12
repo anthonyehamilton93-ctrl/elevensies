@@ -868,6 +868,33 @@
     border-color: var(--gold) !important;
     color: var(--gold) !important;
   }
+  /* Native date inputs render their own calendar popup — that part can't be
+     restyled cross-browser. This covers what can be: the field itself and
+     its icon, matched to the game's inputs elsewhere. */
+  .game-date-input {
+    background: var(--green-dark);
+    border: 2px solid var(--gold-dark);
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 11px 14px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    transition: border-color 0.15s;
+  }
+  .game-date-input:focus { border-color: var(--gold); }
+  .game-date-input::-webkit-datetime-edit { color: var(--gold); }
+  .game-date-input::-webkit-calendar-picker-indicator {
+    filter: invert(74%) sepia(60%) saturate(600%) hue-rotate(2deg) brightness(1.05);
+    cursor: pointer;
+    opacity: 0.85;
+  }
+  .game-date-input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
   @keyframes sqPulse {
     0%, 100% { opacity: 0.12; }
     50% { opacity: 1; }
@@ -3897,7 +3924,7 @@
     <!-- Admin: set when the season begins. Only shown before it starts. -->
     <div id="leagueStartWrap" style="display:none;border:1px solid var(--gold-dark);padding:14px;margin-bottom:14px;text-align:center;">
       <div style="font-size:10px;letter-spacing:0.14em;opacity:0.55;margin-bottom:8px;">SEASON START DATE</div>
-      <input id="leagueStartInput" type="date" style="background:var(--green-dark);border:1px solid rgba(240,192,32,0.3);color:var(--gold);font-family:inherit;font-size:13px;letter-spacing:0.06em;padding:9px 12px;outline:none;margin-bottom:10px;">
+      <input id="leagueStartInput" type="date" class="game-date-input" style="margin-bottom:10px;">
       <button class="cancel-btn" id="leagueStartSaveBtn" style="font-size:10px;padding:7px 16px;margin:0 auto;display:block;">SAVE START DATE</button>
       <div id="leagueStartMsg" style="font-size:10px;letter-spacing:0.06em;margin-top:8px;min-height:14px;opacity:0.7;"></div>
       <div style="font-size:9px;letter-spacing:0.06em;opacity:0.4;margin-top:8px;line-height:1.6;">Start today if it's still before 11am, or pick a date ahead. Members who join before the start can win the season — later joiners play on and are eligible for the next one.</div>
