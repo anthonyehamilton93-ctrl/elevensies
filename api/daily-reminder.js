@@ -264,6 +264,55 @@ async function sendPushToTimezone(targetOffset) {
   return { pushSent, totalSubscribers: pushSubs.length, eligible: eligibleSubs.length, targetOffset };
 }
 
+
+function seasonCompleteHTML(name, leagueName, seasonNumber, winnerNames, standings, userRank, rolling) {
+  const greeting = name && !name.startsWith('user') ? `Hey ${name},` : 'Hey,';
+  const isWinner = winnerNames.length > 0 && standings.some(r => r.isYou && winnerNames.includes(r.display_name));
+  const winnerLine = winnerNames.length
+    ? `<strong style="color:#f0c020;">${winnerNames.join(' &amp; ')}</strong> won the season.`
+    : 'Nobody scored enough to take the season.';
+  const rows = standings.slice(0, 8).map(r => `
+    <tr style="${r.isYou ? 'background:#114b29;' : ''}">
+      <td style="padding:6px 10px;font-size:13px;color:#e2e8f0;">${r.rank}</td>
+      <td style="padding:6px 10px;font-size:13px;color:${r.isYou ? '#f0c020' : '#e2e8f0'};font-weight:${r.isYou ? '700' : '400'};">${r.display_name}${r.isYou ? ' (you)' : ''}</td>
+      <td style="padding:6px 10px;font-size:13px;color:#f0c020;font-weight:700;text-align:right;">${r.points}</td>
+    </tr>`).join('');
+  const cta = rolling
+    ? `Season ${seasonNumber + 1} has already started — keep it going.`
+    : `Whenever you're ready, the league admin can start Season ${seasonNumber + 1}.`;
+
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+  <style>@font-face{font-family:'Jost';font-weight:700;src:url('https://fonts.gstatic.com/s/jost/v18/92zPtBhPNqw79Ij1E865zBUv7myjJAVGPokMmuTl.woff2') format('woff2')}</style>
+  </head><body style="margin:0;padding:0;background:#1a6b3c;font-family:'Jost',sans-serif;">
+  <table width="100%" style="background:#1a6b3c;padding:40px 20px;"><tr><td align="center">
+  <table width="100%" style="max-width:440px;background:#155c33;">
+    <tr><td align="center" style="padding:44px 40px 20px">
+      <h1 style="font-size:28px;font-weight:800;color:#f0c020;margin:0 0 4px;letter-spacing:0.08em;">ELEVENSIES</h1>
+      <p style="font-size:11px;letter-spacing:0.14em;color:#8ba895;margin:0;">${leagueName.toUpperCase()} · SEASON ${seasonNumber}</p>
+    </td></tr>
+    <tr><td style="padding:0 40px;text-align:center;">
+      <h2 style="font-size:20px;color:#fff;margin:0 0 12px">${isWinner ? '🏆 You won the season!' : 'The season is over'}</h2>
+      <p style="font-size:15px;line-height:22px;color:#e2e8f0;margin:0 0 20px">${greeting} ${winnerLine}</p>
+    </td></tr>
+    <tr><td style="padding:0 24px 20px">
+      <table width="100%" style="border-collapse:collapse;">
+        <tr><td style="padding:6px 10px;font-size:10px;letter-spacing:0.1em;color:#8ba895;">RANK</td>
+            <td style="padding:6px 10px;font-size:10px;letter-spacing:0.1em;color:#8ba895;">PLAYER</td>
+            <td style="padding:6px 10px;font-size:10px;letter-spacing:0.1em;color:#8ba895;text-align:right;">POINTS</td></tr>
+        ${rows}
+      </table>
+      ${userRank && userRank > 8 ? `<p style="font-size:12px;color:#8ba895;margin:10px 10px 0;">You finished ${userRank}${userRank === 11 ? 'th' : userRank % 10 === 1 ? 'st' : userRank % 10 === 2 ? 'nd' : userRank % 10 === 3 ? 'rd' : 'th'}.</p>` : ''}
+    </td></tr>
+    <tr><td style="padding:0 40px 8px;text-align:center;">
+      <p style="font-size:13px;color:#e2e8f0;margin:0 0 16px;">${cta}</p>
+      <a href="${GAME_URL}" style="display:inline-block;background:#f0c020;color:#155c33;font-size:15px;font-weight:700;text-decoration:none;padding:14px 36px;text-transform:uppercase;">Open Elevensies</a>
+    </td></tr>
+    <tr><td style="padding:20px 40px;background:#114b29;text-align:center">
+      <p style="font-size:12px;color:#8ba895;margin:0">You're getting this because you're in a mini league and haven't opted out of email.</p>
+    </td></tr>
+  </table></td></tr></table></body></html>`;
+}
+
 export default async function handler(req, res) {
   // ---- Service worker repairing its own subscription ----
   // Runs before the cron-secret check because it's called by the browser, not
@@ -320,6 +369,82 @@ export default async function handler(req, res) {
 
   const secret = req.headers['x-cron-secret'];
   if (CRON_SECRET && secret !== CRON_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+
+  // ---- League season closed: recap email to opted-in members ----
+  // Called by elv_roll_league_seasons() via pg_net the moment a season
+  // closes — see rolling_seasons.sql. This is the only route that fires on
+  // its own schedule per league rather than a fixed daily time.
+  if (req.query?.season_complete) {
+    const { league_id, season_number } = req.body || {};
+    if (!league_id || !season_number) {
+      return res.status(400).json({ error: 'league_id and season_number required' });
+    }
+
+    const leagueRows = await db(`/leagues?id=eq.${league_id}&select=id,name,rolling_seasons`);
+    const league = Array.isArray(leagueRows) ? leagueRows[0] : null;
+    if (!league) return res.status(404).json({ error: 'League not found' });
+
+    const seasonRows = await db(
+      `/league_seasons?league_id=eq.${league_id}&season_number=eq.${season_number}&select=winners,start_date,end_date`
+    );
+    const season = Array.isArray(seasonRows) ? seasonRows[0] : null;
+    if (!season) return res.status(404).json({ error: 'Season record not found' });
+
+    // Final table, computed the same way the app shows it — asking for a
+    // season already closed returns its frozen result, not a live one.
+    const tableRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/elevensies_league_season`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ p_league_id: league_id, p_start: season.start_date }),
+    });
+    const table = tableRes.ok ? await tableRes.json() : [];
+    if (!Array.isArray(table) || !table.length) {
+      return res.status(200).json({ message: 'Nobody played this season — no email sent' });
+    }
+
+    const winnerIds = new Set(season.winners || []);
+    const winnerNames = table.filter(r => winnerIds.has(r.user_id)).map(r => r.display_name);
+
+    const memberIds = table.map(r => r.user_id);
+    const [profiles, users] = await Promise.all([
+      dbByIds('/profiles?select=id,display_name,email_unsubscribed', 'id', memberIds),
+      listAllAuthUsers(),
+    ]);
+    const profileMap = {};
+    (profiles || []).forEach(p => { profileMap[p.id] = p; });
+    const emailMap = {};
+    users.forEach(u => { emailMap[u.id] = u.email; });
+
+    const emails = table
+      .filter(r => !(profileMap[r.user_id]?.email_unsubscribed) && emailMap[r.user_id])
+      .map(r => {
+        const standings = table.map(t => ({ ...t, isYou: t.user_id === r.user_id }));
+        return {
+          from: FROM_EMAIL,
+          to: emailMap[r.user_id],
+          subject: winnerNames.length && winnerIds.has(r.user_id)
+            ? `You won ${league.name}! 🏆`
+            : `${league.name} — Season ${season_number} results`,
+          html: seasonCompleteHTML(
+            profileMap[r.user_id]?.display_name || null,
+            league.name,
+            season_number,
+            winnerNames,
+            standings,
+            r.rank,
+            league.rolling_seasons
+          ),
+        };
+      });
+
+    const { sent, failed } = await sendResendBatches(emails);
+    return res.status(200).json({ league: league.name, season: season_number, sent, failed });
+  }
+
 
   if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
     webpush.setVapidDetails('mailto:noreply@playelevensies.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
