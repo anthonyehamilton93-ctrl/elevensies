@@ -2141,7 +2141,7 @@
 <div class="overlay" id="deviceConflictOverlay">
   <div class="modal">
     <div class="modal-title">ALREADY PLAYING</div>
-    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;">
+    <div style="font-size:13px;letter-spacing:0.05em;line-height:1.7;margin-bottom:20px;opacity:0.85;" id="deviceConflictBody">
       YOU'RE ALREADY MID-GAME ON ANOTHER DEVICE.<br><br>
       FINISH THAT GAME FIRST, OR TAKE OVER HERE AND CONTINUE FROM WHERE YOU LEFT OFF.
     </div>
@@ -5931,42 +5931,71 @@ const FULL_GAME_HOUR_END = 14;   // 2pm local device time
 const FULL_GAME_STORAGE_KEY = 'elevensies_full_game';
 const FULL_GAME_DATE_KEY = 'elevensies_full_game_date';
 const FULL_GAME_PLAYED_KEY = 'elevensies_full_game_played'; // date of last completed game
-const SESSION_ID_KEY = 'elevensies_session_id'; // this device's active session ID
+const SESSION_ID_KEY = 'elevensies_session_id';         // this device's active full-game session
+const ANAGRAM_SESSION_ID_KEY = 'elevensies_anagram_session_id'; // and its anagram session
+
+// An abandoned session (tab closed mid-game, app killed, crash) never calls
+// clearSession, so without an expiry the lock would last forever. Nothing in
+// either mode takes anywhere near this long to finish.
+const STALE_SESSION_MINUTES = 40;
+let pendingConflictKind = 'full'; // which mode the device-conflict overlay is resolving
+let forceAnagramTakeover = false; // set true to bypass the conflict check exactly once
 
 function generateSessionId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
-function getLocalSessionId() {
-  return localStorage.getItem(SESSION_ID_KEY);
+
+function sessionCols(kind) {
+  return kind === 'anagram'
+    ? { col: 'anagram_active_session', atCol: 'anagram_active_session_at', key: ANAGRAM_SESSION_ID_KEY }
+    : { col: 'active_session', atCol: 'active_session_at', key: SESSION_ID_KEY };
 }
-async function claimSession(sessionId) {
+
+function getLocalSessionId(kind = 'full') {
+  return localStorage.getItem(sessionCols(kind).key);
+}
+
+async function claimSession(sessionId, kind = 'full') {
   if (!sbClient || !currentUser) return;
+  const { col, atCol, key } = sessionCols(kind);
   await sbClient.from('profiles')
-    .update({ active_session: sessionId })
+    .update({ [col]: sessionId, [atCol]: new Date().toISOString() })
     .eq('id', currentUser.id);
-  localStorage.setItem(SESSION_ID_KEY, sessionId);
+  localStorage.setItem(key, sessionId);
 }
-async function clearSession() {
+
+async function clearSession(kind = 'full') {
   if (!sbClient || !currentUser) return;
-  // Only clear if this device owns the session
-  const localId = getLocalSessionId();
+  const { col, atCol, key } = sessionCols(kind);
+  const localId = getLocalSessionId(kind);
   if (!localId) return;
+  // Only clear if this device owns the session
   await sbClient.from('profiles')
-    .update({ active_session: null })
+    .update({ [col]: null, [atCol]: null })
     .eq('id', currentUser.id)
-    .eq('active_session', localId);
-  localStorage.removeItem(SESSION_ID_KEY);
+    .eq(col, localId);
+  localStorage.removeItem(key);
 }
-async function checkSessionConflict() {
-  // Returns true if another device has an active session
+
+async function checkSessionConflict(kind = 'full') {
+  // Returns true only if ANOTHER device holds a session that's still fresh.
+  // A session past STALE_SESSION_MINUTES is treated as abandoned rather than
+  // an active conflict — this is what stops a genuinely single device from
+  // being blocked by its own earlier, unfinished game.
   if (!sbClient || !currentUser) return false;
+  const { col, atCol } = sessionCols(kind);
   const { data } = await sbClient.from('profiles')
-    .select('active_session')
+    .select(`${col}, ${atCol}`)
     .eq('id', currentUser.id)
     .single();
-  if (!data || !data.active_session) return false;
-  const localId = getLocalSessionId();
-  return data.active_session !== localId;
+  if (!data || !data[col]) return false;
+
+  const claimedAt = data[atCol] ? new Date(data[atCol]) : null;
+  const ageMinutes = claimedAt ? (Date.now() - claimedAt.getTime()) / 60000 : Infinity;
+  if (ageMinutes > STALE_SESSION_MINUTES) return false;
+
+  const localId = getLocalSessionId(kind);
+  return data[col] !== localId;
 }
 
 function todayString() {
@@ -6240,6 +6269,9 @@ async function startFullGame() {
   if (currentUser) {
     const conflict = await checkSessionConflict();
     if (conflict) {
+      pendingConflictKind = 'full';
+      document.getElementById('deviceConflictBody').innerHTML =
+        "YOU'RE ALREADY MID-GAME ON ANOTHER DEVICE.<br><br>FINISH THAT GAME FIRST, OR TAKE OVER HERE AND CONTINUE FROM WHERE YOU LEFT OFF.";
       document.getElementById('anagramLoadingOverlay').classList.remove('show');
       document.getElementById('deviceConflictOverlay').classList.add('show');
       return;
@@ -7323,6 +7355,24 @@ async function startAnagram() {
   anagramWord = getTodaysAnagramWord();
   if (!anagramWord) { showScreen('welcome'); return; }
 
+  // Same device lock as the full game — stops the puzzle being worked on in
+  // parallel on two devices. forceAnagramTakeover lets CONTINUE HERE bypass
+  // this exactly once, right after the player has confirmed.
+  if (currentUser && !forceAnagramTakeover) {
+    const conflict = await checkSessionConflict('anagram');
+    if (conflict) {
+      pendingConflictKind = 'anagram';
+      document.getElementById('deviceConflictBody').innerHTML =
+        "YOU'RE ALREADY SOLVING TODAY'S ANAGRAM ON ANOTHER DEVICE.<br><br>FINISH THERE FIRST, OR TAKE OVER HERE AND CONTINUE FROM WHERE YOU LEFT OFF.";
+      document.getElementById('deviceConflictOverlay').classList.add('show');
+      return;
+    }
+  }
+  forceAnagramTakeover = false;
+  if (currentUser) {
+    await claimSession(generateSessionId(), 'anagram');
+  }
+
   // Show screen immediately with animated loading overlay
   // Undo whatever the reveal screen hid last time
   // Restore the layout each one actually needs. Setting display to '' clears
@@ -7563,6 +7613,7 @@ function anagramGiveUpNow() {
   if (anagramSolvedToday || anagramGaveUp) return;
   anagramGaveUp = true;
   anagramFinishedThisSession = true;
+  clearSession('anagram');
   anagramSlots = anagramWord.split('').map(l => ({ letter: l, tileId: null, locked: true }));
   anagramSolvedToday = true;
   localStorage.setItem(ANAGRAM_SOLVED_KEY, todayString());
@@ -7620,6 +7671,7 @@ function submitAnagram() {
   if (word === anagramWord) {
     anagramSolvedToday = true;
     anagramFinishedThisSession = true;
+    clearSession('anagram');
     localStorage.setItem(ANAGRAM_SOLVED_KEY, todayString());
     // Save before drawing the reveal — otherwise it reads the half-written
     // progress row and reports no score and no streak.
@@ -11758,6 +11810,13 @@ document.getElementById('loginGateCloseBtn').addEventListener('click', () => {
 // Device conflict overlay
 document.getElementById('deviceTakeOverBtn').addEventListener('click', async () => {
   document.getElementById('deviceConflictOverlay').classList.remove('show');
+
+  if (pendingConflictKind === 'anagram') {
+    forceAnagramTakeover = true;
+    startAnagram();
+    return;
+  }
+
   // Force-claim this device's session and start
   const sessionId = generateSessionId();
   await claimSession(sessionId);
