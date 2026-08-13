@@ -5797,14 +5797,18 @@ async function openAnagramStats() {
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 
-  // Fetch which dates the user solved
-  const { data: solvedResults } = await sbClient
+  // Fetch each day's score. play_date is the player's own local game-date,
+  // set by the same trigger the solve/hint saves use.
+  const { data: scoreResults } = await sbClient
     .from('anagram_results')
-    .select('played_at, solved')
+    .select('play_date, score, solved')
     .eq('user_id', currentUser.id)
-    .order('played_at', { ascending: false })
+    .order('play_date', { ascending: false })
     .limit(15);
-  const solvedDates = new Set((solvedResults || []).filter(r => r.solved).map(r => r.played_at.slice(0, 10)));
+  const scoreByDate = {};
+  (scoreResults || []).forEach(r => {
+    if (r.play_date) scoreByDate[r.play_date] = r;
+  });
 
   const rows2 = [];
   const ANAGRAM_LAUNCH_DATE = '2026-07-04';
@@ -5818,17 +5822,19 @@ async function openAnagramStats() {
     if (!word) break;
     const isToday = i === 0;
     const label = isToday ? 'TODAY' : i === 1 ? 'YESTERDAY' : d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+    const row = scoreByDate[key];
+    // A row with no score yet (a hint taken but the puzzle unfinished) reads
+    // the same as not having played — only a real number counts as a result.
+    const hasScore = row && typeof row.score === 'number';
+    const scoreDisplay = hasScore ? String(row.score) : '—';
+    const scoreColor = hasScore ? 'color:var(--gold);' : 'color:rgba(255,255,255,0.3);';
     const solvedToday = localStorage.getItem('elevensies_anagram_solved') === todayString();
-    const solved = isToday
-      ? (solvedToday ? '✓' : '—')
-      : (solvedDates.has(key) ? '✓' : '✗');
-    const solvedColor = solved === '✓' ? 'color:#a8ffb0;' : solved === '✗' ? 'color:rgba(255,255,255,0.3);' : 'color:rgba(255,255,255,0.4);';
     // Hide today's word only if not yet solved AND game still open
     const displayWord = isToday && !solvedToday && !isAfterAnagramReveal() ? '?' : word;
     rows2.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:11px;letter-spacing:0.05em;border-bottom:1px solid rgba(240,192,32,0.08);min-width:0;">
       <span style="opacity:0.6;flex:0 0 80px;">${label}</span>
       <span style="color:var(--gold);font-weight:700;flex:1;text-align:center;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;">${displayWord}</span>
-      <span style="${solvedColor}flex:0 0 16px;text-align:right;">${solved}</span>
+      <span style="${scoreColor}flex:0 0 24px;text-align:right;font-weight:700;">${scoreDisplay}</span>
     </div>`);
   }
   historyList.innerHTML = rows2.length ? rows2.join('') : '<div style="opacity:0.5;font-size:11px;padding:8px 0;">NO PREVIOUS WORDS YET</div>';
@@ -7853,26 +7859,30 @@ async function showAnagramReveal() {
   const bsBtn = document.getElementById('anagramBackspaceBtn');
   if (bsBtn) bsBtn.classList.remove('show');
 
-  // Load stats for display
-  let statsHtml = '';
+  // storedToday still needs the player's own result — that's what the score
+  // headline above is built from. The stats ROW below it is different: it's
+  // everyone's average today, not this player's history, so it comes from a
+  // separate function rather than loadAnagramStats().
   let storedToday = null;
   if (sbClient && currentUser) {
     const stats = await loadAnagramStats();
-    if (stats) {
-      if (stats.todayScore != null) storedToday = stats.todayScore;
+    if (stats && stats.todayScore != null) storedToday = stats.todayScore;
+  }
+
+  let statsHtml = '';
+  if (sbClient) {
+    const { data: todayStats } = await sbClient.rpc('elevensies_anagram_today_stats');
+    const row = Array.isArray(todayStats) ? todayStats[0] : todayStats;
+    if (row && row.avg_score != null) {
       statsHtml = `
         <div style="display:flex;justify-content:center;gap:24px;margin-top:20px;">
           <div style="text-align:center;">
-            <div style="font-size:28px;font-weight:900;color:var(--gold);">${stats.solved || 0}</div>
-            <div style="font-size:9px;letter-spacing:0.12em;opacity:0.5;margin-top:2px;">SOLVED</div>
+            <div style="font-size:28px;font-weight:900;color:var(--gold);">${row.avg_score}</div>
+            <div style="font-size:9px;letter-spacing:0.12em;opacity:0.5;margin-top:2px;">TODAY'S AVERAGE</div>
           </div>
           <div style="text-align:center;">
-            <div style="font-size:28px;font-weight:900;color:var(--gold);">${stats.streak || 0}</div>
-            <div style="font-size:9px;letter-spacing:0.12em;opacity:0.5;margin-top:2px;">STREAK</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-size:28px;font-weight:900;color:var(--gold);">${stats.best || 0}</div>
-            <div style="font-size:9px;letter-spacing:0.12em;opacity:0.5;margin-top:2px;">BEST</div>
+            <div style="font-size:28px;font-weight:900;color:var(--gold);">${row.players_scored}</div>
+            <div style="font-size:9px;letter-spacing:0.12em;opacity:0.5;margin-top:2px;">PLAYERS TODAY</div>
           </div>
         </div>`;
     }
