@@ -9655,7 +9655,7 @@ async function shareAnagramResult(solved, word) {
   ctx.fillStyle = SHARE_GOLD;
   ctx.font = '700 30px Jost';
   ctx.globalAlpha = 0.75;
-  ctx.fillText(solved ? 'CAN YOU BEAT MY STREAK?' : "CAN YOU SOLVE IT?", SHARE_W / 2, hiddenTop + size + 76);
+  ctx.fillText(solved ? 'CAN YOU BEAT MY SCORE?' : "CAN YOU SOLVE IT?", SHARE_W / 2, hiddenTop + size + 76);
   ctx.globalAlpha = 1;
 
   drawShareStats(ctx, [
