@@ -6254,6 +6254,11 @@ function showPlayedTodayLobby() {
 
 // Asks the server to start today's game and hand back the seed its letters
 // come from. Returns the same seed on a refresh or a second device.
+// Returns the full start/resume payload — not just the seed — since a
+// second device or a refresh needs to know how many turns have already been
+// played, or it restarts turn counting from zero with a rack it may already
+// have seen, which is the same rack as before but with no record of what was
+// tried against it.
 async function fetchGameSeed() {
   if (!sbClient || !currentUser) return null;
   try {
@@ -6265,12 +6270,72 @@ async function fetchGameSeed() {
       body: JSON.stringify({ utc_offset: new Date().getTimezoneOffset() * -1 }),
     });
     if (!res.ok) return null;
-    const j = await res.json();
-    return j.seed || null;
+    return await res.json();
   } catch (err) {
     console.error('Could not start game:', err);
     return null;
   }
+}
+
+// Sends the current word history to the server after each turn, so a resume
+// on another device — or this one, after a refresh — knows exactly how far
+// the game had got rather than only knowing the seed.
+async function postGameProgress() {
+  if (!sbClient || !currentUser || gameMode !== 'full') return;
+  try {
+    const { data: { session } } = await sbClient.auth.getSession();
+    if (!session?.access_token) return;
+    await fetch('/api/save-game?progress=1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({
+        utc_offset: new Date().getTimezoneOffset() * -1,
+        history,
+        joker: jokerLetterUsed ? { letter: jokerLetterUsed, turn: jokerUsedTurn } : null,
+      }),
+    });
+  } catch (err) {
+    console.error('Could not save progress:', err);
+  }
+}
+
+// Applies a seed/resume payload from the server to the live game state.
+// Shared by startFullGame() and the CONTINUE HERE handler so both resume
+// exactly the same way rather than keeping two copies in sync by hand.
+function applyFetchedGameState(payload) {
+  fullGameSeed = payload.seed;
+  nextId = 10;
+  selected = [];
+
+  if (payload.resumed && payload.turns > 0) {
+    tiles = payload.rack.map((l, i) => ({ id: i, letter: l }));
+    turns = payload.turns;
+    history = (payload.history || []).map(h => ({ word: h.word, score: h.score }));
+    totalScore = history.reduce((s, h) => s + h.score, 0);
+    jokerSpent = !!payload.jokerSpent;
+    jokerLetterUsed = payload.jokerLetterUsed || null;
+    jokerUsedTurn = payload.jokerUsedTurn || null;
+    // A bonus letter chosen but not yet played doesn't carry across devices —
+    // it's a free pick either way, so there's nothing to lose by re-choosing
+    jokerTile = null;
+  } else {
+    tiles = drawBalancedRack(10, makeRng(fullGameSeed + ':init')).map((l, i) => ({ id: i, letter: l }));
+    turns = 0;
+    history = [];
+    totalScore = 0;
+    jokerSpent = false;
+    jokerLetterUsed = null;
+    jokerUsedTurn = null;
+    jokerTile = null;
+  }
+
+  // All 11 turns already recorded but never reached the final save — resume
+  // straight into game-over rather than trying to deal a 12th turn.
+  phase = (turns >= MAX_TURNS) ? 'gameover' : 'play';
+  allTilesSeen = tiles.map(t => t.letter);
+  rackSnapshots = [];
+  frozenAllSnapshots = [];
+  saveFullGameState();
 }
 
 async function startFullGame() {
@@ -6344,33 +6409,22 @@ async function startFullGame() {
     jokerLetterUsed = saved.jokerLetterUsed || null;
     jokerUsedTurn = saved.jokerUsedTurn || null;
   } else {
-    fullGameSeed = await fetchGameSeed();
-    if (!fullGameSeed) {
+    const payload = await fetchGameSeed();
+    if (!payload || !payload.seed) {
       document.getElementById('anagramLoadingOverlay').classList.remove('show');
       showScreen('welcome');
       startWelcomeLabelTicker();
       showMessage('Could not start your game — check your connection and try again.', 'error');
       return;
     }
-    tiles = drawBalancedRack(10, makeRng(fullGameSeed + ':init')).map((l, i) => ({ id: i, letter: l }));
-    nextId = 10;
-    jokerTile = null;
-    jokerSpent = false;
-    jokerLetterUsed = null;
-    jokerUsedTurn = null;
-    selected = [];
-    turns = 0;
-    totalScore = 0;
-    history = [];
-    phase = 'play';
-    allTilesSeen = tiles.map(t => t.letter); rackSnapshots = []; frozenAllSnapshots = [];
-    saveFullGameState();
+    applyFetchedGameState(payload);
   }
   hideLoader(() => {
     showScreen('game');
     practiceBackBtn.classList.remove('visible');
     cancelGameWrap.style.display = 'block';
     document.getElementById('cancelGameNote').style.display = '';
+    if (phase === 'gameover') { showGameOver(); return; }
     render();
     window.addEventListener('pagehide', onPageHide);
     window.addEventListener('visibilitychange', onVisibilityChange);
@@ -8332,7 +8386,10 @@ function submitWord() {
     }
   } else {
     phase = 'play';
-    if (gameMode === 'full') saveFullGameState();
+    if (gameMode === 'full') {
+      saveFullGameState();
+      postGameProgress(); // fire-and-forget — a resume just replays from the seed if this is slow
+    }
     if (gameMode === 'h2h') {
       // Deal next seeded rack for all players
       h2hAdvanceTurn();
@@ -11905,24 +11962,20 @@ document.getElementById('deviceTakeOverBtn').addEventListener('click', async () 
     fullGameSeed = saved.seed || null;
     jokerLetterUsed = saved.jokerLetterUsed || null;
     jokerUsedTurn = saved.jokerUsedTurn || null;
+    phase = (turns >= MAX_TURNS) ? 'gameover' : 'play';
   } else {
-    fullGameSeed = await fetchGameSeed();
-    if (!fullGameSeed) {
+    const payload = await fetchGameSeed();
+    if (!payload || !payload.seed) {
       showScreen('welcome');
       startWelcomeLabelTicker();
       showMessage('Could not start your game — check your connection and try again.', 'error');
       return;
     }
-    tiles = drawBalancedRack(10, makeRng(fullGameSeed + ':init')).map((l, i) => ({ id: i, letter: l }));
-    nextId = 10; jokerTile = null; jokerSpent = false;
-    jokerLetterUsed = null; jokerUsedTurn = null;
-    selected = []; turns = 0; totalScore = 0; history = [];
-    phase = 'play';
-    allTilesSeen = tiles.map(t => t.letter); rackSnapshots = []; frozenAllSnapshots = [];
-    saveFullGameState();
+    applyFetchedGameState(payload);
   }
   showScreen('game');
   practiceBackBtn.classList.remove('visible');
+  if (phase === 'gameover') { showGameOver(); return; }
   render();
   window.addEventListener('pagehide', onPageHide);
   window.addEventListener('visibilitychange', onVisibilityChange);
