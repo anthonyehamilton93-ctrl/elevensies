@@ -238,6 +238,59 @@ function validateGame(seed, words, joker, dictionary) {
   return problems;
 }
 
+// Replays a seed forward through the words already played, and returns the
+// rack exactly as the player would see it next. Used when a game is resumed
+// — on the same device after a refresh, or on a different one — so it
+// continues from the real position rather than starting turn 1 over.
+function reconstructRack(seed, words, joker) {
+  let rack = drawBalancedRack(10, makeRng(seed + ':init'));
+  let jokerLetter = joker && joker.letter ? joker.letter : null;
+  let jokerConsumed = false;
+
+  for (let i = 0; i < words.length; i++) {
+    const turnNo = i + 1;
+    const word = words[i];
+    const jokerThisTurn = jokerLetter && joker.turn === turnNo;
+
+    const available = {};
+    for (const l of rack) available[l] = (available[l] || 0) + 1;
+    if (jokerThisTurn) available[jokerLetter] = (available[jokerLetter] || 0) + 1;
+
+    const usedFromRack = {};
+    let usedJoker = false;
+    for (const l of word) {
+      if (available[l] > 0) {
+        available[l]--;
+        if (jokerThisTurn && l === jokerLetter && !usedJoker) usedJoker = true;
+        else usedFromRack[l] = (usedFromRack[l] || 0) + 1;
+      }
+    }
+    if (usedJoker) jokerConsumed = true;
+
+    if (turnNo >= MAX_TURNS) continue; // final turn has no replacement
+
+    const remaining = [];
+    const toRemove = { ...usedFromRack };
+    for (const l of rack) {
+      if (toRemove[l]) { toRemove[l]--; continue; }
+      remaining.push(l);
+    }
+    const replacements = drawBalancedBatch(
+      rack.length - remaining.length,
+      remaining,
+      makeRng(seed + ':t' + turnNo)
+    );
+    rack = remaining.concat(replacements);
+  }
+
+  return {
+    rack,
+    // The bonus letter is only still offerable if it was chosen but not spent
+    joker: jokerLetter && !jokerConsumed ? { letter: jokerLetter, turn: joker.turn } : null,
+    jokerSpent: jokerConsumed,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Handler
 // ---------------------------------------------------------------------------
@@ -280,14 +333,32 @@ export default async function handler(req, res) {
     const gameDate = localDateFor(utc_offset);
 
     // Return the existing seed if they've already started today — a refresh
-    // or a second device must get the same letters, not a fresh rack.
+    // or a second device must get the same letters, not a fresh rack. It also
+    // carries whatever progress has been saved, so a resume can pick up from
+    // the real current turn instead of starting turn 1 over with knowledge of
+    // a rack the player has already seen.
     const existingRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/game_seeds?user_id=eq.${user.id}&game_date=eq.${gameDate}&select=seed`,
+      `${SUPABASE_URL}/rest/v1/game_seeds?user_id=eq.${user.id}&game_date=eq.${gameDate}&select=seed,history,joker`,
       { headers: sbHeaders() }
     );
     const existing = await existingRes.json();
     if (Array.isArray(existing) && existing.length > 0) {
-      return res.status(200).json({ seed: existing[0].seed, resumed: true });
+      const row = existing[0];
+      const words = Array.isArray(row.history) ? row.history.map(h => h.word) : [];
+      const state = reconstructRack(row.seed, words, row.joker || null);
+      // The bonus tile is only carried forward once actually spent — a letter
+      // chosen but not yet played resets on resume, which costs nothing
+      // since it's a free choice from the whole alphabet either way.
+      return res.status(200).json({
+        seed: row.seed,
+        resumed: true,
+        history: row.history || [],
+        turns: words.length,
+        rack: state.rack,
+        jokerSpent: state.jokerSpent,
+        jokerLetterUsed: state.jokerSpent ? row.joker?.letter ?? null : null,
+        jokerUsedTurn: state.jokerSpent ? row.joker?.turn ?? null : null,
+      });
     }
 
     const seed = `${user.id}:${gameDate}:${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
@@ -295,7 +366,7 @@ export default async function handler(req, res) {
     const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/game_seeds`, {
       method: 'POST',
       headers: sbHeaders({ Prefer: 'resolution=merge-duplicates,return=representation' }),
-      body: JSON.stringify({ user_id: user.id, game_date: gameDate, seed }),
+      body: JSON.stringify({ user_id: user.id, game_date: gameDate, seed, history: [] }),
     });
     if (!insertRes.ok) {
       console.error('Seed insert failed:', await insertRes.text());
@@ -303,7 +374,33 @@ export default async function handler(req, res) {
     }
     const inserted = await insertRes.json();
     const finalSeed = Array.isArray(inserted) && inserted[0]?.seed ? inserted[0].seed : seed;
-    return res.status(200).json({ seed: finalSeed, resumed: false });
+    return res.status(200).json({ seed: finalSeed, resumed: false, history: [], turns: 0 });
+  }
+
+  // ---- Progress: called after each turn so a resume knows where it stood ----
+  if (req.query?.progress) {
+    const gameDate = localDateFor(utc_offset);
+    const { history: progressHistory, joker: progressJoker } = req.body || {};
+    if (!Array.isArray(progressHistory)) {
+      return res.status(400).json({ error: 'history array required' });
+    }
+    const updateRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/game_seeds?user_id=eq.${user.id}&game_date=eq.${gameDate}`,
+      {
+        method: 'PATCH',
+        headers: sbHeaders({ Prefer: 'return=minimal' }),
+        body: JSON.stringify({
+          history: progressHistory,
+          joker: progressJoker || null,
+          updated_at: new Date().toISOString(),
+        }),
+      }
+    );
+    if (!updateRes.ok) {
+      console.error('Progress save failed:', await updateRes.text());
+      return res.status(500).json({ error: 'Could not save progress' });
+    }
+    return res.status(200).json({ ok: true });
   }
 
   // ===== Route: save a finished game =====
@@ -397,6 +494,11 @@ export default async function handler(req, res) {
   const windowStart = new Date(windowStartLocal.getTime() - offsetMins * 60000);
   const windowEnd = new Date(windowEndLocal.getTime() - offsetMins * 60000);
 
+  // This check is a fast path, not the guarantee — two requests can both
+  // pass it before either has inserted (a slow save that the client retries
+  // is exactly how this happens). The database-level unique index below on
+  // (user_id, play_date) is what actually makes a second row impossible;
+  // this just avoids the round trip when it's obviously unnecessary.
   const existingRes = await fetch(
     `${SUPABASE_URL}/rest/v1/game_results?user_id=eq.${user.id}&game_status=in.(completed,freeze)&played_at=gte.${windowStart.toISOString()}&played_at=lte.${windowEnd.toISOString()}&select=id`,
     { headers: sbHeaders() }
@@ -439,6 +541,14 @@ export default async function handler(req, res) {
 
   if (!insertRes.ok) {
     const err = await insertRes.text();
+    // 23505 = unique_violation. This is the database catching the exact race
+    // the pre-check above can miss — a second request that reached here
+    // milliseconds after the first. The first save already went through, so
+    // this is success from the player's point of view, not a failure.
+    if (insertRes.status === 409 || err.includes('23505') || err.includes('duplicate key')) {
+      console.log('Duplicate save blocked by constraint for user', user.id);
+      return res.status(409).json({ error: 'Already played today' });
+    }
     console.error('Insert failed:', err);
     return res.status(500).json({ error: 'Could not save score' });
   }
