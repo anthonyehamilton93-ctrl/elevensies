@@ -3664,6 +3664,7 @@
         <div class="account-stats-row"><span>AVG WORD SCORE</span><span id="statsOverlayAvgWord">—</span></div>
         <div class="account-stats-row"><span>AVG OVERALL</span><span id="statsOverlayAvg">—</span></div>
         <div class="account-stats-row"><span>BEST WORD</span><span id="statsOverlayBestWord">—</span></div>
+        <div class="account-stats-row"><span>FAVOURITE WORD</span><span id="statsOverlayFavWord">—</span></div>
       </div>
       <div class="expand-section" id="statsOverlayBadgesSection">
         <div class="expand-header" id="statsOverlayBadgesToggle">BADGES <span class="expand-arrow">▼</span></div>
@@ -4616,8 +4617,8 @@ async function openFullGameStats() {
   document.getElementById('statsOverlayBestScoresSection').style.display = '';
 
   // Reset all row labels and visibility to full game defaults
-  const fullGameLabels = ['GAMES PLAYED','CURRENT STREAK','BEST SCORE','AVG WORD SCORE','AVG OVERALL','BEST WORD'];
-  const fullGameIds = ['statsOverlayGames','statsOverlayStreak','statsOverlayBest','statsOverlayAvgWord','statsOverlayAvg','statsOverlayBestWord'];
+  const fullGameLabels = ['GAMES PLAYED','CURRENT STREAK','BEST SCORE','AVG WORD SCORE','AVG OVERALL','BEST WORD','FAVOURITE WORD'];
+  const fullGameIds = ['statsOverlayGames','statsOverlayStreak','statsOverlayBest','statsOverlayAvgWord','statsOverlayAvg','statsOverlayBestWord','statsOverlayFavWord'];
   const rows = document.querySelectorAll('#statsOverlayStats .account-stats-row');
   rows.forEach((r, i) => {
     r.style.display = '';
@@ -4641,7 +4642,7 @@ async function openFullGameStats() {
     .eq('user_id', currentUser.id)
     .in('game_status', ['completed', 'freeze']);
   if (error || !data || data.length === 0) {
-    ['statsOverlayGames','statsOverlayStreak','statsOverlayBest','statsOverlayAvgWord','statsOverlayAvg','statsOverlayBestWord']
+    ['statsOverlayGames','statsOverlayStreak','statsOverlayBest','statsOverlayAvgWord','statsOverlayAvg','statsOverlayBestWord','statsOverlayFavWord']
       .forEach(id => { document.getElementById(id).textContent = '—'; });
     renderBadges({ streak:0, avgWord:0, abandoned:0, played:0, allDoubleDigit:false, foundBestWord:false, puristEarned:false, linguistEarned:false, centurionEarned:false, avidEarned:false }, 'statsOverlay');
     renderMilestones(0, null, 'statsOverlay');
@@ -4722,6 +4723,15 @@ async function openFullGameStats() {
     });
   });
   const favouriteEarned = hasBadge('favourite') || Object.values(wordCounts).some(c => c >= 11);
+
+  // Most-played word, with progress toward the 11 the FAVOURITE badge needs.
+  // Ties break alphabetically so the same word shows each time rather than
+  // flipping between equals on every load.
+  const favTop = Object.entries(wordCounts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+  document.getElementById('statsOverlayFavWord').textContent = favTop
+    ? (favTop[1] >= 11 ? `${favTop[0]} (${favTop[1]})` : `${favTop[0]} (${favTop[1]}/11)`)
+    : '—';
   renderBadges({ streak, avgWord:avgWordScores.length?avgWordScores.reduce((a,b)=>a+b,0)/avgWordScores.length:0, abandoned:0, played:completed.length, allDoubleDigit, foundBestWord:hasBadge('spotter'), puristEarned:hasBadge('purist'), linguistEarned:hasBadge('linguist'), centurionEarned, avidEarned, expertEarned, elevensiesEarned, favouriteEarned }, 'statsOverlay');
   renderMilestones(completed.length, null, 'statsOverlay');
 
@@ -4843,13 +4853,27 @@ async function openPlayerProfile(uid) {
   const avgOverall = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(0) : '—';
   const avgWord = avgWordScores.length ? (avgWordScores.reduce((a,b)=>a+b,0)/avgWordScores.length).toFixed(1) : '—';
 
+  // Most-played word, same as on your own stats screen
+  const profileWordCounts = {};
+  completed.forEach(r => {
+    if (Array.isArray(r.history)) r.history.forEach(h => {
+      if (h.word) { const w = h.word.toUpperCase(); profileWordCounts[w] = (profileWordCounts[w] || 0) + 1; }
+    });
+  });
+  const profileFav = Object.entries(profileWordCounts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+  const profileFavText = profileFav
+    ? (profileFav[1] >= 11 ? `${profileFav[0]} (${profileFav[1]})` : `${profileFav[0]} (${profileFav[1]}/11)`)
+    : '—';
+
   document.getElementById('playerProfileStats').innerHTML = `
     <div class="account-stats-row"><span>GAMES PLAYED</span><span>${completed.length}</span></div>
     <div class="account-stats-row"><span>CURRENT STREAK</span><span>${streak > 0 ? streak : '—'}</span></div>
     <div class="account-stats-row"><span>BEST SCORE</span><span>${best?.total_score ?? '—'}</span></div>
     <div class="account-stats-row"><span>AVG WORD SCORE</span><span>${avgWord}</span></div>
     <div class="account-stats-row"><span>AVG OVERALL</span><span>${avgOverall}</span></div>
-    <div class="account-stats-row"><span>BEST WORD</span><span>${best?.best_word ? `${best.best_word} (${best.best_word_score})` : '—'}</span></div>`;
+    <div class="account-stats-row"><span>BEST WORD</span><span>${best?.best_word ? `${best.best_word} (${best.best_word_score})` : '—'}</span></div>
+    <div class="account-stats-row"><span>FAVOURITE WORD</span><span>${profileFavText}</span></div>`;
 
   // Badges — show all 11, locked if not earned
   // Streak is always computed live — never trust stored value
