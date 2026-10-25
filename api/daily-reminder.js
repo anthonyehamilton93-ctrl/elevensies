@@ -180,7 +180,7 @@ async function sendResendBatches(emails) {
       const r = await fetch('https://api.resend.com/emails/batch', {
         method: 'POST',
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(batches[i]),
+        body: JSON.stringify(batches[i].map(({ _uid, ...msg }) => msg)),
       });
       if (r.ok) sent += batches[i].length;
       else {
@@ -728,12 +728,14 @@ export default async function handler(req, res) {
   }
 
   const emailEligibleSet = new Set(emailEligibleIds);
+  const emailedToday = await alreadySent('email', playedYesterdayIds);
   const emails = playedYesterdayIds
-    .filter(uid => emailEligibleSet.has(uid) && emailMap[uid])
+    .filter(uid => emailEligibleSet.has(uid) && emailMap[uid] && !emailedToday.has(uid))
     .map(uid => {
       const profile = profileMap[uid];
       const streak = calcStreak(datesByUser[uid] || []);
       return {
+        _uid: uid,
         from: FROM_EMAIL,
         to: emailMap[uid],
         subject: 'Time for Elevensies! 🟨',
@@ -742,6 +744,9 @@ export default async function handler(req, res) {
     });
 
   const { sent: emailsSent, failed: emailsFailed } = await sendResendBatches(emails);
+  // Resend gives no per-address result here, so log only when the whole run
+  // succeeded; a partial failure may retry (and re-email) rather than skip anyone.
+  if (!emailsFailed) await markSent('email', emails.map(e => e._uid));
 
   return res.status(200).json({ emailsSent, emailsFailed, offset: targetOffset, ...pushResult });
 }
