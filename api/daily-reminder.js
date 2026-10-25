@@ -111,21 +111,55 @@ const PUSH_OPTIONS = {
 };
 
 // Sends push in parallel batches and reports which subscriptions are dead.
+// ===== Once-a-day guard =====
+// A player's stored offset can lag when clocks change, which let one player
+// match two different cron jobs on the same day. This log makes every
+// reminder one-per-player-per-day regardless of which job gets there first.
+// If the table is missing or a query fails, it falls back to sending as before.
+function utcDay(d = new Date()) { return d.toISOString().slice(0, 10); }
+
+async function alreadySent(kind, userIds) {
+  if (!userIds.length) return new Set();
+  const rows = await dbByIds(
+    `/reminder_log?select=user_id&kind=eq.${kind}&day=eq.${utcDay()}`,
+    'user_id', userIds
+  );
+  return new Set((rows || []).map(r => r.user_id));
+}
+
+async function markSent(kind, userIds) {
+  const unique = [...new Set(userIds)];
+  for (const batch of chunk(unique, 200)) {
+    await fetch(`${SUPABASE_URL}/rest/v1/reminder_log`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=ignore-duplicates,return=minimal',
+      },
+      body: JSON.stringify(batch.map(user_id => ({ user_id, kind, day: utcDay() }))),
+    }).catch(e => console.error('reminder_log insert failed:', e.message));
+  }
+}
+
 async function sendPushBatch(subs, payload) {
   let sent = 0;
+  const sentUserIds = [];
   const expiredIds = [];
   for (const slice of chunk(subs, PUSH_CONCURRENCY)) {
     await Promise.all(slice.map(async (sub) => {
       try {
         await webpush.sendNotification(sub.subscription, JSON.stringify(payload), PUSH_OPTIONS);
         sent++;
+        sentUserIds.push(sub.user_id);
       } catch (err) {
         if (err.statusCode === 404 || err.statusCode === 410) expiredIds.push(sub.id);
         else console.error('Push error:', sub.user_id, err.message);
       }
     }));
   }
-  return { sent, expiredIds };
+  return { sent, expiredIds, sentUserIds };
 }
 
 // One DELETE per batch rather than one per row.
@@ -254,11 +288,15 @@ async function sendPushToTimezone(targetOffset) {
     return Number(offset) === Number(targetOffset); // cast both to ensure no string/int mismatch
   });
 
-  const { sent: pushSent, expiredIds } = await sendPushBatch(eligibleSubs, {
+  const doneToday = await alreadySent('push', eligibleSubs.map(s => s.user_id));
+  const toSend = eligibleSubs.filter(s => !doneToday.has(s.user_id));
+
+  const { sent: pushSent, expiredIds, sentUserIds } = await sendPushBatch(toSend, {
     title: 'Time for Elevensies!',
     body: "Today's game is open. Time to play! 🟨",
     url: GAME_URL,
   });
+  await markSent('push', sentUserIds);
   await deleteExpiredSubs(expiredIds);
 
   return { pushSent, totalSubscribers: pushSubs.length, eligible: eligibleSubs.length, targetOffset };
@@ -594,11 +632,15 @@ export default async function handler(req, res) {
     const playedIds = new Set((playedToday || []).map(r => r.user_id));
     const unplayedSubs = eligibleSubs.filter(s => !playedIds.has(s.user_id));
 
-    const { sent: nudgeSent, expiredIds } = await sendPushBatch(unplayedSubs, {
+    const nudgedToday = await alreadySent('nudge', unplayedSubs.map(s => s.user_id));
+    const nudgeTargets = unplayedSubs.filter(s => !nudgedToday.has(s.user_id));
+
+    const { sent: nudgeSent, expiredIds, sentUserIds: nudgedIds } = await sendPushBatch(nudgeTargets, {
       title: 'Last chance — game closes at 2pm!',
       body: "You haven't played today yet. 30 minutes left! 🟨",
       url: GAME_URL,
     });
+    await markSent('nudge', nudgedIds);
     await deleteExpiredSubs(expiredIds);
     return res.status(200).json({
       nudgeSent,
