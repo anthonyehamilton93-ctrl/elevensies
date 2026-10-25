@@ -34,6 +34,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
+  /* Branded scrollbars: blocky, no rounded corners. iOS keeps its own thin one. */
+  /* Firefox only: modern Chrome ignores the ::-webkit rules below if these are set */
+  @supports not selector(::-webkit-scrollbar) { * { scrollbar-width: thin; scrollbar-color: #f0c020 #114b29; } }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-track { background: #114b29; border-radius: 0; }
+  *::-webkit-scrollbar-thumb { background: #f0c020; border: 2px solid #114b29; border-radius: 0; }
+  *::-webkit-scrollbar-thumb:hover { background: #c9a010; }
+  *::-webkit-scrollbar-corner { background: #114b29; }
+  *::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
   :root {
     --green: #1a6b3c;
     --green-dark: #155c33;
