@@ -5156,7 +5156,7 @@ async function showDailyBriefing() {
 
       const { data } = await client
         .from('game_results')
-        .select('user_id, best_word, best_word_score, history, total_score')
+        .select('user_id, best_word, best_word_score, history, total_score, played_at')
         .eq('game_status', 'completed')
         .gte('played_at', windowStart.toISOString())
         .lte('played_at', windowEnd.toISOString())
@@ -5182,9 +5182,45 @@ async function showDailyBriefing() {
           document.getElementById('briefingWordMeta').textContent = '';
         }
 
-        // Top 11 leaderboard
-        const top11 = data
-          .sort((a, b) => b.total_score - a.total_score)
+        // Top 11 leaderboard: score, then longer current streak, then earliest submission.
+        // Everyone level with 11th place is included so the streak tiebreak can
+        // decide who makes the cut.
+        const byScore = [...data].sort((a, b) => b.total_score - a.total_score);
+        const cutoff = byScore[Math.min(10, byScore.length - 1)].total_score;
+        const candidates = byScore.filter(r => r.total_score >= cutoff);
+        const candIds = [...new Set(candidates.map(r => r.user_id))];
+
+        const localDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const streakOf = {};
+        await Promise.all(candIds.map(async uid => {
+          try {
+            const { data: gr } = await client.from('game_results')
+              .select('played_at')
+              .eq('user_id', uid)
+              .in('game_status', ['completed', 'freeze'])
+              .order('played_at', { ascending: false })
+              .limit(400);
+            const ds = [...new Set((gr || []).map(g => localDateStr(new Date(g.played_at))))].sort().reverse();
+            const nowD = new Date();
+            const todayS = localDateStr(nowD);
+            const yD = new Date(nowD); yD.setDate(yD.getDate() - 1);
+            let st = 0;
+            if (ds.length && (ds[0] === todayS || ds[0] === localDateStr(yD))) {
+              st = 1;
+              for (let i = 1; i < ds.length; i++) {
+                const diff = Math.round((new Date(ds[i-1] + 'T12:00:00') - new Date(ds[i] + 'T12:00:00')) / 86400000);
+                if (diff === 1) st++; else break;
+              }
+            }
+            streakOf[uid] = st;
+          } catch (e) { streakOf[uid] = 0; }
+        }));
+
+        const top11 = candidates
+          .sort((a, b) =>
+            b.total_score - a.total_score ||
+            (streakOf[b.user_id] || 0) - (streakOf[a.user_id] || 0) ||
+            new Date(a.played_at) - new Date(b.played_at))
           .slice(0, 11);
         const userIds = [...new Set(top11.map(r => r.user_id))];
         const { data: profiles } = await client.from('profiles').select('id, display_name').in('id', userIds);
@@ -5196,12 +5232,22 @@ async function showDailyBriefing() {
         if (top11.length === 0) {
           top11List.innerHTML = '<div style="opacity:0.4;text-align:center;">NO SCORES YET</div>';
         } else {
-          top11List.innerHTML = top11.map((r, i) => `
-            <div style="display:flex;align-items:center;padding:3px 0;border-bottom:1px solid rgba(240,192,32,0.08);">
+          top11List.innerHTML = `
+            <div style="display:flex;align-items:center;padding:0 0 4px;font-size:8px;letter-spacing:0.14em;opacity:0.4;">
+              <span style="width:16px;flex-shrink:0;"></span>
+              <span style="flex:1;">PLAYER</span>
+              <span style="width:44px;text-align:right;">STREAK</span>
+              <span style="width:40px;text-align:right;">SCORE</span>
+            </div>` + top11.map((r, i) => `
+            <div class="briefing-lb-row" data-uid="${r.user_id}" style="display:flex;align-items:center;padding:3px 0;border-bottom:1px solid rgba(240,192,32,0.08);cursor:pointer;">
               <span style="opacity:0.4;font-size:10px;width:16px;flex-shrink:0;">${i + 1}</span>
               <span style="flex:1;font-size:11px;letter-spacing:0.04em;${r.user_id === currentUser?.id ? 'color:var(--gold);font-weight:700;' : 'opacity:0.8;'}overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nameMap[r.user_id] || '—'}</span>
-              <span style="font-size:11px;font-weight:700;color:var(--gold);margin-left:8px;">${r.total_score}</span>
+              <span style="font-size:11px;width:44px;text-align:right;opacity:0.6;">${streakOf[r.user_id] || 0}</span>
+              <span style="font-size:11px;font-weight:700;color:var(--gold);width:40px;text-align:right;">${r.total_score}</span>
             </div>`).join('');
+          top11List.querySelectorAll('.briefing-lb-row').forEach(row => {
+            row.addEventListener('click', () => openPlayerProfile(row.dataset.uid));
+          });
         }
       } else {
         document.getElementById('briefingWord').textContent = '—';
